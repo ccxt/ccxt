@@ -6,7 +6,9 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, Endpoint, List } from './base/types.js';
+
+;
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +17,7 @@ import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook
  * @augments Exchange
  */
 export default class bit2c extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -129,37 +131,37 @@ export default class bit2c extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'Exchanges/{pair}/lasttrades': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': { 'cost': 1 } as Endpoint<Dict>,
+                        'Funds/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddFund': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceSell': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddStopOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/GetMyId': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Send': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Pay': { 'cost': 1 } as Endpoint<string>,
+                    },
+                    'get': {
+                        'Account/Balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'Account/Balance/v2': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/MyOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AccountHistory': { 'cost': 1 } as Endpoint<List>,
+                        'Order/OrderHistory': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
             },
             'markets': {
@@ -207,7 +209,9 @@ export default class bit2c extends Exchange {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -284,7 +288,7 @@ export default class bit2c extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -313,7 +317,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -371,9 +375,9 @@ export default class bit2c extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -385,7 +389,7 @@ export default class bit2c extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const averagePrice = this.safeString (ticker, 'av');
         const baseVolume = this.safeString (ticker, 'a');
@@ -423,7 +427,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -447,12 +451,13 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const optionValue = this.safeString (this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
+        const method = this.handleOption ('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request: Dict = {
             'pair': market['id'],
         };
@@ -462,23 +467,28 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response: List = undefined;
+        let responseList: Dict[] = [];
         if (method === 'public_get_exchanges_pair_trades') {
-            response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+            const response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if (typeof response === 'string') {
+                throw new ExchangeError (response);
+            }
+            responseList = this.toArray (response);
         } else {
-            response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
+            const response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
+            if (typeof response === 'string') {
+                throw new ExchangeError (response);
+            }
+            responseList = this.toArray (response);
         }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if (typeof response === 'string') {
-            throw new ExchangeError (response);
-        }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     /**
@@ -489,7 +499,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -546,7 +556,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -579,7 +589,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const request: Dict = {
             'id': id,
         };
@@ -598,7 +608,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -626,7 +636,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -652,7 +662,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //      createOrder
         //      {
@@ -683,7 +693,7 @@ export default class bit2c extends Exchange {
         //          "initialAmount": 2.00000000
         //      }
         //
-        let orderUnified: Dict = undefined;
+        let orderUnified: NullableDict = undefined;
         let isNewOrder = false;
         if ('NewOrder' in order) {
             orderUnified = order['NewOrder'];
@@ -777,7 +787,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -834,10 +844,14 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let responseList: Dict[] = [];
+        if (response !== undefined) {
+            responseList = this.toArray (response);
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
-    removeCommaFromValue (str) {
+    removeCommaFromValue (str: any) {
         let newString = '';
         const strParts = str.split (',');
         for (let i = 0; i < strParts.length; i++) {
@@ -846,7 +860,7 @@ export default class bit2c extends Exchange {
         return newString;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -884,7 +898,7 @@ export default class bit2c extends Exchange {
         let price: Str = undefined;
         let amount: Str = undefined;
         let orderId: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: FeeString = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');
@@ -946,7 +960,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return code === 'NIS';
     }
 
@@ -959,7 +973,7 @@ export default class bit2c extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -980,7 +994,7 @@ export default class bit2c extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -999,11 +1013,11 @@ export default class bit2c extends Exchange {
         } as DepositAddress;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';
@@ -1031,7 +1045,7 @@ export default class bit2c extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

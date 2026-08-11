@@ -5,7 +5,7 @@ using System.Globalization;
 using dict = IDictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
@@ -375,6 +375,11 @@ public partial class Exchange
             return value;
         }
 
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object sum(params object[] args)

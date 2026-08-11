@@ -1,5 +1,5 @@
 import bithumbRest from '../bithumb.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool, Order, Str, Market } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Balances } from '../base/types.js';
 export default class bithumb extends bithumbRest {
@@ -26,7 +26,7 @@ export default class bithumb extends bithumbRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bithumb#watchOrderBook
@@ -35,7 +35,7 @@ export default class bithumb extends bithumbRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;

@@ -83,6 +83,7 @@ class phemex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositionADLRank' => true,
+                'fetchPositionHistory' => true,
                 'fetchPositions' => true,
                 'fetchPositionsADLRank' => true,
                 'fetchPositionsRisk' => false,
@@ -149,154 +150,154 @@ class phemex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'cfg/v2/products' => 5, // spot . contracts
-                        'cfg/fundingRates' => 5,
-                        'products' => 5, // contracts only
-                        'nomics/trades' => 5, // ?market=<symbol>&since=<since>
-                        'md/kline' => 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list' => 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline' => 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last' => 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/orderbook' => 5, // ?symbol=<symbol>
-                        'md/trade' => 5, // ?symbol=<symbol>
-                        'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>
-                        'exchange/public/cfg/chain-settings' => 5, // ?currency=<currency>
+                        'cfg/v2/products' => array( 'cost' => 5 ), // spot . contracts
+                        'cfg/fundingRates' => array( 'cost' => 5 ),
+                        'products' => array( 'cost' => 5 ), // contracts only
+                        'nomics/trades' => array( 'cost' => 5 ), // ?market=<symbol>&since=<since>
+                        'md/kline' => array( 'cost' => 5 ), // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list' => array( 'cost' => 5 ), // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline' => array( 'cost' => 5 ), // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last' => array( 'cost' => 5 ), // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'md/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'md/spot/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings' => array( 'cost' => 5 ), // ?currency=<currency>
                     ),
                 ),
                 'v1' => array(
                     'get' => array(
-                        'md/fullbook' => 5, // ?symbol=<symbol>
-                        'md/orderbook' => 5, // ?symbol=<symbol>
-                        'md/trade' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all' => 5, // ?id=<id>
-                        'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all' => 5, // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products' => 5, // contracts only
-                        'api-data/public/data/funding-rate-history' => 5,
+                        'md/fullbook' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'md/orderbook' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'md/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all' => array( 'cost' => 5 ), // ?id=<id>
+                        'md/spot/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products' => array( 'cost' => 5 ), // contracts only
+                        'api-data/public/data/funding-rate-history' => array( 'cost' => 5 ),
                     ),
                 ),
                 'v2' => array(
                     'get' => array(
-                        'public/products' => 5,
-                        'public/products-plus' => 5,
-                        'md/v2/orderbook' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all' => 5, // ?id=<id>
-                        'api-data/public/data/funding-rate-history' => 5,
+                        'public/products' => array( 'cost' => 5 ),
+                        'public/products-plus' => array( 'cost' => 5 ),
+                        'md/v2/orderbook' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all' => array( 'cost' => 5 ), // ?id=<id>
+                        'api-data/public/data/funding-rate-history' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // spot
-                        'spot/orders/active' => 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/active' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>
                         // 'spot/orders/active' => 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders' => 1, // ?symbol=<symbol>
-                        'spot/wallets' => 5, // ?currency=<currency>
-                        'exchange/spot/order' => 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList' => 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList' => 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders' => array( 'cost' => 1 ), // ?symbol=<symbol>
+                        'spot/wallets' => array( 'cost' => 5 ), // ?currency=<currency>
+                        'exchange/spot/order' => array( 'cost' => 5 ), // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades' => array( 'cost' => 5 ), // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList' => array( 'cost' => 5 ), // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList' => array( 'cost' => 5 ), // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions' => 1, // ?currency=<currency>
-                        'g-accounts/accountPositions' => 1, // ?currency=<currency>
-                        'g-accounts/positions' => 25, // ?currency=<currency>
-                        'g-accounts/risk-unit' => 1,
-                        'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
-                        'api-data/futures/orders' => 5, // ?symbol=<symbol>
-                        'api-data/g-futures/orders' => 5, // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id' => 5, // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id' => 5, // ?symbol=<symbol>
-                        'api-data/futures/trades' => 5, // ?symbol=<symbol>
-                        'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
-                        'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
-                        'api-data/g-futures/closedPosition' => 5,
-                        'g-orders/activeList' => 1, // ?symbol=<symbol>
-                        'orders/activeList' => 1, // ?symbol=<symbol>
-                        'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order' => 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        'accounts/accountPositions' => array( 'cost' => 1 ), // ?currency=<currency>
+                        'g-accounts/accountPositions' => array( 'cost' => 1 ), // ?currency=<currency>
+                        'g-accounts/positions' => array( 'cost' => 25 ), // ?currency=<currency>
+                        'g-accounts/risk-unit' => array( 'cost' => 1 ),
+                        'api-data/futures/funding-fees' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/futures/orders' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/g-futures/orders' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/futures/trades' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/g-futures/trades' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/futures/trading-fees' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail' => array( 'cost' => 5 ), // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/g-futures/closedPosition' => array( 'cost' => 5 ),
+                        'g-orders/activeList' => array( 'cost' => 1 ), // ?symbol=<symbol>
+                        'orders/activeList' => array( 'cost' => 1 ), // ?symbol=<symbol>
+                        'exchange/order/list' => array( 'cost' => 5 ), // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order' => array( 'cost' => 5 ), // ?symbol=<symbol>&orderID=<orderID5,orderID2>
                         // 'exchange/order' => 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
-                        'exchange/order/trade' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children' => 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress' => 5, // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail' => 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-deposit/wallets/api/depositAddress' => 5, // ?currency=<currency>&chainName=<chainName>
-                        'phemex-deposit/wallets/api/depositHist' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-deposit/wallets/api/chainCfg' => 5, // ?currency=<currency>
-                        'phemex-withdraw/wallets/api/withdrawHist' => 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-withdraw/wallets/api/asset/info' => 5, // ?currency=<currency>&amount=<amount>
-                        'phemex-user/order/closedPositionList' => 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer' => 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw' => 5, // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList' => 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress' => 5, // ?currency=<currency>
-                        'api-data/spots/funds' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'api-data/spots/orders' => 5, // ?symbol=<symbol>
-                        'api-data/spots/orders/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'api-data/spots/pnls' => 5,
-                        'api-data/spots/trades' => 5, // ?symbol=<symbol>
-                        'api-data/spots/trades/by-order-id' => 5, // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
-                        'assets/convert' => 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'exchange/order/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children' => array( 'cost' => 5 ), // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress' => array( 'cost' => 5 ), // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail' => array( 'cost' => 5 ), // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress' => array( 'cost' => 5 ), // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist' => array( 'cost' => 5 ), // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg' => array( 'cost' => 5 ), // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist' => array( 'cost' => 5 ), // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info' => array( 'cost' => 5 ), // ?currency=<currency>&amount=<amount>
+                        'phemex-user/order/closedPositionList' => array( 'cost' => 5 ), // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer' => array( 'cost' => 5 ), // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw' => array( 'cost' => 5 ), // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList' => array( 'cost' => 5 ), // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList' => array( 'cost' => 5 ), // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress' => array( 'cost' => 5 ), // ?currency=<currency>
+                        'api-data/spots/funds' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id' => array( 'cost' => 5 ), // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls' => array( 'cost' => 5 ),
+                        'api-data/spots/trades' => array( 'cost' => 5 ), // ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id' => array( 'cost' => 5 ), // ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'assets/convert' => array( 'cost' => 5 ), // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote' => 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/transfer' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote' => array( 'cost' => 5 ), // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
                     ),
                     'post' => array(
                         // spot
-                        'spot/orders' => 1,
+                        'spot/orders' => array( 'cost' => 1 ),
                         // swap
-                        'orders' => 1,
-                        'g-orders' => 1,
-                        'positions/assign' => 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut' => 5,
-                        'exchange/wallets/transferIn' => 5,
-                        'exchange/margins' => 5,
-                        'exchange/wallets/createWithdraw' => 5, // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw' => 5,
-                        'exchange/wallets/createWithdrawAddress' => 5, // ?otpCode={optCode}
+                        'orders' => array( 'cost' => 1 ),
+                        'g-orders' => array( 'cost' => 1 ),
+                        'positions/assign' => array( 'cost' => 5 ), // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut' => array( 'cost' => 5 ),
+                        'exchange/wallets/transferIn' => array( 'cost' => 5 ),
+                        'exchange/margins' => array( 'cost' => 5 ),
+                        'exchange/wallets/createWithdraw' => array( 'cost' => 5 ), // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw' => array( 'cost' => 5 ),
+                        'exchange/wallets/createWithdrawAddress' => array( 'cost' => 5 ), // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer' => 5,
-                        'assets/spots/sub-accounts/transfer' => 5, // for sub-account only
-                        'assets/futures/sub-accounts/transfer' => 5, // for sub-account only
-                        'assets/universal-transfer' => 5, // for Main account only
-                        'assets/convert' => 5,
+                        'assets/transfer' => array( 'cost' => 5 ),
+                        'assets/spots/sub-accounts/transfer' => array( 'cost' => 5 ), // for sub-account only
+                        'assets/futures/sub-accounts/transfer' => array( 'cost' => 5 ), // for sub-account only
+                        'assets/universal-transfer' => array( 'cost' => 5 ), // for Main account only
+                        'assets/convert' => array( 'cost' => 5 ),
                         // withdraw
-                        'phemex-withdraw/wallets/api/createWithdraw' => 5, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
-                        'phemex-withdraw/wallets/api/cancelWithdraw' => 5, // ?id=<id>
+                        'phemex-withdraw/wallets/api/createWithdraw' => array( 'cost' => 5 ), // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
+                        'phemex-withdraw/wallets/api/cancelWithdraw' => array( 'cost' => 5 ), // ?id=<id>
                     ),
                     'put' => array(
                         // spot
-                        'spot/orders/create' => 1, // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
-                        'spot/orders' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders/create' => array( 'cost' => 1 ), // ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
+                        'spot/orders' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/create' => 1,
-                        'positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync' => 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit' => 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                        'orders/replace' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/create' => array( 'cost' => 1 ),
+                        'positions/leverage' => array( 'cost' => 5 ), // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage' => array( 'cost' => 5 ), // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync' => array( 'cost' => 5 ), // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit' => array( 'cost' => 5 ), // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     ),
                     'delete' => array(
                         // spot
-                        'spot/orders' => 2, // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all' => 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        'spot/orders' => array( 'cost' => 2 ), // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all' => array( 'cost' => 2 ), // ?symbol=<symbol>&untriggered=<untriggered>
                         // 'spot/orders' => 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel' => 1, // ?symbol=<symbol>&orderID=<orderID>
-                        'orders' => 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all' => 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel' => 1, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders' => 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all' => 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/cancel' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>
+                        'orders' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all' => array( 'cost' => 3 ), // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders' => array( 'cost' => 1 ), // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all' => array( 'cost' => 3 ), // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     ),
                 ),
             ),
@@ -700,7 +701,7 @@ class phemex extends Exchange {
         if ($settleId !== $quoteId) {
             $inverse = true;
             // some unhandled cases
-            if (!(is_array($market) && array_key_exists('baseCurrency', $market)) && $base === $quote) {
+            if (!(is_array($market) && array_key_exists('baseCurrency' ?? '', $market)) && $base === $quote) {
                 $base = $settle;
             }
         }
@@ -1027,7 +1028,7 @@ class phemex extends Exchange {
         //                     "symbol":"BTCUSDT",
         //                     "steps":"2000K",
         //                     "riskLimits":array(
-        //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),,
+        //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),
         //                         array("limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"),
         //                         array("limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"),
         //                     )
@@ -1183,7 +1184,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
+    public function custom_parse_bid_ask(mixed $bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
         }
@@ -1197,7 +1198,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
+    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1228,7 +1229,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
          * @param {int} [$limit] the maximum amount of order $book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-$book-structure order $book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1281,7 +1282,7 @@ class phemex extends Exchange {
         return $orderbook;
     }
 
-    public function to_en($n, $scale) {
+    public function to_en(mixed $n, mixed $scale) {
         $stringN = $this->number_to_string($n);
         $precise = new Precise($stringN);
         $precise->decimals = $precise->decimals - $scale;
@@ -1290,21 +1291,21 @@ class phemex extends Exchange {
         return $this->parse_to_numeric($preciseString);
     }
 
-    public function to_ev($amount, ?array $market = null) {
+    public function to_ev(mixed $amount, ?array $market = null) {
         if (($amount === null) || ($market === null)) {
             return $amount;
         }
         return $this->to_en($amount, $market['valueScale']);
     }
 
-    public function to_ep($price, ?array $market = null) {
+    public function to_ep(mixed $price, ?array $market = null) {
         if (($price === null) || ($market === null)) {
             return $price;
         }
-        return $this->to_en($price, $market['priceScale']);
+        return $this->to_en($price, $this->safe_value($market, 'priceScale'));
     }
 
-    public function from_en($en, $scale) {
+    public function from_en(mixed $en, mixed $scale) {
         if ($en === null || $scale === null) {
             return null;
         }
@@ -1314,28 +1315,28 @@ class phemex extends Exchange {
         return (string) $precise;
     }
 
-    public function from_ep($ep, ?array $market = null) {
+    public function from_ep(mixed $ep, ?array $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, ?array $market = null) {
+    public function from_ev(mixed $ev, ?array $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, ?array $market = null) {
+    public function from_er(mixed $er, ?array $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1408,7 +1409,8 @@ class phemex extends Exchange {
                     $request['from'] = $since;
                 } else {
                     // when 'to' is defined $since is mandatory
-                    $since = ($until / 100) - ($maxLimit * $candleDuration);
+                    $since = (int) round($until / 1000) - ($maxLimit * $candleDuration);
+                    $request['from'] = $since;
                 }
                 if ($until !== null) {
                     $request['to'] = (int) round($until / 1000);
@@ -1997,7 +1999,7 @@ class phemex extends Exchange {
         ), $market);
     }
 
-    public function parse_spot_balance($response) {
+    public function parse_spot_balance(mixed $response) {
         //
         //     {
         //         "code":0,
@@ -2050,7 +2052,7 @@ class phemex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_swap_balance($response) {
+    public function parse_swap_balance(mixed $response) {
         // usdt
         //   {
         //       "info" => {
@@ -2435,7 +2437,7 @@ class phemex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_side($side) {
+    public function parse_order_side(mixed $side) {
         $sides = array(
             '1' => 'buy',
             '2' => 'sell',
@@ -2443,7 +2445,7 @@ class phemex extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_swap_order($order, ?array $market = null) {
+    public function parse_swap_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "bizError":0,
@@ -2626,7 +2628,7 @@ class phemex extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $isSwap = $this->safe_bool($market, 'swap', false);
-        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order)) || (is_array($order) && array_key_exists('closedPnlRv', $order)) || (is_array($order) && array_key_exists('totalPnlRv', $order));
+        $hasPnl = (is_array($order) && array_key_exists('closedPnl' ?? '', $order)) || (is_array($order) && array_key_exists('closedPnlRv' ?? '', $order)) || (is_array($order) && array_key_exists('totalPnlRv' ?? '', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }
@@ -2743,10 +2745,10 @@ class phemex extends Exchange {
                     }
                 }
                 $cost = ($cost === null) ? $amount : $cost;
-                $costString = $this->number_to_string($cost);
+                $costString = $this->cost_to_precision($symbol, $cost);
                 $request['quoteQtyEv'] = $this->to_ev($costString, $market);
             } else {
-                $amountString = $this->number_to_string($amount);
+                $amountString = $this->amount_to_precision($symbol, $amount);
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
         } elseif ($market['swap']) {
@@ -3762,7 +3764,7 @@ class phemex extends Exchange {
         $networkId = $this->safe_string($transaction, 'chainName');
         $timestamp = $this->safe_integer_n($transaction, array( 'createdAt', 'submitedAt', 'submittedAt' ));
         $type = $this->safe_string_lower($transaction, 'type');
-        $feeCost = $this->parse_number($this->from_en($this->safe_string($transaction, 'feeEv'), $currency['valueScale']));
+        $feeCost = $this->parse_number($this->from_en($this->safe_string($transaction, 'feeEv'), $this->safe_value($currency, 'valueScale')));
         if ($feeCost === null) {
             $feeCost = $this->safe_number($transaction, 'feeRv');
         }
@@ -3775,7 +3777,7 @@ class phemex extends Exchange {
             );
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->parse_number($this->from_en($this->safe_string($transaction, 'amountEv'), $currency['valueScale']));
+        $amount = $this->parse_number($this->from_en($this->safe_string($transaction, 'amountEv'), $this->safe_value($currency, 'valueScale')));
         if ($amount === null) {
             $amount = $this->safe_number($transaction, 'amountRv');
         }
@@ -3953,7 +3955,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified contract $symbol
          * @param {int} [$since] the earliest time in ms to fetch $positions for
          * @param {int} [$limit] the maximum amount of records to fetch
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $positions for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
@@ -4256,7 +4258,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function parse_funding_fee_to_precision($value, ?array $market = null, ?string $currencyCode = null) {
+    public function parse_funding_fee_to_precision(mixed $value, ?array $market = null, ?string $currencyCode = null) {
         if ($value === null || $currencyCode === null || $market === null) {
             return $value;
         }
@@ -4321,7 +4323,7 @@ class phemex extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "askEp" => 2332500,
@@ -4420,7 +4422,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_margin_status($status) {
+    public function parse_margin_status(mixed $status) {
         $statuses = array(
             '0' => 'ok',
         );
@@ -4507,7 +4509,7 @@ class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by binance setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
@@ -4631,7 +4633,7 @@ class phemex extends Exchange {
         return $this->parse_leverage_tiers($riskLimits, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -4662,7 +4664,7 @@ class phemex extends Exchange {
                 'currency' => $market['settle'],
                 'minNotional' => $minNotionalResponse,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => null,
                 'info' => $tier,
             );
@@ -4671,7 +4673,7 @@ class phemex extends Exchange {
         return $tiers;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $requestPath;
@@ -5066,7 +5068,7 @@ class phemex extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the phemex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified network $code
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
@@ -5177,7 +5179,7 @@ class phemex extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //    {
         //        closeRp => '67550.1',
@@ -5778,7 +5780,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

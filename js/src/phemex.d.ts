@@ -1,14 +1,14 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
  */
 export default class phemex extends Exchange {
     describe(): any;
-    parseSafeNumber(value?: Str): string | number;
-    parseSwapMarket(market: Dict): import("./base/types.js").MarketInterface;
-    parseSpotMarket(market: Dict): import("./base/types.js").MarketInterface;
+    parseSafeNumber(value?: Str): Num;
+    parseSwapMarket(market: Dict): Market;
+    parseSpotMarket(market: Dict): Market;
     /**
      * @method
      * @name phemex#fetchMarkets
@@ -26,9 +26,9 @@ export default class phemex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: Market): number[];
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): any;
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): Dict;
     /**
      * @method
      * @name phemex#fetchOrderBook
@@ -37,13 +37,13 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     toEn(n: any, scale: any): number;
-    toEv(amount: any, market?: Dictionary<any>): any;
+    toEv(amount: any, market?: Dictionary<any> | undefined): any;
     toEp(price: any, market?: Market): any;
-    fromEn(en: any, scale: any): string;
+    fromEn(en: any, scale: any): string | undefined;
     fromEp(ep: any, market?: Market): any;
     fromEv(ev: any, market?: Market): any;
     fromEr(er: any, market?: Market): any;
@@ -114,9 +114,9 @@ export default class phemex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
-    parseTimeInForce(timeInForce: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
+    parseTimeInForce(timeInForce: Str): Str;
     parseSpotOrder(order: Dict, market?: Market): Order;
     parseOrderSide(side: any): string;
     parseSwapOrder(order: any, market?: Market): Order;
@@ -280,7 +280,7 @@ export default class phemex extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -304,7 +304,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -356,18 +356,18 @@ export default class phemex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name phemex#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name phemex#fetchLeverageTiers
@@ -378,11 +378,11 @@ export default class phemex extends Exchange {
      */
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
     /**
      * @method
@@ -450,7 +450,7 @@ export default class phemex extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
-     * @param {object} [params] extra parameters specific to the phemex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
@@ -522,5 +522,5 @@ export default class phemex extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -1,14 +1,16 @@
 import * as functions from './functions.js';
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
+import { type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, Status, PositionModeInfo, MarginLoan } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
  * @class Exchange
  */
-export default class Exchange {
+export declare class BaseExchange {
+    [key: string]: any;
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
@@ -62,7 +64,7 @@ export default class Exchange {
     fetchImplementation: any;
     AbortError: any;
     FetchError: any;
-    fetchImplementationLoading: Promise<any>;
+    fetchImplementationLoading?: Promise<any>;
     fetchIsNative: boolean;
     undiciModule: any;
     zlibModule: any;
@@ -98,13 +100,14 @@ export default class Exchange {
     positions: any;
     urls: {
         logo?: string;
-        api: string | NestedDictionary;
-        test: string | NestedDictionary;
+        api: NestedDictionary;
+        test: NestedDictionary;
         www?: string;
         doc?: string[];
         api_management?: string;
         fees?: string;
         referral?: string;
+        [key: string]: any;
     };
     requiresWeb3: boolean;
     precision: {
@@ -117,19 +120,19 @@ export default class Exchange {
     enableLastJsonResponse: boolean;
     enableLastHttpResponse: boolean;
     enableLastResponseHeaders: boolean;
-    last_http_response: string;
+    last_http_response: string | undefined;
     last_json_response: any;
-    last_response_headers: Dictionary<string>;
-    last_request_headers: Dictionary<string>;
+    last_response_headers: Dictionary<string> | undefined;
+    last_request_headers: Dictionary<string> | undefined;
     last_request_body: any;
-    last_request_url: string;
-    last_request_path: string;
+    last_request_url: Str;
+    last_request_path: Str;
     fetchHistoryCache: Dictionary<any>[];
     fetchHistoryCacheSize: number;
     id: string;
-    markets: Dictionary<any>;
+    markets: Dictionary<any> | undefined;
     has: Dictionary<boolean | 'emulated' | undefined>;
-    features: Dictionary<Dictionary<any>>;
+    features: Dictionary<Dictionary<any> | undefined>;
     status: {
         status: Str;
         updated: Num;
@@ -147,6 +150,7 @@ export default class Exchange {
         privateKey: Bool;
         walletAddress: Bool;
         token: Bool;
+        [key: string]: Bool;
     };
     rateLimit: Num;
     tokenBucket: Dictionary<number>;
@@ -175,13 +179,13 @@ export default class Exchange {
             deposit: {};
         };
     };
-    markets_by_id: Dictionary<any>;
-    symbols: Strings;
+    markets_by_id: Dictionary<any> | undefined;
+    symbols: string[];
     ids: Strings;
     currencies: Currencies;
-    baseCurrencies: Dictionary<CurrencyInterface>;
-    quoteCurrencies: Dictionary<CurrencyInterface>;
-    currencies_by_id: Dictionary<CurrencyInterface>;
+    baseCurrencies: Dictionary<CurrencyInterface> | undefined;
+    quoteCurrencies: Dictionary<CurrencyInterface> | undefined;
+    currencies_by_id: Dictionary<CurrencyInterface> | undefined;
     codes: Strings;
     reloadingMarkets: Bool;
     marketsLoading: Promise<Dictionary<Market>>;
@@ -191,7 +195,7 @@ export default class Exchange {
     hostname: Str;
     precisionMode: Int;
     paddingMode: Int;
-    exceptions: Dictionary<string>;
+    exceptions: Dict;
     timeframes: Dictionary<number | string>;
     version: Str;
     name: Str;
@@ -203,106 +207,106 @@ export default class Exchange {
     socksProxyAgentModuleChecked: boolean;
     proxyDictionaries: Dictionary<any>;
     proxyDictionariesMaxSize: number;
-    proxiesModulesLoading: Promise<any>;
+    proxiesModulesLoading?: Promise<any>;
     alias: boolean;
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
     streaming: Dictionary<any>;
-    sleep: (ms: any) => Promise<unknown>;
-    deepExtend: (...args: any) => any;
-    deepExtendSafe: (...args: any) => any;
+    sleep: typeof functions.sleep;
+    deepExtend: typeof functions.deepExtend;
+    deepExtendSafe: typeof functions.deepExtend;
     isNode: boolean;
-    extend: (...args: any[]) => any;
-    clone: (x: any) => any;
-    unique: (x: any[]) => any[];
-    indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
-    indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
-    roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
-    sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
-    sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
-    groupBy: (x: Dictionary<any>, k: string, out?: Dictionary<any>) => Dictionary<any>;
+    extend: typeof functions.extend;
+    clone: typeof functions.clone;
+    unique: typeof functions.unique;
+    indexBy: typeof functions.indexBy;
+    indexBySafe: typeof functions.indexBy;
+    roundTimeframe: typeof functions.roundTimeframe;
+    sortBy: typeof functions.sortBy;
+    sortBy2: typeof functions.sortBy2;
+    groupBy: typeof functions.groupBy;
     aggregate: typeof functions.aggregate;
-    uuid: (a?: any) => string;
-    unCamelCase: (s: string) => string;
+    uuid: typeof functions.uuid;
+    unCamelCase: typeof functions.unCamelCase;
     precisionFromString: typeof functions.precisionFromString;
-    capitalize: (s: string) => string;
+    capitalize: typeof functions.capitalize;
     now: () => number;
-    decimalToPrecision: (x: string, roundingMode: number, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => string;
-    safeValue: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: any) => any;
-    safeValue2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: any) => any;
+    decimalToPrecision: typeof functions.decimalToPrecision;
+    safeValue: typeof functions.safeValue;
+    safeValue2: typeof functions.safeValue2;
     safeString: typeof functions.safeString;
     safeString2: typeof functions.safeString2;
-    safeFloat: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: number) => Num;
-    safeFloat2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: number) => Num;
-    seconds: () => number;
+    safeFloat: typeof functions.safeFloat;
+    safeFloat2: typeof functions.safeFloat2;
+    seconds: typeof functions.seconds;
     milliseconds: () => number;
     binaryToBase16: (data: Uint8Array) => string;
-    numberToBE: (n: number, padding: number) => Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    numberToBE: typeof functions.numberToBE;
     base16ToBinary: (str: string) => Uint8Array;
-    iso8601: (timestamp: any) => string;
-    omit: (x: Dictionary<any>, ...args: any) => any;
-    isJsonEncodedObject: (object: any) => boolean;
+    iso8601: typeof functions.iso8601;
+    omit: typeof functions.omit;
+    isJsonEncodedObject: typeof functions.isJsonEncodedObject;
     safeInteger: typeof functions.safeInteger;
-    sum: (...xs: any[]) => any;
+    sum: typeof functions.sum;
     omitZero: typeof functions.omitZero;
-    implodeParams: (string: string, params: Dictionary<any> | any[]) => string;
-    extractParams: (string: string) => string[];
-    json: (data: any, params?: any) => string;
+    implodeParams: typeof functions.implodeParams;
+    extractParams: typeof functions.extractParams;
+    json: typeof functions.json;
     binaryConcat: (...arrays: import("@noble/curves/utils.js").TArg<Uint8Array[]>) => import("@noble/curves/utils.js").TRet<Uint8Array>;
-    hash: (request: string | Uint8Array<ArrayBufferLike>, hash: import("@noble/hashes/utils.js").CHash, digest?: "binary" | "hex" | "base64") => any;
-    arrayConcat: (a: any[], b: any[]) => any[];
+    hash: typeof functions.hash;
+    arrayConcat: typeof functions.arrayConcat;
     encode: (str: string) => Uint8Array;
-    urlencode: (object: object, sort?: boolean) => string;
-    hmac: (request: string | Uint8Array<ArrayBufferLike>, secret: string | Uint8Array<ArrayBufferLike>, hash: import("@noble/hashes/utils.js").CHash, digest?: "binary" | "hex" | "base64") => any;
+    urlencode: typeof functions.urlencode;
+    hmac: typeof functions.hmac;
     numberToString: typeof functions.numberToString;
-    parseTimeframe: (timeframe: string) => number;
+    parseTimeframe: typeof functions.parseTimeframe;
     safeInteger2: typeof functions.safeInteger2;
-    safeStringLower: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: string) => Str;
-    parse8601: (x: any) => number;
-    yyyymmdd: (timestamp: any, infix?: string) => string;
-    safeStringUpper: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: string) => Str;
-    safeTimestamp: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: number) => Int;
-    binaryConcatArray: (arr: any[]) => Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
-    ymdhms: (timestamp: any, infix?: string) => string;
-    yymmdd: (timestamp: any, infix?: string) => string;
-    stringToBase64: (string: string) => string;
+    safeStringLower: typeof functions.safeStringLower;
+    parse8601: typeof functions.parse8601;
+    yyyymmdd: typeof functions.yyyymmdd;
+    safeStringUpper: typeof functions.safeStringUpper;
+    safeTimestamp: typeof functions.safeTimestamp;
+    binaryConcatArray: typeof functions.binaryConcatArray;
+    ymdhms: typeof functions.ymdhms;
+    yymmdd: typeof functions.yymmdd;
+    stringToBase64: typeof functions.stringToBase64;
     decode: (data: Uint8Array) => string;
-    uuid22: (a?: any) => string;
-    safeIntegerProduct2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $factor: number, $default?: number) => Int;
-    safeIntegerProduct: (o: import("./types.js").implicitReturnType, k: IndexType, $factor: number, $default?: number) => Int;
+    uuid22: typeof functions.uuid22;
+    safeIntegerProduct2: typeof functions.safeIntegerProduct2;
+    safeIntegerProduct: typeof functions.safeIntegerProduct;
     binaryToBase58: (data: Uint8Array) => string;
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
-    safeTimestamp2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: Int) => Int;
-    rawencode: (object: object, sort?: boolean) => string;
-    keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
-    sort: (array: string[] | any) => any;
-    inArray: (needle: any, haystack: any[]) => boolean;
-    safeStringLower2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: string) => Str;
-    safeStringUpper2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: string) => Str;
-    isEmpty: (object: any[] | Dictionary<any>) => boolean;
-    filterBy: (x: Dictionary<any>, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
-    uuid16: (a?: any) => string;
-    urlencodeWithArrayRepeat: (object: object) => string;
-    microseconds: () => number;
+    safeTimestamp2: typeof functions.safeTimestamp2;
+    rawencode: typeof functions.rawencode;
+    keysort: typeof functions.keysort;
+    sort: typeof functions.sort;
+    inArray: typeof functions.inArray;
+    safeStringLower2: typeof functions.safeStringLower2;
+    safeStringUpper2: typeof functions.safeStringUpper2;
+    isEmpty: typeof functions.isEmpty;
+    filterBy: typeof functions.filterBy;
+    uuid16: typeof functions.uuid16;
+    urlencodeWithArrayRepeat: typeof functions.urlencodeWithArrayRepeat;
+    microseconds: typeof functions.microseconds;
     binaryToBase64: (data: Uint8Array) => string;
-    strip: (s: string) => string;
-    toArray: (object: Dictionary<any> | any[]) => any[];
-    safeFloatN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: number) => Num;
+    strip: typeof functions.strip;
+    toArray: typeof functions.toArray;
+    safeFloatN: typeof functions.safeFloatN;
     safeIntegerN: typeof functions.safeIntegerN;
-    safeIntegerProductN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $factor: number, $default?: number) => Int;
-    safeTimestampN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: number) => Int;
-    safeValueN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: any) => any;
+    safeIntegerProductN: typeof functions.safeIntegerProductN;
+    safeTimestampN: typeof functions.safeTimestampN;
+    safeValueN: typeof functions.safeValueN;
     safeStringN: typeof functions.safeStringN;
-    safeStringLowerN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: string) => Str;
-    safeStringUpperN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: string) => Str;
-    urlencodeNested: (object: object) => string;
-    parseDate: (x: any) => number;
-    ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    base64ToString: (string: string) => string;
+    safeStringLowerN: typeof functions.safeStringLowerN;
+    safeStringUpperN: typeof functions.safeStringUpperN;
+    urlencodeNested: typeof functions.urlencodeNested;
+    parseDate: typeof functions.parseDate;
+    ymd: typeof functions.ymd;
+    base64ToString: typeof functions.base64ToString;
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
-    urlencodeBase64: (payload: string | Uint8Array) => string;
+    urlencodeBase64: typeof functions.urlencodeBase64;
     readFile: typeof functions.readFile;
     writeFile: typeof functions.writeFile;
     existsFile: typeof functions.existsFile;
@@ -311,6 +315,13 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -338,17 +349,11 @@ export default class Exchange {
      * @ignore
      * @method
      * @name Exchange#getDispatcherOptions
-     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables the happy eyeballs (rfc 8305) address-family racing so ipv6 and ipv4 are both attempted (off by default on node 18), without forcing either family
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
-    getDispatcherOptions(isPlainAgent?: boolean): {
-        keepAliveTimeout: number;
-        keepAliveMaxTimeout: number;
-        connections: number;
-        pipelining: number;
-        allowH2: boolean;
-    };
+    getDispatcherOptions(isPlainAgent?: boolean): Dict;
     /**
      * @ignore
      * @method
@@ -434,11 +439,11 @@ export default class Exchange {
     jsonStringifyWithNull(obj: any): string;
     hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
-    getResponseHeaders(response: any): {};
+    getResponseHeaders(response: any): Dict;
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
-    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     /**
      * @method
      * @name Exchange#loadMarkets
@@ -465,27 +470,28 @@ export default class Exchange {
     remove0xPrefix(hexData: any): any;
     mapToSafeMap(dict: any): any;
     safeMapToMap(dict: any): any;
-    spawn(method: any, ...args: any[]): import("./ws/Future.js").FutureInterface;
+    spawn(method: any, ...args: any[]): FutureInterface;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
-    client(url: string): WsClient;
-    watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): import("./ws/Future.js").FutureInterface;
-    watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
+    client(url: Str): WsClient;
+    calculateWsBackoffDelay(url: string): number;
+    watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
+    watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
     close(cleanInstanceCache?: boolean): Promise<void>;
-    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
     valueIsDefined<T>(value: T): value is NonNullable<T>;
-    arraySlice(array: any, first: any, second?: any): any;
+    arraySlice(array: any, first: any, second?: Int): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    isDictionary(value: any): boolean;
     exceptionMessage(exc: any, includeStack?: boolean): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array<ArrayBufferLike>;
@@ -504,8 +510,8 @@ export default class Exchange {
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
-    toDydxLong(numStr: string): object;
-    retrieveDydxCredentials(privateKey: string): object;
+    toDydxLong(numStr: Str): object;
+    retrieveDydxCredentials(privateKey: Str): object;
     encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
     encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
@@ -516,8 +522,8 @@ export default class Exchange {
     randomBytes(length: number): string;
     randNumber(size: number): number;
     binaryLength(binary: Uint8Array): number;
-    lockId(): any;
-    unlockId(): any;
+    lockId(): undefined;
+    unlockId(): undefined;
     loadLighterLibrary(libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient?: boolean): Promise<{}>;
     lighterCreateClient(signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): any;
     lighterSignCreateGroupedOrders(signer: any, request: any): any[];
@@ -540,37 +546,37 @@ export default class Exchange {
     describe(): any;
     cleanRestData(): void;
     cleanWsData(): void;
-    safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
-    safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
-    safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
-    safeDictN(dictionaryOrList: any, keys: IndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDictN(dictionaryOrList: any, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict(dictionaryOrList: any, key: IndexType, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict(dictionaryOrList: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue: any[]): any[];
-    safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
-    isDictionary(value: any): boolean;
-    safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue: any[]): any[];
-    safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
-    safeList(dictionaryOrList: any, key: IndexType, defaultValue: any[]): any[];
-    safeList(dictionaryOrList: any, key: IndexType, defaultValue?: any[]): any[] | undefined;
+    safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict(dictionaryOrList: any, key: NullableIndexType, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
+    safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
+    safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
+    safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
+    safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
+    storeByKey(dict: any, key: NullableIndexType, value: any): void;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
-    findTimeframe(timeframe: any, timeframes?: NullableDict): string;
-    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): string;
+    findTimeframe(timeframe: any, timeframes?: NullableDict): string | undefined;
+    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): Str;
     urlEncoderForProxyUrl(targetUrl: string): string;
-    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): string[];
-    checkWsProxySettings(): string[];
+    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): Str[];
+    checkWsProxySettings(): Str[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
-    filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
-    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
+    filterByLimit(array: Dict[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
+    filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
     /**
      * @method
@@ -586,44 +592,28 @@ export default class Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: any;
-        method: any;
-        headers: any;
-        body: any;
-    };
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): Dict;
     fetchAccounts(params?: {}): Promise<Account[]>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
-    watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
-    fetchRestOrderBookSafe(symbol: any, limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<Int>;
-    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     parseCurrency(rawCurrency: Dict): Currency;
     parseCurrencies(rawCurrencies: any): Currencies;
     parseMarket(market: Dict): Market;
@@ -653,7 +643,7 @@ export default class Exchange {
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     unWatchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
-    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
+    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<FundingRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -670,7 +660,6 @@ export default class Exchange {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
     signIn(params?: {}): Promise<{}>;
     fetchPaymentMethods(params?: {}): Promise<{}>;
@@ -678,8 +667,8 @@ export default class Exchange {
     parseToNumeric(number: any): number;
     isRoundNumber(value: number): boolean;
     isEmptyString(value: any): boolean;
-    safeNumberOmitZero(obj: object, key: IndexType, defaultValue?: Num): Num;
-    safeIntegerOmitZero(obj: object, key: IndexType, defaultValue?: Int): Int;
+    safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
+    safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
     afterConstruct(): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
@@ -711,32 +700,37 @@ export default class Exchange {
                 default: string;
             };
         };
+        backwardSupportedNetworkCodes: {
+            ARB: string;
+            ARBONE: string;
+            ARBNOVA: string;
+        };
     };
     safeLedgerEntry(entry: object, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: string;
-        referenceId: string;
-        referenceAccount: string;
-        type: string;
+        id: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        direction: Str;
+        account: Str;
+        referenceId: Str;
+        referenceAccount: Str;
+        type: Str;
         currency: string;
         amount: number;
         before: number;
         after: number;
-        status: string;
+        status: Str;
         fee: any;
         info: Dictionary<any>;
     };
-    safeCurrencyStructure(currency: object): CurrencyInterface;
-    safeMarketStructure(market?: Dict): MarketInterface;
-    setMarkets(markets: any, currencies?: any): Dictionary<any>;
+    safeCurrencyStructure(currency: Dict): CurrencyInterface;
+    safeMarketStructure(market?: NullableDict): Market;
+    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
     setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
-    parseOrders(orders: object, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
+    parseOrders(orders: Dict | Dict[] | undefined, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
     calculateFeeWithRate(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, feeRate?: Num, params?: {}): {
         type: string;
         currency: any;
@@ -751,94 +745,97 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
-    createCcxtTradeId(timestamp?: Int, side?: OrderSide, amount?: any, price?: any, takerOrMaker?: any): any;
+    createCcxtTradeId(timestamp?: Int, side?: OrderSide, amount?: Str, price?: Str, takerOrMaker?: Str): Str;
     parsedFeeAndFees(container: any): (any[] | Dictionary<any>)[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
-    addKeyInArrayItems(obj: any, keyName: any): any[];
-    invertFlatStringDictionary(dict: any): {};
+    addKeyInArrayItems(obj: any, keyName: any): Dict[];
+    invertFlatStringDictionary(dict: any): Dict;
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
     fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;
-    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
-    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchSpotOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    convertTradingViewToOHLCV(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): any[];
-    convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
-    fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
+    convertTradingViewToOHLCV(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): OHLCV[];
+    convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): Dict;
+    fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: Str, endRegex?: Str): Promise<any>;
     marketIds(symbols: string[]): string[];
     marketIds(symbols?: Strings): Strings;
     currencyIds(codes: string[]): string[];
     currencyIds(codes?: Strings): Strings;
-    marketsForSymbols(symbols?: Strings): any[];
+    marketsForSymbols(symbols?: Strings): Market[] | undefined;
+    marketSymbols(symbols: Strings, type: Str | undefined, allowEmpty: false, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): string[];
     marketSymbols(symbols: string[], type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): string[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): Strings;
-    marketCodes(codes?: Strings): any[];
-    parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
-    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    marketCodes(codes?: Strings): string[] | undefined;
+    parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[][];
+    filterByKey(objects: any, key: IndexType, value?: Str): any;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     safeNetwork(network: any): {
         info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
+        id: Str;
+        name: Str;
+        network: Str;
+        active: boolean | undefined;
+        deposit: boolean | undefined;
+        withdraw: boolean | undefined;
+        fee: Num;
+        precision: Num;
         limits: {
             withdraw: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
             deposit: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
         };
     };
-    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): any[];
-    networkCodeToId(networkCode: string, currencyCode?: Str): string;
-    networkIdToCode(networkId?: Str, currencyCode?: Str): string;
+    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): Strings;
+    networkCodeToId(networkCode: Str, currencyCode?: Str): Str;
+    networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
     handleNetworkCodeAndParams(params: any): any[];
-    defaultNetworkCode(currencyCode: string): any;
-    selectNetworkCodeFromUnifiedNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;
-    selectNetworkIdFromRawNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;
-    selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
-    safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
-    parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
-    parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
+    defaultNetworkCode(currencyCode: string): Str;
+    selectNetworkCodeFromUnifiedNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str;
+    selectNetworkIdFromRawNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str;
+    selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): Str;
+    safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
+    parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
+    parseOHLCVs(ohlcvs: object[] | undefined, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
-    loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any> | undefined>;
     safePosition(position: Dict): Position;
-    parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
+    parsePositions(positions: List, symbols?: Strings, params?: {}): Position[];
     parseADLRank(info: Dict, market?: Market): ADL;
-    parseADLRanks(ranks: any[], symbols?: string[], params?: {}): ADL[];
-    parseAccounts(accounts: any[], params?: {}): Account[];
-    parseTradesHelper(isWs: boolean, trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseWsTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
-    parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
+    parseADLRanks(ranks: List, symbols?: Strings, params?: {}): ADL[];
+    parseAccounts(accounts: List, params?: {}): Account[];
+    parseTradesHelper(isWs: boolean, trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseWsTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTransactions(transactions: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
+    parseTransfers(transfers: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
-    currencyId(code: string): string;
-    marketId(symbol: string): string;
-    symbol(symbol: string): string;
-    handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];
-    handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue?: Str): [string, object];
+    currencyId(code: Str): Str;
+    marketId(symbol: Str): Str;
+    symbol(symbol: Str): string;
+    handleParamString(params: object, paramName: string, defaultValue: string): [string, object];
+    handleParamString(params: object, paramName: string, defaultValue?: string): [Str, object];
+    handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue: string): [string, object];
+    handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue?: string): [Str, object];
     handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
     handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, object];
     handleParamBool(params: object, paramName: string, defaultValue?: Bool): [Bool, object];
@@ -853,8 +850,8 @@ export default class Exchange {
      */
     handleRequestNetwork(params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode?: Str, isRequired?: boolean): Dict[];
     resolvePath(path: any, params: any): any[];
-    getListFromObjectValues(objects: any, key: IndexType): any[];
-    getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
+    getListFromObjectValues(objects: any, key: IndexType): string[];
+    getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): string[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
@@ -862,30 +859,13 @@ export default class Exchange {
     loadAccounts(reload?: boolean, params?: {}): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
-    editLimitBuyOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editLimitSellOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderWithClientOrderId(clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
-    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    watchPositionForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
-    fetchPositionsForSymbolWs(symbol: string, params?: {}): Promise<Position[]>;
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchPositionsWs(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchPositionsRisk(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<LedgerEntry>;
-    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    marketOrNull(symbol?: Str): MarketInterface;
+    marketOrNull(symbol?: Str): Market;
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -896,15 +876,18 @@ export default class Exchange {
     fetchFreeBalance(params?: {}): Promise<Balance>;
     fetchUsedBalance(params?: {}): Promise<Balance>;
     fetchTotalBalance(params?: {}): Promise<Balance>;
-    fetchStatus(params?: {}): Promise<any>;
+    fetchStatus(params?: {}): Promise<Status>;
     fetchTransactionFee(code: string, params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: Strings, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dictionary<DepositWithdrawFee>>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
-    getSupportedMapping(key: any, mapping?: {}): any;
+    getSupportedMapping(key: any, mapping?: Dict): any;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
-    handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): [any, Dict];
+    requireValue<T>(value: T | undefined, message?: Str): T;
+    handleOptionAndParams<T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
+    handleOptionAndParams(params: object, methodName: Str, optionName: string, defaultValue?: any): [any, Dict];
+    handleOptionAndParams2<T>(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: T): [T, Dict];
     handleOptionAndParams2(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [any, Dict];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): [string, Dict];
@@ -912,116 +895,33 @@ export default class Exchange {
     handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
     throwExactlyMatchedException(exact: any, string: any, message: any): void;
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
-    findBroadlyMatchedKey(broad: any, string: any): string;
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): any;
+    findBroadlyMatchedKey(broad: any, string: any): string | undefined;
+    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchSpotTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchTickersWs(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<OrderBooks>;
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    /**
-     * @method
-     * @name fetchOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
-    fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createTwapOrder(symbol: string, side: OrderSide, amount: number, duration: number, params?: {}): Promise<Order>;
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{}>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     fetchADLRank(symbol: string, params?: {}): Promise<ADL>;
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     fetchPositionADLRank(symbol: string, params?: {}): Promise<ADL>;
-    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createMarketOrderWithCostWs(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
-    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createTriggerOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
-    createStopLossOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
-    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
-    createTakeProfitOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
-    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
-    setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): {};
-    createOrderWithTakeProfitAndStopLossWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: Dict): Dict;
     createSpotOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createContractOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelSpotOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelContractOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    /**
-     * @method
-     * @name cancelOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    cancelOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    /**
-     * @method
-     * @name cancelOrdersWithClientOrderIds
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string[]} clientOrderIds client order Ids
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllSpotOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllContractOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
@@ -1030,67 +930,42 @@ export default class Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    closeAllPositions(params?: {}): Promise<Position[]>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseLastPrice(price: any, market?: Market): LastPrice;
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchContractDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     account(): BalanceAccount;
     commonCurrencyCode(code: string): string;
-    currency(code: string): CurrencyInterface;
-    market(symbol: string): MarketInterface;
+    currency(code: Str): CurrencyInterface;
+    market(symbol: Str): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;
+    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: NullableDict): boolean;
     handleWithdrawTagAndParams(tag: any, params: any): any;
-    createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
-    createMarketOrder(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createMarketOrderWs(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createLimitBuyOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitBuyOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitSellOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitSellOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createMarketBuyOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createMarketBuyOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createMarketSellOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createMarketSellOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
-    costToPrecision(symbol: string, cost: any): string;
-    priceToPrecision(symbol: string, price: any): string;
-    amountToPrecision(symbol: string, amount: any): string;
-    feeToPrecision(symbol: string, fee: any): string;
-    currencyToPrecision(code: string, fee: any, networkCode?: Str): string;
-    forceString(value: any): string;
+    costToPrecision(symbol: Str, cost: any): string | undefined;
+    priceToPrecision(symbol: Str, price: any): Str;
+    amountToPrecision(symbol: Str, amount: any): string | undefined;
+    feeToPrecision(symbol: Str, fee: any): string | undefined;
+    currencyToPrecision(code: Str, fee: any, networkCode?: Str): string | undefined;
+    forceString(value: any): string | undefined;
     isTickPrecision(): boolean;
     isDecimalPrecision(): boolean;
     isSignificantPrecision(): boolean;
-    safeNumber(obj: any, key: IndexType, defaultNumber?: Num): Num;
-    safeNumberN(obj: object, arr: IndexType[], defaultNumber?: Num): Num;
-    parsePrecision(precision?: string): string;
-    integerPrecisionToAmount(precision: Str): string;
+    safeNumber(obj: any, key: NullableIndexType, defaultNumber?: Num): Num;
+    safeNumberN(obj: object, arr: NullableIndexType[], defaultNumber?: Num): Num;
+    parsePrecision(precision?: string): string | undefined;
+    integerPrecisionToAmount(precision: Str): string | undefined;
     loadTimeDifference(params?: {}): Promise<any>;
     implodeHostname(url: string): string;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
-    createPostOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createReduceOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createSubAccount(name: string, params?: {}): Promise<{}>;
-    safeCurrencyCode(currencyId: Str, currency?: Currency): string;
+    safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
     filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: Str, since?: Int, limit?: Int, tail?: boolean): any;
-    filterBySymbolsSinceLimit(array: any, symbols?: string[], since?: Int, limit?: Int, tail?: boolean): any;
-    parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
+    filterBySymbolsSinceLimit(array: any, symbols?: Strings, since?: Int, limit?: Int, tail?: boolean): any;
+    parseLastPrices(pricesData: any, symbols?: Strings, params?: {}): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseDepositAddresses(addresses: any, codes?: Strings, indexed?: boolean, params?: {}): DepositAddress[];
     parseBorrowInterests(response: any, market?: Market): BorrowInterest[];
@@ -1112,7 +987,6 @@ export default class Exchange {
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<LastPrices>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseOpenInterests(response: any, symbols?: Strings): OpenInterests;
@@ -1122,9 +996,9 @@ export default class Exchange {
     fetchMarkOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchPremiumIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleTimeInForce(params?: {}): string;
+    handleTimeInForce(params?: {}): string | undefined;
     convertTypeToAccount(account: any): any;
-    checkRequiredArgument(methodName: string, argument: any, argumentName: any, options?: any[]): void;
+    checkRequiredArgument(methodName: string, argument: any, argumentName: any, options?: string[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
@@ -1132,23 +1006,24 @@ export default class Exchange {
     assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;
     parseIncome(info: any, market?: Market): object;
     parseIncomes(incomes: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
-    getMarketFromSymbols(symbols?: Strings): MarketInterface;
-    parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): any[];
+    getMarketFromSymbols(symbols: string[]): MarketInterface;
+    getMarketFromSymbols(symbols?: Strings): Market;
+    parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
     filterByArrayADLRanks(objects: any, key: IndexType, values?: any, indexed?: boolean): ADL[];
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
-    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
+    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
-    fetchPaginatedCallCursor(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
-    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: Str | Strings, since?: Int, limit?: Int, params?: Dict, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     removeRepeatedTradesFromArray(input: any): any;
-    removeKeysFromDict(dict: Dict, removeKeys: string[]): {};
+    removeKeysFromDict(dict: Dict, removeKeys: string[]): Dict;
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
@@ -1157,33 +1032,175 @@ export default class Exchange {
     parseAllGreeks(greeks: any, symbols?: Strings, params?: {}): Greeks[];
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
-    parseMarginModes(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModes;
+    parseMarginModes(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModes;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
-    parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
+    parseLeverages(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): Leverages;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    parseConversions(conversions: any[], code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
+    parseConversions(conversions: List, code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
-    convertExpireDate(date: string): string;
-    convertExpireDateToMarketIdDate(date: string): string;
-    convertMarketIdExpireDate(date: string): string;
-    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    convertExpireDate(date: Str): Str;
+    convertExpireDateToMarketIdDate(date: Str): Str;
+    convertMarketIdExpireDate(date: Str): Str;
     loadMarketsAndSignIn(): Promise<void>;
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
+    parseMarginModifications(response: object[] | undefined, symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
-    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
-    cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
-    cleanCache(subscription: Dict): void;
+    cleanUnsubscription(client: any, subHash: Str, unsubHash: Str, subHashIsPrefix?: boolean): void;
+    cleanCache(subscription: Dict | undefined): void;
     timeframeFromMilliseconds(ms: number): string;
     isUTAEnabled(params?: {}): Promise<boolean>;
+}
+export default class Exchange extends BaseExchange {
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closeAllPositions(params?: {}): Promise<Position[]>;
+    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsRisk(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbolWs(symbol: string, params?: {}): Promise<Position[]>;
+    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
+    watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    createLimitBuyOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitSellOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createMarketOrderWithCostWs(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createMarketOrderWs(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createMarketSellOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createOrderWithTakeProfitAndStopLossWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createReduceOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopLossOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
+    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createTakeProfitOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createTriggerOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsWs(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickersWs(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchRestOrderBookSafe(symbol: any, limit?: Int, params?: {}): Promise<OrderBook | undefined>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    editLimitBuyOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editLimitSellOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWithClientOrderId(clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositionForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<Str>;
+    fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
+    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
+    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
+    createMarketOrder(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createLimitBuyOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitSellOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createMarketBuyOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createMarketSellOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createPostOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
 }
 export { Exchange, };

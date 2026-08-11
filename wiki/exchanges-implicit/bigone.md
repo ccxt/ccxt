@@ -1,6 +1,6 @@
 Every endpoint in `bigone`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bigone) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetPing`); the snake_case alias (`public_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetPing`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetPing`); the snake_case alias (`public_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetPing`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -63,13 +63,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetPing` | GET | `ping` |  |
-| `publicGetAssetPairs` | GET | `asset_pairs` |  |
-| `publicGetAssetPairsAssetPairNameDepth` | GET | `asset_pairs/{asset_pair_name}/depth` |  |
-| `publicGetAssetPairsAssetPairNameTrades` | GET | `asset_pairs/{asset_pair_name}/trades` |  |
-| `publicGetAssetPairsAssetPairNameTicker` | GET | `asset_pairs/{asset_pair_name}/ticker` |  |
-| `publicGetAssetPairsAssetPairNameCandles` | GET | `asset_pairs/{asset_pair_name}/candles` |  |
-| `publicGetAssetPairsTickers` | GET | `asset_pairs/tickers` |  |
+| `publicGetPing` | GET | `ping` | 1 |
+| `publicGetAssetPairs` | GET | `asset_pairs` | 1 |
+| `publicGetAssetPairsAssetPairNameDepth` | GET | `asset_pairs/{asset_pair_name}/depth` | 1 |
+| `publicGetAssetPairsAssetPairNameTrades` | GET | `asset_pairs/{asset_pair_name}/trades` | 1 |
+| `publicGetAssetPairsAssetPairNameTicker` | GET | `asset_pairs/{asset_pair_name}/ticker` | 1 |
+| `publicGetAssetPairsAssetPairNameCandles` | GET | `asset_pairs/{asset_pair_name}/candles` | 1 |
+| `publicGetAssetPairsTickers` | GET | `asset_pairs/tickers` | 1 |
 
 ## private
 
@@ -77,20 +77,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privateGetAccounts` | GET | `accounts` |  |
-| `privateGetFundAccounts` | GET | `fund/accounts` |  |
-| `privateGetAssetsAssetSymbolAddress` | GET | `assets/{asset_symbol}/address` |  |
-| `privateGetOrders` | GET | `orders` |  |
-| `privateGetOrdersId` | GET | `orders/{id}` |  |
-| `privateGetOrdersMulti` | GET | `orders/multi` |  |
-| `privateGetTrades` | GET | `trades` |  |
-| `privateGetWithdrawals` | GET | `withdrawals` |  |
-| `privateGetDeposits` | GET | `deposits` |  |
-| `privatePostOrders` | POST | `orders` |  |
-| `privatePostOrdersIdCancel` | POST | `orders/{id}/cancel` |  |
-| `privatePostOrdersCancel` | POST | `orders/cancel` |  |
-| `privatePostWithdrawals` | POST | `withdrawals` |  |
-| `privatePostTransfer` | POST | `transfer` |  |
+| `privateGetAccounts` | GET | `accounts` | 1 |
+| `privateGetFundAccounts` | GET | `fund/accounts` | 1 |
+| `privateGetAssetsAssetSymbolAddress` | GET | `assets/{asset_symbol}/address` | 1 |
+| `privateGetOrders` | GET | `orders` | 1 |
+| `privateGetOrdersId` | GET | `orders/{id}` | 1 |
+| `privateGetOrdersMulti` | GET | `orders/multi` | 1 |
+| `privateGetTrades` | GET | `trades` | 1 |
+| `privateGetWithdrawals` | GET | `withdrawals` | 1 |
+| `privateGetDeposits` | GET | `deposits` | 1 |
+| `privatePostOrders` | POST | `orders` | 1 |
+| `privatePostOrdersIdCancel` | POST | `orders/{id}/cancel` | 1 |
+| `privatePostOrdersCancel` | POST | `orders/cancel` | 1 |
+| `privatePostWithdrawals` | POST | `withdrawals` | 1 |
+| `privatePostTransfer` | POST | `transfer` | 1 |
 
 ## contractPublic
 
@@ -98,11 +98,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `contractPublicGetSymbols` | GET | `symbols` |  |
-| `contractPublicGetInstruments` | GET | `instruments` |  |
-| `contractPublicGetDepthSymbolSnapshot` | GET | `depth@{symbol}/snapshot` |  |
-| `contractPublicGetInstrumentsDifference` | GET | `instruments/difference` |  |
-| `contractPublicGetInstrumentsPrices` | GET | `instruments/prices` |  |
+| `contractPublicGetSymbols` | GET | `symbols` | 1 |
+| `contractPublicGetInstruments` | GET | `instruments` | 1 |
+| `contractPublicGetDepthSymbolSnapshot` | GET | `depth@{symbol}/snapshot` | 1 |
+| `contractPublicGetInstrumentsDifference` | GET | `instruments/difference` | 1 |
+| `contractPublicGetInstrumentsPrices` | GET | `instruments/prices` | 1 |
 
 ## contractPrivate
 
@@ -110,20 +110,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `contractPrivateGetAccounts` | GET | `accounts` |  |
-| `contractPrivateGetOrdersId` | GET | `orders/{id}` |  |
-| `contractPrivateGetOrders` | GET | `orders` |  |
-| `contractPrivateGetOrdersOpening` | GET | `orders/opening` |  |
-| `contractPrivateGetOrdersCount` | GET | `orders/count` |  |
-| `contractPrivateGetOrdersOpeningCount` | GET | `orders/opening/count` |  |
-| `contractPrivateGetTrades` | GET | `trades` |  |
-| `contractPrivateGetTradesCount` | GET | `trades/count` |  |
-| `contractPrivatePostOrders` | POST | `orders` |  |
-| `contractPrivatePostOrdersBatch` | POST | `orders/batch` |  |
-| `contractPrivatePutPositionsSymbolMargin` | PUT | `positions/{symbol}/margin` |  |
-| `contractPrivatePutPositionsSymbolRiskLimit` | PUT | `positions/{symbol}/risk-limit` |  |
-| `contractPrivateDeleteOrdersId` | DELETE | `orders/{id}` |  |
-| `contractPrivateDeleteOrdersBatch` | DELETE | `orders/batch` |  |
+| `contractPrivateGetAccounts` | GET | `accounts` | 1 |
+| `contractPrivateGetOrdersId` | GET | `orders/{id}` | 1 |
+| `contractPrivateGetOrders` | GET | `orders` | 1 |
+| `contractPrivateGetOrdersOpening` | GET | `orders/opening` | 1 |
+| `contractPrivateGetOrdersCount` | GET | `orders/count` | 1 |
+| `contractPrivateGetOrdersOpeningCount` | GET | `orders/opening/count` | 1 |
+| `contractPrivateGetTrades` | GET | `trades` | 1 |
+| `contractPrivateGetTradesCount` | GET | `trades/count` | 1 |
+| `contractPrivatePostOrders` | POST | `orders` | 1 |
+| `contractPrivatePostOrdersBatch` | POST | `orders/batch` | 1 |
+| `contractPrivatePutPositionsSymbolMargin` | PUT | `positions/{symbol}/margin` | 1 |
+| `contractPrivatePutPositionsSymbolRiskLimit` | PUT | `positions/{symbol}/risk-limit` | 1 |
+| `contractPrivateDeleteOrdersId` | DELETE | `orders/{id}` | 1 |
+| `contractPrivateDeleteOrdersBatch` | DELETE | `orders/batch` | 1 |
 
 ## webExchange
 
@@ -131,5 +131,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webExchangeGetV3Assets` | GET | `v3/assets` |  |
+| `webExchangeGetV3Assets` | GET | `v3/assets` | 1 |
 

@@ -208,6 +208,13 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
             this["datetime"] = Exchange.Iso8601(this["timestamp"]);
             this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
+            // prediction-market identity — only attach when present, so crypto books are unchanged
+            if ((snapshot as dict) != null && (snapshot as dict).ContainsKey("outcome"))
+            {
+                this["outcome"] = Exchange.SafeValue(snapshot as dict, "outcome");
+                this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
+                this["market"] = Exchange.SafeValue(snapshot as dict, "market");
+            }
         }
     }
 
@@ -237,6 +244,13 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             copy.symbol = (String)this["symbol"];
             copy.nonce = (long?)this["nonce"];
             copy.timestamp = (long?)this["timestamp"];
+            // prediction-market identity (only present on prediction books)
+            if (this.ContainsKey("outcome"))
+            {
+                copy["outcome"] = this["outcome"];
+                copy["outcomeId"] = Exchange.SafeValue(this as dict, "outcomeId");
+                copy["market"] = Exchange.SafeValue(this as dict, "market");
+            }
             // copy["nonce"] = this["nonce"];
             // copy["timestamp"] = this["timestamp"];
             // copy["datetime"] = this["datetime"];
@@ -333,6 +347,13 @@ public class CountedOrderBook : OrderBook, IOrderBook
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
             this["datetime"] = Exchange.Iso8601(this["timestamp"]);
             this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
+            // prediction-market identity — only attach when present, so crypto books are unchanged
+            if ((snapshot as dict) != null && (snapshot as dict).ContainsKey("outcome"))
+            {
+                this["outcome"] = Exchange.SafeValue(snapshot as dict, "outcome");
+                this["outcomeId"] = Exchange.SafeValue(snapshot as dict, "outcomeId");
+                this["market"] = Exchange.SafeValue(snapshot as dict, "market");
+            }
         }
     }
 
@@ -357,9 +378,9 @@ public class IndexedOrderBook : OrderBook, IOrderBook
 {
     public IndexedAsks asks;
     public IndexedBids bids;
-    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new CustomConcurrentDictionary<string, object> {
-       {"asks", new IndexedAsks(Exchange.SafeValue(snapshot, "asks", new SlimConcurrentList<object>()), depth2)},
-       {"bids", new IndexedBids(Exchange.SafeValue(snapshot, "bids", new SlimConcurrentList<object>()), depth2)}
+    public IndexedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string, object>(), new CustomConcurrentDictionary<string, object> {
+       {"asks", new IndexedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
+       {"bids", new IndexedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
 

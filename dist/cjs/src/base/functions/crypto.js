@@ -15,7 +15,7 @@ var utils_js = require('@noble/curves/utils.js');
 const utf8Bytes = (data) => ((typeof data === 'string') ? utils_js$1.utf8ToBytes(data) : data);
 const hexBytes = (data) => ((typeof data === 'string') ? utils_js.hexToBytes(data) : data);
 const encoders = {
-    binary: x => x,
+    binary: (x) => x,
     hex: base.hex.encode,
     base64: base.base64.encode,
 };

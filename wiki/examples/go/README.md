@@ -16,6 +16,8 @@
 
 - [GetMarketInformation](examples/go/getMarketInformation.md)
 
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/examples/go/prediction)
+
 - [SetMarketsFromExchange](examples/go/setMarketsFromExchange.md)
 
 - [SpotPerpMarkets](examples/go/spotPerpMarkets.md)

@@ -352,7 +352,7 @@
           }
         }
       },
-      "ARB": {
+      "ARBITRUM": {
         "info": {
           "chain": "ARB",
           "depositEnabled": true,
@@ -368,7 +368,7 @@
           "withdrawFeeCurrencyId": "5"
         },
         "id": "ARB",
-        "network": "ARB",
+        "network": "ARBITRUM",
         "name": null,
         "active": true,
         "fee": 0.00075,
@@ -1399,7 +1399,7 @@
           }
         }
       },
-      "ARB": {
+      "ARBITRUM": {
         "info": {
           "chain": "ARB",
           "depositEnabled": true,
@@ -1415,7 +1415,7 @@
           "withdrawFeeCurrencyId": "564"
         },
         "id": "ARB",
-        "network": "ARB",
+        "network": "ARBITRUM",
         "name": null,
         "active": true,
         "fee": 1,

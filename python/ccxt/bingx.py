@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -76,6 +76,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -114,7 +115,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': True,
-                'fetchPositionHistory': False,
+                'fetchPositionHistory': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsHistory': True,
@@ -135,6 +136,7 @@ class bingx(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -191,7 +193,7 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'account/balance': 1,
+                                'account/balance': {'cost': 1},
                             },
                         },
                     },
@@ -200,60 +202,60 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'common/symbols': 1,
-                                'market/trades': 1,
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/24hr': 1,
-                                'ticker/price': 1,  # deprecated, still can be used
-                                'ticker/bookTicker': 1,
+                                'server/time': {'cost': 1},
+                                'common/symbols': {'cost': 1},
+                                'market/trades': {'cost': 1},
+                                'market/depth': {'cost': 1},
+                                'market/kline': {'cost': 1},
+                                'ticker/24hr': {'cost': 1},
+                                'ticker/price': {'cost': 1},  # deprecated, still can be used
+                                'ticker/bookTicker': {'cost': 1},
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/query': 1,
-                                'trade/openOrders': 1,
-                                'trade/historyOrders': 1,
-                                'trade/myTrades': 2,
-                                'user/commissionRate': 5,
-                                'account/balance': 2,
-                                'oco/orderList': 5,
-                                'oco/openOrderList': 5,
-                                'oco/historyOrderList': 5,
+                                'trade/query': {'cost': 1},
+                                'trade/openOrders': {'cost': 1},
+                                'trade/historyOrders': {'cost': 1},
+                                'trade/myTrades': {'cost': 2},
+                                'user/commissionRate': {'cost': 5},
+                                'account/balance': {'cost': 2},
+                                'oco/orderList': {'cost': 5},
+                                'oco/openOrderList': {'cost': 5},
+                                'oco/historyOrderList': {'cost': 5},
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/cancel': 2,
-                                'trade/batchOrders': 5,
-                                'trade/order/cancelReplace': 5,
-                                'trade/cancelOrders': 5,
-                                'trade/cancelOpenOrders': 5,
-                                'trade/cancelAllAfter': 5,
-                                'oco/order': 5,
-                                'oco/cancel': 5,
+                                'trade/order': {'cost': 2},
+                                'trade/cancel': {'cost': 2},
+                                'trade/batchOrders': {'cost': 5},
+                                'trade/order/cancelReplace': {'cost': 5},
+                                'trade/cancelOrders': {'cost': 5},
+                                'trade/cancelOpenOrders': {'cost': 5},
+                                'trade/cancelAllAfter': {'cost': 5},
+                                'oco/order': {'cost': 5},
+                                'oco/cancel': {'cost': 5},
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'market/depth': 1,
-                                'market/kline': 1,
-                                'ticker/price': 1,
+                                'market/depth': {'cost': 1},
+                                'market/kline': {'cost': 1},
+                                'ticker/price': {'cost': 1},
                             },
                         },
                     },
                     'v3': {
                         'private': {
                             'get': {
-                                'get/asset/transfer': 1,
-                                'asset/transfer': 1,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'get/asset/transfer': {'cost': 1},
+                                'asset/transfer': {'cost': 1},
+                                'capital/deposit/hisrec': {'cost': 1},
+                                'capital/withdraw/history': {'cost': 1},
                             },
                             'post': {
-                                'post/asset/transfer': 5,
+                                'post/asset/transfer': {'cost': 5},
                             },
                         },
                     },
@@ -262,103 +264,103 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ticker/price': 1,
-                                'market/historicalTrades': 1,
-                                'market/markPriceKlines': 1,
-                                'trade/multiAssetsRules': 1,
-                                'tradingRules': 1,
+                                'ticker/price': {'cost': 1},
+                                'market/historicalTrades': {'cost': 1},
+                                'market/markPriceKlines': {'cost': 1},
+                                'trade/multiAssetsRules': {'cost': 1},
+                                'tradingRules': {'cost': 1},
                             },
                         },
                         'private': {
                             'get': {
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/fullOrder': 2,
-                                'maintMarginRatio': 2,
-                                'trade/positionHistory': 2,
-                                'positionMargin/history': 2,
-                                'twap/openOrders': 5,
-                                'twap/historyOrders': 5,
-                                'twap/orderDetail': 5,
-                                'trade/assetMode': 5,
-                                'user/marginAssets': 5,
+                                'positionSide/dual': {'cost': 5},
+                                'trade/batchCancelReplace': {'cost': 5},
+                                'trade/fullOrder': {'cost': 2},
+                                'maintMarginRatio': {'cost': 2},
+                                'trade/positionHistory': {'cost': 2},
+                                'positionMargin/history': {'cost': 2},
+                                'twap/openOrders': {'cost': 5},
+                                'twap/historyOrders': {'cost': 5},
+                                'twap/orderDetail': {'cost': 5},
+                                'trade/assetMode': {'cost': 5},
+                                'user/marginAssets': {'cost': 5},
                             },
                             'post': {
-                                'trade/amend': 2,
-                                'trade/cancelReplace': 2,
-                                'positionSide/dual': 5,
-                                'trade/batchCancelReplace': 5,
-                                'trade/closePosition': 2,
-                                'trade/getVst': 5,  # deprecated
-                                'twap/order': 5,
-                                'twap/cancelOrder': 5,
-                                'trade/assetMode': 5,
-                                'trade/reverse': 5,
-                                'trade/autoAddMargin': 5,
+                                'trade/amend': {'cost': 2},
+                                'trade/cancelReplace': {'cost': 2},
+                                'positionSide/dual': {'cost': 5},
+                                'trade/batchCancelReplace': {'cost': 5},
+                                'trade/closePosition': {'cost': 2},
+                                'trade/getVst': {'cost': 5},  # deprecated
+                                'twap/order': {'cost': 5},
+                                'twap/cancelOrder': {'cost': 5},
+                                'trade/assetMode': {'cost': 5},
+                                'trade/reverse': {'cost': 5},
+                                'trade/autoAddMargin': {'cost': 5},
                             },
                         },
                     },
                     'v2': {
                         'public': {
                             'get': {
-                                'server/time': 1,
-                                'quote/contracts': 1,
-                                'quote/price': 1,
-                                'quote/depth': 1,
-                                'quote/trades': 1,
-                                'quote/premiumIndex': 1,
-                                'quote/fundingRate': 1,
-                                'quote/klines': 1,
-                                'quote/openInterest': 1,
-                                'quote/ticker': 1,
-                                'quote/bookTicker': 1,
+                                'server/time': {'cost': 1},
+                                'quote/contracts': {'cost': 1},
+                                'quote/price': {'cost': 1},
+                                'quote/depth': {'cost': 1},
+                                'quote/trades': {'cost': 1},
+                                'quote/premiumIndex': {'cost': 1},
+                                'quote/fundingRate': {'cost': 1},
+                                'quote/klines': {'cost': 1},
+                                'quote/openInterest': {'cost': 1},
+                                'quote/ticker': {'cost': 1},
+                                'quote/bookTicker': {'cost': 1},
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
-                                'user/positions': 2,
-                                'user/income': 2,
-                                'trade/openOrders': 2,
-                                'trade/openOrder': 2,
-                                'trade/order': 2,
-                                'trade/marginType': 5,
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 1,
-                                'trade/allOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/fillHistory': 2,
-                                'user/income/export': 2,
-                                'user/commissionRate': 2,
-                                'quote/bookTicker': 1,
+                                'user/balance': {'cost': 2},
+                                'user/positions': {'cost': 2},
+                                'user/income': {'cost': 2},
+                                'trade/openOrders': {'cost': 2},
+                                'trade/openOrder': {'cost': 2},
+                                'trade/order': {'cost': 2},
+                                'trade/marginType': {'cost': 5},
+                                'trade/leverage': {'cost': 2},
+                                'trade/forceOrders': {'cost': 1},
+                                'trade/allOrders': {'cost': 2},
+                                'trade/allFillOrders': {'cost': 2},
+                                'trade/fillHistory': {'cost': 2},
+                                'user/income/export': {'cost': 2},
+                                'user/commissionRate': {'cost': 2},
+                                'quote/bookTicker': {'cost': 1},
                             },
                             'post': {
-                                'trade/getVst': 5,
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/cancelAllAfter': 5,
-                                'trade/marginType': 5,
-                                'trade/leverage': 5,
-                                'trade/positionMargin': 5,
-                                'trade/order/test': 2,
+                                'trade/getVst': {'cost': 5},
+                                'trade/order': {'cost': 2},
+                                'trade/batchOrders': {'cost': 2},
+                                'trade/closeAllPositions': {'cost': 2},
+                                'trade/cancelAllAfter': {'cost': 5},
+                                'trade/marginType': {'cost': 5},
+                                'trade/leverage': {'cost': 5},
+                                'trade/positionMargin': {'cost': 5},
+                                'trade/order/test': {'cost': 2},
                             },
                             'delete': {
-                                'trade/order': 2,
-                                'trade/batchOrders': 2,
-                                'trade/allOpenOrders': 2,
+                                'trade/order': {'cost': 2},
+                                'trade/batchOrders': {'cost': 2},
+                                'trade/allOpenOrders': {'cost': 2},
                             },
                         },
                     },
                     'v3': {
                         'public': {
                             'get': {
-                                'quote/klines': 1,
+                                'quote/klines': {'cost': 1},
                             },
                         },
                         'private': {
                             'get': {
-                                'user/balance': 2,
+                                'user/balance': {'cost': 2},
                             },
                         },
                     },
@@ -367,38 +369,38 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'market/contracts': 1,
-                                'market/premiumIndex': 1,
-                                'market/openInterest': 1,
-                                'market/klines': 1,
-                                'market/depth': 1,
-                                'market/ticker': 1,
+                                'market/contracts': {'cost': 1},
+                                'market/premiumIndex': {'cost': 1},
+                                'market/openInterest': {'cost': 1},
+                                'market/klines': {'cost': 1},
+                                'market/depth': {'cost': 1},
+                                'market/ticker': {'cost': 1},
                             },
                         },
                         'private': {
                             'get': {
-                                'trade/leverage': 2,
-                                'trade/forceOrders': 2,
-                                'trade/allFillOrders': 2,
-                                'trade/openOrders': 2,
-                                'trade/orderDetail': 2,
-                                'trade/orderHistory': 2,
-                                'trade/marginType': 2,
-                                'user/commissionRate': 2,
-                                'user/positions': 2,
-                                'user/balance': 2,
+                                'trade/leverage': {'cost': 2},
+                                'trade/forceOrders': {'cost': 2},
+                                'trade/allFillOrders': {'cost': 2},
+                                'trade/openOrders': {'cost': 2},
+                                'trade/orderDetail': {'cost': 2},
+                                'trade/orderHistory': {'cost': 2},
+                                'trade/marginType': {'cost': 2},
+                                'user/commissionRate': {'cost': 2},
+                                'user/positions': {'cost': 2},
+                                'user/balance': {'cost': 2},
                             },
                             'post': {
-                                'trade/order': 2,
-                                'trade/leverage': 2,
-                                'trade/allOpenOrders': 2,
-                                'trade/closeAllPositions': 2,
-                                'trade/marginType': 2,
-                                'trade/positionMargin': 2,
+                                'trade/order': {'cost': 2},
+                                'trade/leverage': {'cost': 2},
+                                'trade/allOpenOrders': {'cost': 2},
+                                'trade/closeAllPositions': {'cost': 2},
+                                'trade/marginType': {'cost': 2},
+                                'trade/positionMargin': {'cost': 2},
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2,  # post method in doc
-                                'trade/cancelOrder': 2,
+                                'trade/allOpenOrders': {'cost': 2},  # post method in doc
+                                'trade/cancelOrder': {'cost': 2},
                             },
                         },
                     },
@@ -407,9 +409,9 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 2,
-                                'allOrders': 2,
-                                'balance': 2,
+                                'allPosition': {'cost': 2},
+                                'allOrders': {'cost': 2},
+                                'balance': {'cost': 2},
                             },
                         },
                     },
@@ -418,19 +420,19 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'capital/config/getall': 5,
-                                'capital/deposit/address': 5,
-                                'capital/innerTransfer/records': 1,
-                                'capital/subAccount/deposit/address': 5,
-                                'capital/deposit/subHisrec': 2,
-                                'capital/subAccount/innerTransfer/records': 1,
-                                'capital/deposit/riskRecords': 5,
+                                'capital/config/getall': {'cost': 5},
+                                'capital/deposit/address': {'cost': 5},
+                                'capital/innerTransfer/records': {'cost': 1},
+                                'capital/subAccount/deposit/address': {'cost': 5},
+                                'capital/deposit/subHisrec': {'cost': 2},
+                                'capital/subAccount/innerTransfer/records': {'cost': 1},
+                                'capital/deposit/riskRecords': {'cost': 5},
                             },
                             'post': {
-                                'capital/withdraw/apply': 5,
-                                'capital/innerTransfer/apply': 5,
-                                'capital/subAccountInnerTransfer/apply': 2,
-                                'capital/deposit/createSubAddress': 2,
+                                'capital/withdraw/apply': {'cost': 5},
+                                'capital/innerTransfer/apply': {'cost': 5},
+                                'capital/subAccountInnerTransfer/apply': {'cost': 2},
+                                'capital/deposit/createSubAddress': {'cost': 2},
                             },
                         },
                     },
@@ -439,16 +441,16 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'list': 10,
-                                'assets': 2,
-                                'allAccountBalance': 2,
+                                'list': {'cost': 10},
+                                'assets': {'cost': 2},
+                                'allAccountBalance': {'cost': 2},
                             },
                             'post': {
-                                'create': 10,
-                                'apiKey/create': 2,
-                                'apiKey/edit': 2,
-                                'apiKey/del': 2,
-                                'updateStatus': 10,
+                                'create': {'cost': 10},
+                                'apiKey/create': {'cost': 2},
+                                'apiKey/edit': {'cost': 2},
+                                'apiKey/del': {'cost': 2},
+                                'updateStatus': {'cost': 10},
                             },
                         },
                     },
@@ -457,13 +459,13 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'uid': 1,
-                                'apiKey/query': 2,
-                                'account/apiPermissions': 5,
-                                'allAccountBalance': 2,
+                                'uid': {'cost': 1},
+                                'apiKey/query': {'cost': 2},
+                                'account/apiPermissions': {'cost': 5},
+                                'allAccountBalance': {'cost': 2},
                             },
                             'post': {
-                                'innerTransfer/authorizeSubAccount': 1,
+                                'innerTransfer/authorizeSubAccount': {'cost': 1},
                             },
                         },
                     },
@@ -471,11 +473,11 @@ class bingx(Exchange, ImplicitAPI):
                         'v1': {
                             'private': {
                                 'get': {
-                                    'subAccount/asset/transferHistory': 1,
+                                    'subAccount/asset/transferHistory': {'cost': 1},
                                 },
                                 'post': {
-                                    'subAccount/transferAsset/supportCoins': 1,
-                                    'subAccount/transferAsset': 1,
+                                    'subAccount/transferAsset/supportCoins': {'cost': 1},
+                                    'subAccount/transferAsset': {'cost': 1},
                                 },
                             },
                         },
@@ -485,13 +487,13 @@ class bingx(Exchange, ImplicitAPI):
                     'auth': {
                         'private': {
                             'post': {
-                                'userDataStream': 2,
+                                'userDataStream': {'cost': 2},
                             },
                             'put': {
-                                'userDataStream': 2,
+                                'userDataStream': {'cost': 2},
                             },
                             'delete': {
-                                'userDataStream': 2,
+                                'userDataStream': {'cost': 2},
                             },
                         },
                     },
@@ -500,21 +502,21 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'swap/trace/currentTrack': 2,
-                                'PFutures/traderDetail': 2,
-                                'PFutures/profitHistorySummarys': 2,
-                                'PFutures/profitDetail': 2,
-                                'PFutures/tradingPairs': 2,
-                                'spot/traderDetail': 2,
-                                'spot/profitHistorySummarys': 2,
-                                'spot/profitDetail': 2,
-                                'spot/historyOrder': 2,
+                                'swap/trace/currentTrack': {'cost': 2},
+                                'PFutures/traderDetail': {'cost': 2},
+                                'PFutures/profitHistorySummarys': {'cost': 2},
+                                'PFutures/profitDetail': {'cost': 2},
+                                'PFutures/tradingPairs': {'cost': 2},
+                                'spot/traderDetail': {'cost': 2},
+                                'spot/profitHistorySummarys': {'cost': 2},
+                                'spot/profitDetail': {'cost': 2},
+                                'spot/historyOrder': {'cost': 2},
                             },
                             'post': {
-                                'swap/trace/closeTrackOrder': 2,
-                                'swap/trace/setTPSL': 2,
-                                'PFutures/setCommission': 2,
-                                'spot/trader/sellOrder': 10,
+                                'swap/trace/closeTrackOrder': {'cost': 2},
+                                'swap/trace/setTPSL': {'cost': 2},
+                                'PFutures/setCommission': {'cost': 2},
+                                'spot/trader/sellOrder': {'cost': 10},
                             },
                         },
                     },
@@ -523,13 +525,13 @@ class bingx(Exchange, ImplicitAPI):
                     'v3': {
                         'private': {
                             'get': {
-                                'asset/transfer': 1,
-                                'asset/transferRecord': 5,
-                                'capital/deposit/hisrec': 1,
-                                'capital/withdraw/history': 1,
+                                'asset/transfer': {'cost': 1},
+                                'asset/transferRecord': {'cost': 5},
+                                'capital/deposit/hisrec': {'cost': 1},
+                                'capital/withdraw/history': {'cost': 1},
                             },
                             'post': {
-                                'post/asset/transfer': 1,
+                                'post/asset/transfer': {'cost': 1},
                             },
                         },
                     },
@@ -537,12 +539,12 @@ class bingx(Exchange, ImplicitAPI):
                         'v1': {
                             'private': {
                                 'post': {
-                                    'transfer': 5,
+                                    'transfer': {'cost': 5},
                                 },
                             },
                             'public': {
                                 'get': {
-                                    'transfer/supportCoins': 5,
+                                    'transfer/supportCoins': {'cost': 5},
                                 },
                             },
                         },
@@ -552,14 +554,14 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'private': {
                             'get': {
-                                'account/inviteAccountList': 5,
-                                'reward/commissionDataList': 5,
-                                'account/inviteRelationCheck': 5,
-                                'asset/depositDetailList': 5,
-                                'reward/third/commissionDataList': 5,
-                                'asset/partnerData': 5,
-                                'commissionDataList/referralCode': 5,
-                                'account/superiorCheck': 5,
+                                'account/inviteAccountList': {'cost': 5},
+                                'reward/commissionDataList': {'cost': 5},
+                                'account/inviteRelationCheck': {'cost': 5},
+                                'asset/depositDetailList': {'cost': 5},
+                                'reward/third/commissionDataList': {'cost': 5},
+                                'asset/partnerData': {'cost': 5},
+                                'commissionDataList/referralCode': {'cost': 5},
+                                'account/superiorCheck': {'cost': 5},
                             },
                         },
                     },
@@ -626,6 +628,9 @@ class bingx(Exchange, ImplicitAPI):
             },
             'options': {
                 'defaultType': 'spot',
+                'fetchOHLCV': {
+                    'timeZone': 0,  # candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                },
                 'accountsByType': {
                     'funding': 'fund',
                     'spot': 'spot',
@@ -792,7 +797,7 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
             },
-            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for self
+            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for self
         })
 
     def fetch_time(self, params={}) -> Int:
@@ -882,7 +887,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
@@ -903,17 +908,18 @@ class bingx(Exchange, ImplicitAPI):
                 },
             }
             precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': network,
-                'network': networkCode,
-                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                'active': None,
-                'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
-                'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
-                'precision': precision,
-                'limits': limits,
-            }
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': network,
+                    'network': networkCode,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'active': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
+                    'precision': precision,
+                    'limits': limits,
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'code': code,
@@ -929,7 +935,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': 'crypto',  # only cryptos now
         })
 
-    def fetch_spot_markets(self, params) -> List[Market]:
+    def fetch_spot_markets(self, params: Any) -> List[Market]:
         response = self.spotV1PublicGetCommonSymbols(params)
         #
         #    {
@@ -962,7 +968,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(data, 'symbols', [])
         return self.parse_markets(markets)
 
-    def fetch_swap_markets(self, params):
+    def fetch_swap_markets(self, params: Any) -> List[Market]:
         response = self.swapV2PublicGetQuoteContracts(params)
         #
         #    {
@@ -998,7 +1004,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def fetch_inverse_swap_markets(self, params):
+    def fetch_inverse_swap_markets(self, params: Any):
         response = self.cswapV1PublicGetMarketContracts(params)
         #
         #     {
@@ -1180,6 +1186,12 @@ class bingx(Exchange, ImplicitAPI):
             request['endTime'] = until
         response: dict
         if market['spot']:
+            # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            timeZone = None
+            timeZone, params = self.handle_option_and_params(params, 'fetchOHLCV', 'timeZone', 0)
+            if timeZone is not None:
+                request['timeZone'] = timeZone
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
             if market['inverse']:
@@ -1231,7 +1243,7 @@ class bingx(Exchange, ImplicitAPI):
             ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #    {
         #        "open": "19394.4",
@@ -1484,12 +1496,18 @@ class bingx(Exchange, ImplicitAPI):
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and market['swap'] and ('volume' in trade):
-            # private trade returns num of contracts instead of base currency(as the order-related methods do)
-            contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
-            volume = self.safe_string(trade, 'volume')
-            amount = Precise.string_mul(volume, contractSize)
+            if market['linear']:
+                # private linear swap trades report 'amount' notional(quote) value, not the base amount
+                # 'volume' is the exchange's own base-currency fill quantity(bingx linear contractSize is always 1),
+                # use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = self.safe_string(trade, 'volume')
+            else:
+                # private trade returns num of contracts instead of base currency(as the order-related methods do)
+                contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
+                volume = self.safe_string(trade, 'volume')
+                amount = Precise.string_mul(volume, contractSize)
         return self.safe_trade({
-            'id': self.safe_string_n(trade, ['id', 't']),
+            'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
@@ -1518,7 +1536,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1686,7 +1704,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1771,7 +1789,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1842,7 +1860,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         # {
         #     "symbol": "LDO-USDT",
         #     "incomeType": "FUNDING_FEE",
@@ -1925,7 +1943,7 @@ class bingx(Exchange, ImplicitAPI):
             result = self.safe_dict(response, 'data', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # linear swap
         #
@@ -2418,7 +2436,7 @@ class bingx(Exchange, ImplicitAPI):
                 #     }
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # standard
         #
@@ -2514,7 +2532,8 @@ class bingx(Exchange, ImplicitAPI):
                 account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
                 account['used'] = self.safe_string(balance, 'usedMargin')
                 account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         else:
             for i in range(0, len(spotBalances)):
                 balance = spotBalances[i]
@@ -2523,7 +2542,8 @@ class bingx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
@@ -2535,7 +2555,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified contract symbol
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum amount of records to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch positions for
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -2888,7 +2908,7 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}):
         """
         create a market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2900,7 +2920,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2911,7 +2931,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2922,7 +2942,11 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build request
@@ -2982,7 +3006,7 @@ class bingx(Exchange, ImplicitAPI):
             if not isMarketOrder:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             if triggerPrice is not None:
-                if isMarketOrder and self.safe_string(request, 'quoteOrderQty') is None:
+                if isMarketOrder and (side == 'buy') and self.safe_string(request, 'quoteOrderQty') is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if type == 'LIMIT':
@@ -3025,10 +3049,15 @@ class bingx(Exchange, ImplicitAPI):
             isTrailingAmountOrder = trailingAmount is not None
             isTrailingPercentOrder = trailingPercent is not None
             isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-            stopLoss = self.safe_value(params, 'stopLoss')
-            takeProfit = self.safe_value(params, 'takeProfit')
-            hasStopLoss = stopLoss is not None
-            hasTakeProfit = takeProfit is not None
+            stopLossDict = self.safe_dict(params, 'stopLoss')
+            takeProfitDict = self.safe_dict(params, 'takeProfit')
+            hasStopLoss = stopLossDict is not None
+            hasTakeProfit = takeProfitDict is not None
+            # only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if hasStopLoss:
+                params = self.omit(params, 'stopLoss')
+            if hasTakeProfit:
+                params = self.omit(params, 'takeProfit')
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -3063,33 +3092,33 @@ class bingx(Exchange, ImplicitAPI):
             if hasStopLoss or hasTakeProfit:
                 stringifiedAmount = self.number_to_string(amount)
                 if hasStopLoss:
-                    slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                    slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
-                    slType = self.safe_string(stopLoss, 'type', 'STOP_MARKET')
+                    slTriggerPrice = self.safe_string_2(stopLossDict, 'triggerPrice', 'stopPrice')
+                    slWorkingType = self.safe_string(stopLossDict, 'workingType', 'MARK_PRICE')
+                    slType = self.safe_string(stopLossDict, 'type', 'STOP_MARKET')
                     slRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, slTriggerPrice)),
                         'workingType': slWorkingType,
                         'type': slType,
                     }
-                    slPrice = self.safe_string(stopLoss, 'price')
+                    slPrice = self.safe_string(stopLossDict, 'price')
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
+                    slQuantity = self.safe_string(stopLossDict, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
                 if hasTakeProfit:
-                    tkTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                    tkWorkingType = self.safe_string(takeProfit, 'workingType', 'MARK_PRICE')
-                    tpType = self.safe_string(takeProfit, 'type', 'TAKE_PROFIT_MARKET')
+                    tkTriggerPrice = self.safe_string_2(takeProfitDict, 'triggerPrice', 'stopPrice')
+                    tkWorkingType = self.safe_string(takeProfitDict, 'workingType', 'MARK_PRICE')
+                    tpType = self.safe_string(takeProfitDict, 'type', 'TAKE_PROFIT_MARKET')
                     tpRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, tkTriggerPrice)),
                         'workingType': tkWorkingType,
                         'type': tpType,
                     }
-                    slPrice = self.safe_string(takeProfit, 'price')
+                    slPrice = self.safe_string(takeProfitDict, 'price')
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    tkQuantity = self.safe_string(takeProfit, 'quantity', stringifiedAmount)
+                    tkQuantity = self.safe_string(takeProfitDict, 'quantity', stringifiedAmount)
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
@@ -3109,7 +3138,7 @@ class bingx(Exchange, ImplicitAPI):
                 if not market['inverse']:
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
                 request['quantity'] = amountReq  # precision not available for inverse contracts
-        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -3153,7 +3182,7 @@ class bingx(Exchange, ImplicitAPI):
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        response = None
+        response: dict | string
         if market['swap']:
             if test:
                 response = self.swapV2PrivatePostTradeOrderTest(request)
@@ -3234,7 +3263,8 @@ class bingx(Exchange, ImplicitAPI):
             # and json.loadscan not handle them in JS, so we have to use .parseJson
             # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
-            response = self.parse_json(response)
+            parsedResponse = self.parse_json(response)
+            response = parsedResponse
         data = self.safe_dict(response, 'data', {})
         result = {}
         if market['swap']:
@@ -3245,8 +3275,11 @@ class bingx(Exchange, ImplicitAPI):
         else:
             result = data
         # when the response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        stopLossDict = self.safe_dict(result, 'stopLoss')
         stopLoss = self.safe_string(result, 'stopLoss')
-        if (stopLoss is not None) and (stopLoss.find('{') == 0):
+        # for py fix, the SL is already parsed(instead of stringified,'s provided)
+        # so we need trick to check if it's non-parsed string yet
+        if (stopLossDict is None) and (stopLoss is not None) and (stopLoss.find('{') == 0):
             result['stopLoss'] = self.parse_json(stopLoss)
         takeProfit = self.safe_string(result, 'takeProfit')
         if (takeProfit is not None) and (takeProfit.find('{') == 0):
@@ -3271,7 +3304,7 @@ class bingx(Exchange, ImplicitAPI):
         marketIds = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
-            marketId = self.safe_string(rawOrder, 'symbol')
+            marketId = self.safe_string(rawOrder, 'symbol', '')
             type = self.safe_string(rawOrder, 'type')
             marketIds.append(marketId)
             side = self.safe_string(rawOrder, 'side')
@@ -3284,7 +3317,7 @@ class bingx(Exchange, ImplicitAPI):
         symbolsLength = len(symbols)
         market = self.market(symbols[0])
         request = {}
-        response = None
+        response: dict | string
         if market['swap']:
             if symbolsLength > 5:
                 raise InvalidOrder(self.id + ' createOrders() can not create more than 5 orders at once for swap markets')
@@ -3346,12 +3379,13 @@ class bingx(Exchange, ImplicitAPI):
             # and json.loadscan not handle them in JS, so we have to use .parseJson
             # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
-            response = self.parse_json(response)
+            parsedResponse = self.parse_json(response)
+            response = parsedResponse
         data = self.safe_dict(response, 'data', {})
         result = self.safe_list(data, 'orders', [])
         return self.parse_orders(result, market)
 
-    def parse_order_side(self, side):
+    def parse_order_side(self, side: Any):
         sides = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -4732,9 +4766,9 @@ class bingx(Exchange, ImplicitAPI):
         subType = None
         standard = None
         response: dict
-        type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        subType, params = self.handle_sub_type_and_params('fetchClosedOrders', market, params)
-        standard, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'standard', False)
+        type, params = self.handle_market_type_and_params('fetchCanceledAndClosedOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchCanceledAndClosedOrders', market, params)
+        standard, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'standard', False)
         if standard:
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
@@ -5112,7 +5146,7 @@ class bingx(Exchange, ImplicitAPI):
                 key = self.safe_string(keys, 0)
                 return self.safe_dict(addressStructures, key)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         # {
         #     "coinId":"4",
@@ -5127,8 +5161,15 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
         address = self.safe_string(depositAddress, 'addressWithPrefix')
-        networkdId = self.safe_string(depositAddress, 'network')
-        networkCode = self.network_id_to_code(networkdId, code)
+        networkId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkId, code)
+        # despite its name the addressWithPrefix field sometimes arrives without
+        # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if address is not None:
+            isPrefixed = address.startswith('0x') or address.startswith('0X')
+            evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
+            if not isPrefixed and self.in_array(networkCode, evmNetworks):
+                address = '0x' + address
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -5289,7 +5330,7 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string(transaction, 'network')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        if (code is not None) and (code != network) and code.find(network) >= 0:
+        if (code is not None) and (network is not None) and (code != network) and code.find(network) >= 0:
             if network is not None:
                 code = code.replace(network, '')
         rawType = self.safe_string(transaction, 'transferType')
@@ -5321,7 +5362,7 @@ class bingx(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: str):
+    def parse_transaction_status(self, status: Str):
         statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -5395,7 +5436,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
-        :param dict [params]: parameters specific to the bingx api endpoint
+        :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
@@ -5737,7 +5778,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
         return self.parse_trades(fills, market, since, limit, params)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         # currencie structure
         #
@@ -5769,7 +5810,7 @@ class bingx(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -5844,8 +5885,9 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         return self.parse_transaction(data)
 
-    def parse_params(self, params):
+    def parse_params(self, params: Any):
         # sortedParams = self.keysort(params)
+        copied = self.clone(params)
         rawKeys = list(params.keys())
         keys = self.sort(rawKeys)
         for i in range(0, len(keys)):
@@ -5859,8 +5901,8 @@ class bingx(Exchange, ImplicitAPI):
                         arrStr += ','
                     arrStr += str(arrayElement)
                 arrStr += ']'
-                params[key] = arrStr
-        return params
+                copied[key] = arrStr
+        return copied
 
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5959,7 +6001,7 @@ class bingx(Exchange, ImplicitAPI):
             liquidations = self.safe_list(data, 'orders', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     {
         #         "time": "int64",
@@ -6010,7 +6052,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by bingx
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.positionId]: the id of the position you would like to close
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -6067,7 +6109,7 @@ class bingx(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def close_all_positions(self, params={}) -> List[Position]:
@@ -6077,7 +6119,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
 
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.recvWindow]: request valid time window value
         :returns dict[]: `a list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -6131,7 +6173,7 @@ class bingx(Exchange, ImplicitAPI):
             positions.append(position)
         return positions
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
 
@@ -6166,7 +6208,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bingx setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -6228,7 +6270,7 @@ class bingx(Exchange, ImplicitAPI):
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
         response: dict
         if market['swap']:
-            response = self.swapV1PrivatePostTradeCancelReplace(self.extend(request, params))
+            response = self.swapV1PrivatePostTradeCancelReplace(request)
             #
             #    {
             #        code: '0',
@@ -6284,7 +6326,7 @@ class bingx(Exchange, ImplicitAPI):
             #    }
             #
         else:
-            response = self.spotV1PrivatePostTradeOrderCancelReplace(self.extend(request, params))
+            response = self.spotV1PrivatePostTradeOrderCancelReplace(request)
             #
             #    {
             #        code: '0',
@@ -6322,7 +6364,7 @@ class bingx(Exchange, ImplicitAPI):
             #        }
             #    }
             #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
@@ -6372,7 +6414,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
         marginType = 'cross' if (marginType == 'crossed') else marginType
@@ -6466,7 +6508,7 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def custom_encode(self, params):
+    def custom_encode(self, params: Any):
         # sortedParams = self.keysort(params)
         rawKeys = list(params.keys())
         keys = self.sort(rawKeys)
@@ -6537,7 +6579,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         #
         #     [
         #         {
@@ -6569,7 +6611,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         type = section[0]
         version = section[1]
         access = section[2]
@@ -6609,7 +6651,8 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 parsedParams = self.parse_params(params)
                 encodeRequest = self.rawencode(parsedParams, True)
-            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
+            encodeRequestSafe = '' if (encodeRequest is None) else encodeRequest
+            signature = self.hmac(self.encode(encodeRequestSafe), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
@@ -6630,7 +6673,7 @@ class bingx(Exchange, ImplicitAPI):
         super(bingx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

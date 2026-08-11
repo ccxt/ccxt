@@ -157,28 +157,64 @@ func (this *P2bCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"markets":      1,
-					"market":       1,
-					"tickers":      1,
-					"ticker":       1,
-					"book":         1,
-					"history":      1,
-					"depth/result": 1,
-					"market/kline": 1,
+					"markets": map[string]any{
+						"cost": 1,
+					},
+					"market": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"book": map[string]any{
+						"cost": 1,
+					},
+					"history": map[string]any{
+						"cost": 1,
+					},
+					"depth/result": map[string]any{
+						"cost": 1,
+					},
+					"market/kline": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"post": map[string]any{
-					"account/balances":             1,
-					"account/balance":              1,
-					"order/new":                    1,
-					"order/cancel":                 1,
-					"orders":                       1,
-					"account/market_order_history": 1,
-					"account/market_deal_history":  1,
-					"account/order":                1,
-					"account/order_history":        1,
-					"account/executed_history":     1,
+					"account/balances": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 1,
+					},
+					"order/new": map[string]any{
+						"cost": 1,
+					},
+					"order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"account/market_order_history": map[string]any{
+						"cost": 1,
+					},
+					"account/market_deal_history": map[string]any{
+						"cost": 1,
+					},
+					"account/order": map[string]any{
+						"cost": 1,
+					},
+					"account/order_history": map[string]any{
+						"cost": 1,
+					},
+					"account/executed_history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -613,7 +649,7 @@ func (this *P2bCore) ParseTicker(ticker any, optionalArgs ...any) any {
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *P2bCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

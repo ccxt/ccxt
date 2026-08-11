@@ -40,6 +40,19 @@
                     }
                 ],
                 "output": "{\"positionType\":\"CROSSED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usdt\"}"
+            },
+            {
+                "description": "set margin mode isolated on an inverse (coin-margined) market routes to dapi, not fapi",
+                "method": "setMarginMode",
+                "url": "https://dapi.xt.com/future/user/v1/position/change-type",
+                "input": [
+                    "isolated",
+                    "BTC/USD:BTC",
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "output": "{\"positionType\":\"ISOLATED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usd\"}"
             }
         ],
         "createOrder":[
@@ -258,6 +271,106 @@
                   "LTC/USDT:USDT"
                 ],
                 "output": "{\"orderId\":\"371184779575507520\"}"
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "spot bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://sapi.xt.com/v4/public/ticker/book",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "linear swap bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://fapi.xt.com/future/market/v1/public/q/ticker/books",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "inverse swap bids and asks routes to dapi",
+                "method": "fetchBidsAsks",
+                "url": "https://dapi.xt.com/future/market/v1/public/q/ticker/books",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "swap trading fee from the account step rate",
+                "method": "fetchTradingFee",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap trading fee routes to dapi",
+                "method": "fetchTradingFee",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "linear trading fees by default",
+                "method": "fetchTradingFees",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": []
+            },
+            {
+                "description": "inverse trading fees route to dapi",
+                "method": "fetchTradingFees",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "linear swap positions history with symbol, since and limit",
+                "method": "fetchPositionsHistory",
+                "url": "https://fapi.xt.com/future/trade/v1/position/list-history?limit=5&startTime=1785700000000&symbol=xrp_usdt",
+                "input": [
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    1785700000000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://fapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usdt",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap open interest routes to dapi",
+                "method": "fetchOpenInterest",
+                "url": "https://dapi.xt.com/future/market/v1/public/contract/open-interest?symbol=btc_usd",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
             }
         ],
         "fetchFundingInterval": [

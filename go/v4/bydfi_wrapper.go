@@ -51,7 +51,7 @@ func (this *Bydfi) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bydfi) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -176,7 +176,7 @@ func (this *Bydfi) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch (max 500)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
@@ -807,7 +807,7 @@ func (this *Bydfi) FetchPositionsForSymbol(symbol string, options ...FetchPositi
  * @param {string} symbol a unified market symbol
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -850,7 +850,7 @@ func (this *Bydfi) FetchPositionHistory(symbol string, options ...FetchPositionH
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -962,7 +962,7 @@ func (this *Bydfi) SetMarginMode(marginMode string, options ...SetMarginModeOpti
  * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
  * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} [symbol] not used by bydfi setPositionMode ()
+ * @param {string} [symbol] not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1005,7 +1005,7 @@ func (this *Bydfi) SetPositionMode(hedged bool, options ...SetPositionModeOption
  * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Bydfi) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bydfi) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1024,9 +1024,9 @@ func (this *Bydfi) FetchPositionMode(options ...FetchPositionModeOptions) (map[s
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -1202,12 +1202,12 @@ func (this *Bydfi) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *Bydfi) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) ([]map[string]any, error) {
+func (this *Bydfi) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
 	res := <-this.Core.FetchTransactionsHelper(typeVar, code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewTransactionArray(res), nil
 }
 
 // missing typed methods from base
@@ -1362,10 +1362,10 @@ func (this *Bydfi) FetchDepositAddressesByNetwork(code string, options ...FetchD
 func (this *Bydfi) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bydfi) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bydfi) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Bydfi) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bydfi) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Bydfi) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1485,7 +1485,7 @@ func (this *Bydfi) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Bydfi) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bydfi) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bydfi) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bydfi) FetchTime(params ...any) (int64, error) {
@@ -1596,7 +1596,7 @@ func (this *Bydfi) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bydfi) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bydfi) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bydfi) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bydfi) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1641,7 +1641,7 @@ func (this *Bydfi) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Bydfi) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bydfi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bydfi) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bydfi) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

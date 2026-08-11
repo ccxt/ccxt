@@ -230,7 +230,7 @@ create a market buy order by providing the symbol and cost
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -252,7 +252,7 @@ create a market sell order by providing the symbol and cost
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -274,7 +274,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-algo-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -301,7 +301,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-algo-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -371,10 +371,8 @@ edit a trade order
 
 **See**
 
-- https://docs.woox.io/#edit-order
-- https://docs.woox.io/#edit-order-by-client_order_id
-- https://docs.woox.io/#edit-algo-order
-- https://docs.woox.io/#edit-algo-order-by-client_order_id
+- https://developer.woox.io/api-reference/endpoint/trading/edit_order
+- https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
 
 
 | Param | Type | Required | Description |
@@ -386,6 +384,8 @@ edit a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order to edit, used instead of the id argument |
+| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
 | params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
@@ -436,19 +436,19 @@ cancel all open orders in a market
 
 **See**
 
-- https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+- https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
 - https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol, cancels orders in all markets when omitted |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | whether the order is a trigger/algo order |
+| params.trigger | <code>boolean</code> | No | set to true to cancel only trigger/algo orders |
 
 
 ```javascript
-woo.cancelAllOrders (symbol, params?)
+woo.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -601,7 +601,7 @@ woo.fetchClosedOrders (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/orderbook  
 
@@ -722,7 +722,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.woox.io/#get-current-holding-get-balance-new  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/get_balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -855,7 +855,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.woox.io/#get-transfer-history  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -903,7 +903,7 @@ make a withdrawal
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.woox.io/#token-withdraw-v3  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1210,7 +1210,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1340,11 +1340,11 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
 
-**See**: https://docs.woox.io/#get-all-position-info-new  
+**See**: https://developer.woox.io/api-reference/endpoint/futures/get_positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1359,7 +1359,7 @@ woo.fetchPositionsADLRank (symbols?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

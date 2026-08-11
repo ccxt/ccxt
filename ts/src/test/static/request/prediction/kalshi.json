@@ -1,0 +1,112 @@
+{
+    "exchange": "kalshi",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for a yes outcome",
+                "method": "fetchTicker",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with two outcome symbols",
+                "method": "fetchTickers",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets?tickers=KXELONMARS-99%2CKXCOLONIZEMARS-50&limit=100",
+                "input": [
+                    [
+                        "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "HUMANS_COLONIZE_MARS_2050:YES"
+                    ]
+                ]
+            },
+            {
+                "description": "fetchTickers batch-resolves uncached ticker outcomes through one markets request",
+                "method": "fetchTickers",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets?tickers=KXZZFOO-26DEC31%2CKXZZBAR-26DEC31&limit=100",
+                "input": [
+                    [
+                        "KXZZFOO-26DEC31",
+                        "KXZZBAR-26DEC31-NO"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99/orderbook",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/trades?ticker=KXELONMARS-99&limit=5",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://external-api.kalshi.com/trade-api/v2/series/KXELONMARS/markets/KXELONMARS-99/candlesticks?period_interval=60&start_ts=1740000000&end_ts=1740086400",
+                "input": [
+                    "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    "1h",
+                    1740000000000,
+                    24
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by tags resolves series tickers via the series listing",
+                "method": "fetchEvents",
+                "url": "https://external-api.kalshi.com/trade-api/v2/series?tags=BTC",
+                "input": [
+                    {
+                        "tags": [
+                            "BTC"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOutcome": [
+            {
+                "description": "a unified handle resolves through the series-scoped events listing (its first token is the series ticker), never a by-ticker fetch of the handle itself",
+                "method": "fetchOutcome",
+                "url": "https://external-api.kalshi.com/trade-api/v2/events?series_ticker=KXBTCD&status=open&with_nested_markets=true&limit=100",
+                "input": [
+                    "KXBTCD_26JUL1417_53_000_ABOVE:YES"
+                ]
+            },
+            {
+                "description": "an outcomeId with a -NO suffix fetches the single market by its base ticker",
+                "method": "fetchOutcome",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99",
+                "input": [
+                    "KXELONMARS-99-NO"
+                ]
+            }
+        ]
+    },
+    "options": {
+        "loadAllOutcomes": true
+    }
+}

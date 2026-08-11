@@ -33,6 +33,8 @@ async def test_watch_ohlcv(exchange, skipped_properties, symbol):
         success = True
         try:
             response = await exchange.watch_ohlcv(symbol, chosen_timeframe_key, since, limit)
+            if response is None:
+                raise Error(exchange.id + ' watch returned undefined response')
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
@@ -40,6 +42,8 @@ async def test_watch_ohlcv(exchange, skipped_properties, symbol):
             # continue;
             success = False
         if success:
+            if response is None:
+                raise Error(exchange.id + ' watch returned undefined response')
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, response, symbol)
             now = exchange.milliseconds()
             for i in range(0, len(response)):

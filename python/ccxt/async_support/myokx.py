@@ -37,7 +37,7 @@ class myokx(okx, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
             },
@@ -53,5 +53,8 @@ class myokx(okx, ImplicitAPI):
             },
             'options': {
                 'mica': True,
+                'fetchMarkets': {
+                    'types': ['spot', 'swap'],
+                },
             },
         })

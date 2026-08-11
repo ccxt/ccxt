@@ -48,12 +48,12 @@ func (this *Delta) FetchTime(params ...any) (int64, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Delta) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Delta) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -157,7 +157,7 @@ func (this *Delta) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Delta) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -934,7 +934,7 @@ func (this *Delta) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Delta) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Delta) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -963,9 +963,9 @@ func (this *Delta) FetchSettlementHistory(options ...FetchSettlementHistoryOptio
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1272,10 +1272,10 @@ func (this *Delta) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
 func (this *Delta) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Delta) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Delta) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Delta) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Delta) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Delta) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1374,7 +1374,7 @@ func (this *Delta) FetchPaymentMethods(params ...any) (map[string]any, error) {
 func (this *Delta) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Delta) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Delta) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Delta) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1506,7 +1506,7 @@ func (this *Delta) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Delta) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Delta) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Delta) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Delta) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1551,7 +1551,7 @@ func (this *Delta) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Delta) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Delta) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Delta) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Delta) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

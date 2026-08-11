@@ -202,7 +202,7 @@ public partial class aster
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -485,10 +485,10 @@ public partial class aster
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// set hedged to true or false for a market

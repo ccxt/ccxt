@@ -53,10 +53,13 @@ public partial class zebpay : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderTrades", true },
                 { "fetchPositions", true },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
+                { "fetchTradingFees", true },
                 { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -92,72 +95,156 @@ public partial class zebpay : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v2/system/time", 10 },
-                            { "v2/system/status", 10 },
-                            { "v2/market/orderbook", 10 },
-                            { "v2/market/trades", 10 },
-                            { "v2/market/ticker", 10 },
-                            { "v2/market/allTickers", 10 },
-                            { "v2/ex/exchangeInfo", 10 },
-                            { "v2/ex/currencies", 10 },
-                            { "v2/market/klines", 10 },
-                            { "v2/ex/tradefees", 10 },
+                            { "v2/system/time", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/system/status", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/orderbook", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/trades", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/ticker", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/allTickers", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/exchangeInfo", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/currencies", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/market/klines", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/tradefees", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/system/time", 10 },
-                            { "v1/system/status", 10 },
-                            { "v1/exchange/tradefee", 10 },
-                            { "v1/exchange/tradefees", 10 },
-                            { "v1/market/orderBook", 10 },
-                            { "v1/market/ticker24Hr", 10 },
-                            { "v1/market/markets", 10 },
-                            { "v1/market/aggTrade", 10 },
+                            { "v1/system/time", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/system/status", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/tradefees", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/orderBook", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/ticker24Hr", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/markets", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/aggTrade", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "v1/market/klines", 10 },
+                            { "v1/market/klines", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
-                            { "v2/ex/orders", 10 },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "get", new Dictionary<string, object>() {
-                            { "v2/ex/orders", 10 },
-                            { "v2/account/balance", 10 },
-                            { "v2/ex/tradefee", 10 },
-                            { "v2/ex/order", 10 },
-                            { "v2/ex/order/fills", 10 },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/account/balance", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/order/fills", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "v2/ex/order", 10 },
-                            { "v2/ex/orders", 10 },
-                            { "v2/ex/orders/cancelAll", 10 },
+                            { "v2/ex/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/orders/cancelAll", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/wallet/balance", 10 },
-                            { "v1/trade/order", 10 },
-                            { "v1/trade/order/open-orders", 10 },
-                            { "v1/trade/userLeverages", 10 },
-                            { "v1/trade/userLeverage", 10 },
-                            { "v1/trade/positions", 10 },
-                            { "v1/trade/history", 10 },
+                            { "v1/wallet/balance", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/open-orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/userLeverages", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/userLeverage", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/positions", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "v1/trade/order", 10 },
-                            { "v1/trade/order/addTPSL", 10 },
-                            { "v1/trade/addMargin", 10 },
-                            { "v1/trade/reduceMargin", 10 },
-                            { "v1/trade/position/close", 10 },
-                            { "v1/trade/update/userLeverage", 10 },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/addTPSL", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/addMargin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/reduceMargin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/position/close", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/update/userLeverage", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "v1/trade/order", 10 },
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                     } },
                 } },
@@ -305,7 +392,7 @@ public partial class zebpay : Exchange
      * @description retrieves data on all markets for zebpay
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -419,26 +506,29 @@ public partial class zebpay : Exchange
             {
                 minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
             }
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", chain },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                { "deposit", depositAllowed },
-                { "withdraw", withdrawAllowed },
-                { "fee", this.parseNumber(withdrawFeeString) },
-                { "precision", precision },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minNetworkWithdrawString) },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
+                    { "deposit", depositAllowed },
+                    { "withdraw", withdrawAllowed },
+                    { "fee", this.parseNumber(withdrawFeeString) },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minNetworkWithdrawString) },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.parseNumber(minNetworkDepositString) },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minNetworkDepositString) },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -527,7 +617,7 @@ public partial class zebpay : Exchange
             // }
             //
             object responseData = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, new Dictionary<string, object>() {});
         }
         return this.parseTradingFee(data, market);
     }
@@ -575,7 +665,10 @@ public partial class zebpay : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            }
         }
         return result;
     }
@@ -589,7 +682,7 @@ public partial class zebpay : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1102,6 +1195,10 @@ public partial class zebpay : Exchange
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -1162,7 +1259,7 @@ public partial class zebpay : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object upperCaseType = ((string)type).ToUpper();
-        object triggerPrice = this.safeString(parameters, "stopLossPrice", null);
+        object triggerPrice = this.safeString(parameters, "stopLossPrice");
         object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         object clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
@@ -1234,18 +1331,18 @@ public partial class zebpay : Exchange
         //        },
         //    }
         //
-        return this.parseOrder(this.safeDict(response, "data"));
+        return this.parseOrder(this.safeDict(response, "data", new Dictionary<string, object>() {}));
     }
 
     /**
      * @method
-     * @name zebpay#cancelOrders
+     * @name zebpay#cancelAllOrders
      * @description cancels all open orders
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {int} [params.timestamp] the timestamp of the request in ms
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -1445,7 +1542,7 @@ public partial class zebpay : Exchange
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
         object status = this.safeStringLower(order, "status");
-        object orderId = this.safeString(order, "orderId", null);
+        object orderId = this.safeString(order, "orderId");
         object parsedOrder = this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -1481,7 +1578,7 @@ public partial class zebpay : Exchange
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoinfutures closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -1901,7 +1998,10 @@ public partial class zebpay : Exchange
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "used");
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }

@@ -7,20 +7,28 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchTickers(BaseExchange exchange, object skippedProperties, object symbol)
     {
+        // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+        // is impractical and the "every active market has a ticker" check doesn't apply — test
+        // fetchTickers by the outcome handle instead
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            object predictionResult = await fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
+            return new List<object>() {predictionResult};
+        }
         object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
         object results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
         fetchTickersAmountsTest(exchange, skippedProperties, getValue(results, 0));
         return results;
     }
-    async static public Task<object> fetchTickersHelperTest(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> fetchTickersHelperTest(BaseExchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         object method = "fetchTickers";
-        object response = await exchange.fetchTickers(argSymbols, argParams);
-        assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dict. "), exchange.json(response)));
+        object response = await ((dynamic)exchange).fetchTickers(argSymbols, argParams);
+        testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         object values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
         if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
@@ -37,12 +45,18 @@ public partial class testMainClass : BaseTest
                 testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
             } catch(Exception ex)
             {
-                await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                object ohlcv = null;
+                object tickerSymbol = getValue(ticker, "symbol");
+                if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                {
+                    ohlcv = await ((dynamic)exchange).fetchOHLCV(tickerSymbol, "1d", null, 5);
+                }
+                testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
             }
         }
         return response;
     }
-    public static void fetchTickersAmountsTest(Exchange exchange, object skippedProperties, object tickers)
+    public static void fetchTickersAmountsTest(BaseExchange exchange, object skippedProperties, object tickers)
     {
         object tickersValues = new List<object>(((IDictionary<string,object>)tickers).Values);
         if (!isTrue((inOp(skippedProperties, "checkActiveSymbols"))))
@@ -59,6 +73,10 @@ public partial class testMainClass : BaseTest
             // ensure tickers length is less than markets length
             //
             object allMarkets = exchange.markets;
+            if (isTrue(isEqual(allMarkets, null)))
+            {
+                return;
+            }
             object allMarketsLength = getArrayLength(new List<object>(((IDictionary<string,object>)allMarkets).Keys));
             assert(isLessThanOrEqual(obtainedTickersLength, allMarketsLength), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)allMarketsLength).ToString()), " markets"));
         }

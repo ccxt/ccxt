@@ -135,64 +135,168 @@ func (this *LatokenCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"book/{currency}/{quote}":          1,
-					"chart/week":                       1,
-					"chart/week/{currency}/{quote}":    1,
-					"currency":                         1,
-					"currency/available":               1,
-					"currency/quotes":                  1,
-					"currency/{currency}":              1,
-					"pair":                             1,
-					"pair/available":                   1,
-					"ticker":                           1,
-					"ticker/{base}/{quote}":            1,
-					"time":                             1,
-					"trade/history/{currency}/{quote}": 1,
-					"trade/fee/{currency}/{quote}":     1,
-					"trade/feeLevels":                  1,
-					"transaction/bindings":             1,
+					"book/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"chart/week": map[string]any{
+						"cost": 1,
+					},
+					"chart/week/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"currency": map[string]any{
+						"cost": 1,
+					},
+					"currency/available": map[string]any{
+						"cost": 1,
+					},
+					"currency/quotes": map[string]any{
+						"cost": 1,
+					},
+					"currency/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"pair": map[string]any{
+						"cost": 1,
+					},
+					"pair/available": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"ticker/{base}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"time": map[string]any{
+						"cost": 1,
+					},
+					"trade/history/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"trade/fee/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"trade/feeLevels": map[string]any{
+						"cost": 1,
+					},
+					"transaction/bindings": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"auth/account": 1,
-					"auth/account/currency/{currency}/{type}": 1,
-					"auth/order":                                    1,
-					"auth/order/getOrder/{id}":                      1,
-					"auth/order/pair/{currency}/{quote}":            1,
-					"auth/order/pair/{currency}/{quote}/active":     1,
-					"auth/stopOrder":                                1,
-					"auth/stopOrder/getOrder/{id}":                  1,
-					"auth/stopOrder/pair/{currency}/{quote}":        1,
-					"auth/stopOrder/pair/{currency}/{quote}/active": 1,
-					"auth/trade":                                    1,
-					"auth/trade/pair/{currency}/{quote}":            1,
-					"auth/trade/fee/{currency}/{quote}":             1,
-					"auth/transaction":                              1,
-					"auth/transaction/bindings":                     1,
-					"auth/transaction/bindings/{currency}":          1,
-					"auth/transaction/{id}":                         1,
-					"auth/transfer":                                 1,
+					"auth/account": map[string]any{
+						"cost": 1,
+					},
+					"auth/account/currency/{currency}/{type}": map[string]any{
+						"cost": 1,
+					},
+					"auth/order": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/getOrder/{id}": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/pair/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/pair/{currency}/{quote}/active": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/getOrder/{id}": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/pair/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/pair/{currency}/{quote}/active": map[string]any{
+						"cost": 1,
+					},
+					"auth/trade": map[string]any{
+						"cost": 1,
+					},
+					"auth/trade/pair/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/trade/fee/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/bindings": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/bindings/{currency}": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/{id}": map[string]any{
+						"cost": 1,
+					},
+					"auth/transfer": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"auth/order/cancel":                           1,
-					"auth/order/cancelAll":                        1,
-					"auth/order/cancelAll/{currency}/{quote}":     1,
-					"auth/order/place":                            1,
-					"auth/spot/deposit":                           1,
-					"auth/spot/withdraw":                          1,
-					"auth/stopOrder/cancel":                       1,
-					"auth/stopOrder/cancelAll":                    1,
-					"auth/stopOrder/cancelAll/{currency}/{quote}": 1,
-					"auth/stopOrder/place":                        1,
-					"auth/transaction/depositAddress":             1,
-					"auth/transaction/withdraw":                   1,
-					"auth/transaction/withdraw/cancel":            1,
-					"auth/transaction/withdraw/confirm":           1,
-					"auth/transaction/withdraw/resendCode":        1,
-					"auth/transfer/email":                         1,
-					"auth/transfer/id":                            1,
-					"auth/transfer/phone":                         1,
+					"auth/order/cancel": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/cancelAll": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/cancelAll/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/place": map[string]any{
+						"cost": 1,
+					},
+					"auth/spot/deposit": map[string]any{
+						"cost": 1,
+					},
+					"auth/spot/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/cancel": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/cancelAll": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/cancelAll/{currency}/{quote}": map[string]any{
+						"cost": 1,
+					},
+					"auth/stopOrder/place": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/depositAddress": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/withdraw/cancel": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/withdraw/confirm": map[string]any{
+						"cost": 1,
+					},
+					"auth/transaction/withdraw/resendCode": map[string]any{
+						"cost": 1,
+					},
+					"auth/transfer/email": map[string]any{
+						"cost": 1,
+					},
+					"auth/transfer/id": map[string]any{
+						"cost": 1,
+					},
+					"auth/transfer/phone": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -255,7 +359,7 @@ func (this *LatokenCore) Describe() any {
 				"request expired or bad":                                  InvalidNonce,
 				"For input string":                                        BadRequest,
 				"Unable to resolve currency by tag":                       BadSymbol,
-				"Can\\'t find currency with tag":                          BadSymbol,
+				"Can't find currency with tag":                            BadSymbol,
 				"Unable to place order because pair is in inactive state": BadSymbol,
 				"API keys are not available for":                          AccountSuspended,
 			},
@@ -428,8 +532,9 @@ func (this *LatokenCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 		var currenciesById any = this.IndexBy(currencies, "id")
 		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var market any = GetValue(response, i)
+		var rawMarkets any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
+			var market any = GetValue(rawMarkets, i)
 			var id any = this.SafeString(market, "id")
 			// the exchange shows them inverted
 			var baseId any = this.SafeString(market, "baseCurrency")
@@ -441,6 +546,9 @@ func (this *LatokenCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			if IsTrue(IsTrue(!IsEqual(baseCurrencyInfo, nil)) && IsTrue(!IsEqual(quoteCurrencyInfo, nil))) {
 				var base any = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
 				var quote any = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
+				if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
+					continue
+				}
 				var lowercaseQuote any = ToLower(quote)
 				var capitalizedQuote any = this.Capitalize(lowercaseQuote)
 				var status any = this.SafeString(market, "status")
@@ -607,8 +715,8 @@ func (this *LatokenCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes56612 := (<-this.LoadMarkets())
-			PanicOnError(retRes56612)
+			retRes57012 := (<-this.LoadMarkets())
+			PanicOnError(retRes57012)
 		}
 
 		response := (<-this.PrivateGetAuthAccount(params))
@@ -662,7 +770,9 @@ func (this *LatokenCore) FetchBalance(optionalArgs ...any) <-chan any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available"))
 			AddElementToObject(account, "used", this.SafeString(balance, "blocked"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 		AddElementToObject(result, "timestamp", maxTimestamp)
 		AddElementToObject(result, "datetime", this.Iso8601(maxTimestamp))
@@ -682,7 +792,7 @@ func (this *LatokenCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LatokenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -695,8 +805,8 @@ func (this *LatokenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63712 := (<-this.LoadMarkets())
-			PanicOnError(retRes63712)
+			retRes64312 := (<-this.LoadMarkets())
+			PanicOnError(retRes64312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -800,8 +910,8 @@ func (this *LatokenCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes72612 := (<-this.LoadMarkets())
-			PanicOnError(retRes72612)
+			retRes73212 := (<-this.LoadMarkets())
+			PanicOnError(retRes73212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -859,8 +969,8 @@ func (this *LatokenCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes76812 := (<-this.LoadMarkets())
-			PanicOnError(retRes76812)
+			retRes77412 := (<-this.LoadMarkets())
+			PanicOnError(retRes77412)
 		}
 
 		response := (<-this.PublicGetTicker(params))
@@ -952,7 +1062,7 @@ func (this *LatokenCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	if IsTrue(InOp(this.Markets, symbol)) {
+	if IsTrue(IsTrue((!IsEqual(this.Markets, nil))) && IsTrue((InOp(this.Markets, symbol)))) {
 		market = this.Market(symbol)
 	}
 	var id any = this.SafeString(trade, "id")
@@ -1006,8 +1116,8 @@ func (this *LatokenCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89512 := (<-this.LoadMarkets())
-			PanicOnError(retRes89512)
+			retRes90112 := (<-this.LoadMarkets())
+			PanicOnError(retRes90112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1058,15 +1168,15 @@ func (this *LatokenCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan
 		params = this.Omit(params, "method")
 		if IsTrue(IsEqual(method, "fetchPrivateTradingFee")) {
 
-			retRes93419 := (<-this.FetchPrivateTradingFee(symbol, params))
-			PanicOnError(retRes93419)
-			ch <- retRes93419
+			retRes94019 := (<-this.FetchPrivateTradingFee(symbol, params))
+			PanicOnError(retRes94019)
+			ch <- retRes94019
 			return nil
 		} else if IsTrue(IsEqual(method, "fetchPublicTradingFee")) {
 
-			retRes93619 := (<-this.FetchPublicTradingFee(symbol, params))
-			PanicOnError(retRes93619)
-			ch <- retRes93619
+			retRes94219 := (<-this.FetchPublicTradingFee(symbol, params))
+			PanicOnError(retRes94219)
+			ch <- retRes94219
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " not support this method")))
@@ -1084,8 +1194,8 @@ func (this *LatokenCore) FetchPublicTradingFee(symbol any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes94412 := (<-this.LoadMarkets())
-			PanicOnError(retRes94412)
+			retRes95012 := (<-this.LoadMarkets())
+			PanicOnError(retRes95012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1126,8 +1236,8 @@ func (this *LatokenCore) FetchPrivateTradingFee(symbol any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97212 := (<-this.LoadMarkets())
-			PanicOnError(retRes97212)
+			retRes97812 := (<-this.LoadMarkets())
+			PanicOnError(retRes97812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1187,15 +1297,15 @@ func (this *LatokenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101212 := (<-this.LoadMarkets())
-			PanicOnError(retRes101212)
+			retRes101812 := (<-this.LoadMarkets())
+			PanicOnError(retRes101812)
 		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit) // default 100
 		}
-		var response any = nil
+		var response any = []any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "currency", GetValue(market, "baseId"))
@@ -1311,7 +1421,7 @@ func (this *LatokenCore) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if IsTrue(IsTrue((!IsEqual(base, nil))) && IsTrue((!IsEqual(quote, nil)))) {
 		symbol = Add(Add(base, "/"), quote)
-		if IsTrue(InOp(this.Markets, symbol)) {
+		if IsTrue(IsTrue((!IsEqual(this.Markets, nil))) && IsTrue((InOp(this.Markets, symbol)))) {
 			market = this.Market(symbol)
 		}
 	}
@@ -1394,8 +1504,8 @@ func (this *LatokenCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes120312 := (<-this.LoadMarkets())
-			PanicOnError(retRes120312)
+			retRes120912 := (<-this.LoadMarkets())
+			PanicOnError(retRes120912)
 		}
 		var response any = nil
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1475,8 +1585,8 @@ func (this *LatokenCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes126112 := (<-this.LoadMarkets())
-			PanicOnError(retRes126112)
+			retRes126712 := (<-this.LoadMarkets())
+			PanicOnError(retRes126712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1563,8 +1673,8 @@ func (this *LatokenCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes133112 := (<-this.LoadMarkets())
-			PanicOnError(retRes133112)
+			retRes133712 := (<-this.LoadMarkets())
+			PanicOnError(retRes133712)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1639,11 +1749,14 @@ func (this *LatokenCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes138812 := (<-this.LoadMarkets())
-			PanicOnError(retRes138812)
+			retRes139412 := (<-this.LoadMarkets())
+			PanicOnError(retRes139412)
 		}
 		var market any = this.Market(symbol)
 		var uppercaseType any = ToUpper(typeVar)
+		if IsTrue(IsEqual(side, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
+		}
 		var request any = map[string]any{
 			"baseCurrency":  GetValue(market, "baseId"),
 			"quoteCurrency": GetValue(market, "quoteId"),
@@ -1697,7 +1810,7 @@ func (this *LatokenCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
  * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
  * @param {string} id order id
- * @param {string} symbol not used by latoken cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1713,8 +1826,8 @@ func (this *LatokenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes144512 := (<-this.LoadMarkets())
-			PanicOnError(retRes144512)
+			retRes145412 := (<-this.LoadMarkets())
+			PanicOnError(retRes145412)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1754,7 +1867,7 @@ func (this *LatokenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel all open orders in a market
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1770,8 +1883,8 @@ func (this *LatokenCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148312 := (<-this.LoadMarkets())
-			PanicOnError(retRes148312)
+			retRes149212 := (<-this.LoadMarkets())
+			PanicOnError(retRes149212)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1845,8 +1958,8 @@ func (this *LatokenCore) FetchTransactions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes153612 := (<-this.LoadMarkets())
-			PanicOnError(retRes153612)
+			retRes154512 := (<-this.LoadMarkets())
+			PanicOnError(retRes154512)
 		}
 		var request any = map[string]any{}
 
@@ -2000,8 +2113,8 @@ func (this *LatokenCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167412 := (<-this.LoadMarkets())
-			PanicOnError(retRes167412)
+			retRes168312 := (<-this.LoadMarkets())
+			PanicOnError(retRes168312)
 		}
 		var currency any = this.Currency(code)
 
@@ -2070,8 +2183,8 @@ func (this *LatokenCore) Transfer(code any, amount any, fromAccount any, toAccou
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes172912 := (<-this.LoadMarkets())
-			PanicOnError(retRes172912)
+			retRes173812 := (<-this.LoadMarkets())
+			PanicOnError(retRes173812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

@@ -97,7 +97,7 @@ func HelperTestInitMarket() {
 			"BTC/USD": sampleMarket,
 		},
 	}, map[string]any{}, exchange2)
-	Assert(!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil))
+	Assert(ccxt.IsTrue((!ccxt.IsEqual(exchange2.Markets, nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil))))
 }
 func HelperTestProperties() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

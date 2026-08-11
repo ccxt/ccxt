@@ -45,6 +45,7 @@ func (this *ToobitCore) Describe() any {
 			"fetchBorrowRateHistory":    false,
 			"fetchBorrowRates":          false,
 			"fetchBorrowRatesPerSymbol": false,
+			"fetchClosedOrders":         true,
 			"fetchCrossBorrowRate":      false,
 			"fetchCrossBorrowRates":     false,
 			"fetchCurrencies":           true,
@@ -58,6 +59,7 @@ func (this *ToobitCore) Describe() any {
 			"fetchIsolatedBorrowRates":  false,
 			"fetchLastPrices":           true,
 			"fetchLedger":               true,
+			"fetchLeverage":             true,
 			"fetchMarkets":              true,
 			"fetchMarkOHLCV":            true,
 			"fetchMyTrades":             true,
@@ -68,14 +70,17 @@ func (this *ToobitCore) Describe() any {
 			"fetchOrder":                true,
 			"fetchOrderBook":            true,
 			"fetchOrders":               true,
+			"fetchPositions":            true,
 			"fetchStatus":               true,
 			"fetchTickers":              true,
 			"fetchTime":                 true,
 			"fetchTrades":               true,
+			"fetchTradingFees":          true,
 			"fetchVolatilityHistory":    false,
 			"fetchWithdrawals":          true,
 			"repayCrossMargin":          false,
 			"repayIsolatedMargin":       false,
+			"setLeverage":               true,
 			"setMarginMode":             true,
 			"transfer":                  true,
 			"withdraw":                  true,
@@ -87,7 +92,7 @@ func (this *ToobitCore) Describe() any {
 				"private": "https://api.toobit.com",
 			},
 			"www": "https://www.toobit.com/",
-			"doc": []any{"https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/"},
+			"doc": []any{"https://api-docs.toobit.com/"},
 			"referral": map[string]any{
 				"url":      "https://www.toobit.com/en-US/r?i=IFFPy0",
 				"discount": 0.1,
@@ -97,75 +102,277 @@ func (this *ToobitCore) Describe() any {
 		"api": map[string]any{
 			"common": map[string]any{
 				"get": map[string]any{
-					"api/v1/time":                       1,
-					"api/v1/ping":                       1,
-					"api/v1/exchangeInfo":               1,
-					"quote/v1/depth":                    1,
-					"quote/v1/depth/merged":             1,
-					"quote/v1/trades":                   1,
-					"quote/v1/klines":                   1,
-					"quote/v1/index/klines":             1,
-					"quote/v1/markPrice/klines":         1,
-					"quote/v1/markPrice":                1,
-					"quote/v1/index":                    1,
-					"quote/v1/ticker/24hr":              40,
-					"quote/v1/contract/ticker/24hr":     40,
-					"quote/v1/ticker/price":             1,
-					"quote/v1/ticker/bookTicker":        1,
-					"api/v1/futures/fundingRate":        1,
-					"api/v1/futures/historyFundingRate": 1,
+					"api/v1/time": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/exchangeInfo": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/depth": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/depth/merged": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/index/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/indexPriceComponents": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/markPrice/klines": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/markPrice": map[string]any{
+						"cost": 10,
+					},
+					"quote/v1/index": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/ticker/24hr": map[string]any{
+						"cost": 40,
+					},
+					"quote/v1/contract/ticker/24hr": map[string]any{
+						"cost": 40,
+					},
+					"quote/v1/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/contract/ticker/price": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"quote/v1/contract/ticker/bookTicker": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/fundingRate": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/historyFundingRate": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/riskLimits": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"api/v1/account":                 5,
-					"api/v1/account/checkApiKey":     1,
-					"api/v1/spot/order":              Multiply(1, 1.67),
-					"api/v1/spot/openOrders":         Multiply(1, 1.67),
-					"api/v1/futures/openOrders":      Multiply(1, 1.67),
-					"api/v1/spot/tradeOrders":        Multiply(5, 1.67),
-					"api/v1/futures/historyOrders":   Multiply(5, 1.67),
-					"api/v1/account/trades":          Multiply(5, 1.67),
-					"api/v1/account/balanceFlow":     5,
-					"api/v1/account/depositOrders":   5,
-					"api/v1/account/withdrawOrders":  5,
-					"api/v1/account/deposit/address": 1,
-					"api/v1/subAccount":              5,
-					"api/v1/futures/accountLeverage": 1,
-					"api/v1/futures/order":           Multiply(1, 1.67),
-					"api/v1/futures/positions":       Multiply(5, 1.67),
-					"api/v1/futures/balance":         5,
-					"api/v1/futures/userTrades":      Multiply(5, 1.67),
-					"api/v1/futures/balanceFlow":     5,
-					"api/v1/futures/commissionRate":  5,
-					"api/v1/futures/todayPnl":        5,
+					"api/v1/account": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/checkApiKey": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/openOrders": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/openOrders": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/tradeOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/historyOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/account/trades": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/account/balanceFlow": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/depositOrders": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/withdrawOrders": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/subAccount": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/subAccount": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/subAccount/list": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/accountLeverage": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/positions": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/historyPositions": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/balance": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/userTrades": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/balanceFlow": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/commissionRate": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/futures/todayPnl": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/download/detail": map[string]any{
+						"cost": 10,
+					},
+					"api/v1/agent/inviteUserList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/commissionDataList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/commissionDataInfo": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/inviteRelationCheck": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/depositDetailList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/querySubAgentData": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/spotOrdersList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/futuresOrdersList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/futuresPositionsList": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/invite-commission-detail": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/user/export": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/export-list": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/agent/export-url": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"api/v1/spot/orderTest":                Multiply(1, 1.67),
-					"api/v1/spot/order":                    Multiply(1, 1.67),
-					"api/v1/futures/order":                 Multiply(1, 1.67),
-					"api/v1/spot/batchOrders":              Multiply(2, 1.67),
-					"api/v1/subAccount/transfer":           1,
-					"api/v1/account/withdraw":              1,
-					"api/v1/futures/marginType":            1,
-					"api/v1/futures/leverage":              1,
-					"api/v1/futures/batchOrders":           Multiply(2, 1.67),
-					"api/v1/futures/position/trading-stop": Multiply(3, 1.67),
-					"api/v1/futures/positionMargin":        1,
-					"api/v1/userDataStream":                1,
-					"api/v1/listenKey":                     1,
+					"api/v1/spot/orderTest": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/batchOrders": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/subAccount/transfer": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/account/withdraw": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/marginType": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/leverage": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/batchOrders": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/futures/position/trading-stop": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/futures/positionMargin": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/order/update": map[string]any{
+						"cost": Multiply(2, 1.67),
+					},
+					"api/v1/futures/autoAddMargin": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/flashClose": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/futures/reversePosition": map[string]any{
+						"cost": 5,
+					},
+					"api/v1/account/download/apply": map[string]any{
+						"cost": 1000,
+					},
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"api/v1/spot/order":               Multiply(1, 1.67),
-					"api/v1/futures/order":            Multiply(1, 1.67),
-					"api/v1/spot/openOrders":          Multiply(5, 1.67),
-					"api/v1/futures/batchOrders":      Multiply(5, 1.67),
-					"api/v1/spot/cancelOrderByIds":    Multiply(5, 1.67),
-					"api/v1/futures/cancelOrderByIds": Multiply(5, 1.67),
-					"api/v1/listenKey":                1,
+					"api/v1/spot/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/futures/order": map[string]any{
+						"cost": Multiply(1, 1.67),
+					},
+					"api/v1/spot/openOrders": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/batchOrders": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/spot/cancelOrderByIds": map[string]any{
+						"cost": Multiply(5, 1.67),
+					},
+					"api/v1/futures/cancelOrderByIds": map[string]any{
+						"cost": Multiply(3, 1.67),
+					},
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"api/v1/listenKey": 1,
+					"api/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"api/v1/listenKey": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -188,94 +395,188 @@ func (this *ToobitCore) Describe() any {
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
-				"-1000": OperationFailed,
-				"-1001": OperationFailed,
-				"-1002": PermissionDenied,
-				"-1003": RateLimitExceeded,
-				"-1004": BadRequest,
-				"-1006": OperationFailed,
-				"-1007": OperationFailed,
-				"-1014": OperationFailed,
-				"-1015": RateLimitExceeded,
-				"-1016": OperationRejected,
-				"-1020": OperationRejected,
-				"-1021": OperationRejected,
-				"-1022": OperationRejected,
-				"-1100": BadRequest,
-				"-1101": BadRequest,
-				"-1102": BadRequest,
-				"-1103": BadRequest,
-				"-1104": BadRequest,
-				"-1105": BadRequest,
-				"-1106": BadRequest,
-				"-1111": BadRequest,
-				"-1112": OperationRejected,
-				"-1114": BadRequest,
-				"-1115": BadRequest,
-				"-1116": BadRequest,
-				"-1117": BadRequest,
-				"-1118": InvalidOrder,
-				"-1119": InvalidOrder,
-				"-1120": BadRequest,
-				"-1121": BadRequest,
-				"-1125": OperationRejected,
-				"-1127": OperationRejected,
-				"-1128": BadRequest,
-				"-1130": BadRequest,
-				"-1132": OperationRejected,
-				"-1133": OperationRejected,
-				"-1134": OperationRejected,
-				"-1135": OperationRejected,
-				"-1136": OperationRejected,
-				"-1137": OperationRejected,
-				"-1138": OperationRejected,
-				"-1139": OperationRejected,
-				"-1140": OperationRejected,
-				"-1141": InvalidOrder,
-				"-1142": InvalidOrder,
-				"-1143": InvalidOrder,
-				"-1144": OperationRejected,
-				"-1145": OperationRejected,
-				"-1146": OperationFailed,
-				"-1147": OperationFailed,
-				"-1193": OperationRejected,
-				"-1194": OperationRejected,
-				"-1195": OperationRejected,
-				"-1196": OperationRejected,
-				"-1197": OperationRejected,
-				"-1198": OperationRejected,
-				"-1199": OperationRejected,
-				"-1200": OperationRejected,
-				"-1201": OperationRejected,
-				"-1202": OperationRejected,
-				"-1203": OperationRejected,
-				"-1206": OperationRejected,
-				"-2010": OperationFailed,
-				"-2011": OperationFailed,
-				"-2013": InvalidOrder,
-				"-2014": PermissionDenied,
-				"-2015": PermissionDenied,
-				"-2016": BadRequest,
-				"-3050": ExchangeError,
-				"-3101": OperationRejected,
-				"-3102": OperationRejected,
-				"-3103": BadRequest,
-				"-3105": OperationRejected,
-				"-3107": OperationRejected,
-				"-3108": OperationRejected,
-				"-3109": OperationRejected,
-				"-3110": InsufficientFunds,
-				"-3116": OperationRejected,
-				"-3117": OperationRejected,
-				"-3120": OperationRejected,
-				"-3124": OperationRejected,
-				"-3125": OperationRejected,
-				"-3126": OperationRejected,
-				"-3127": OperationFailed,
-				"-3128": OperationRejected,
-				"-3129": BadRequest,
-				"-3130": OperationRejected,
-				"-3131": NotSupported,
+				"-1000":   OperationFailed,
+				"-1001":   OperationFailed,
+				"-1002":   PermissionDenied,
+				"-1003":   RateLimitExceeded,
+				"-1004":   BadRequest,
+				"-1005":   PermissionDenied,
+				"-1006":   OperationFailed,
+				"-1007":   OperationFailed,
+				"-1014":   OperationFailed,
+				"-1015":   RateLimitExceeded,
+				"-1016":   OperationRejected,
+				"-1020":   OperationRejected,
+				"-1021":   OperationRejected,
+				"-1022":   OperationRejected,
+				"-1023":   PermissionDenied,
+				"-1031":   OperationRejected,
+				"-1100":   BadRequest,
+				"-1101":   BadRequest,
+				"-1102":   BadRequest,
+				"-1103":   BadRequest,
+				"-1104":   BadRequest,
+				"-1105":   BadRequest,
+				"-1106":   BadRequest,
+				"-1107":   PermissionDenied,
+				"-1111":   BadRequest,
+				"-1112":   OperationRejected,
+				"-1114":   BadRequest,
+				"-1115":   BadRequest,
+				"-1116":   BadRequest,
+				"-1117":   BadRequest,
+				"-1118":   InvalidOrder,
+				"-1119":   InvalidOrder,
+				"-1120":   BadRequest,
+				"-1121":   BadSymbol,
+				"-1125":   OperationRejected,
+				"-1127":   OperationRejected,
+				"-1128":   BadRequest,
+				"-1129":   BadRequest,
+				"-1130":   BadRequest,
+				"-1131":   InsufficientFunds,
+				"-1132":   OperationRejected,
+				"-1133":   OperationRejected,
+				"-1134":   OperationRejected,
+				"-1135":   OperationRejected,
+				"-1136":   OperationRejected,
+				"-1137":   OperationRejected,
+				"-1138":   OperationRejected,
+				"-1139":   OperationRejected,
+				"-1140":   OperationRejected,
+				"-1141":   InvalidOrder,
+				"-1142":   InvalidOrder,
+				"-1143":   OrderNotFound,
+				"-1144":   OperationRejected,
+				"-1145":   OperationRejected,
+				"-1146":   OperationFailed,
+				"-1147":   OperationFailed,
+				"-1148":   InvalidOrder,
+				"-1149":   OperationFailed,
+				"-1150":   OperationFailed,
+				"-1151":   OperationRejected,
+				"-1153":   PermissionDenied,
+				"-1156":   InvalidOrder,
+				"-1157":   OperationRejected,
+				"-1158":   InvalidOrder,
+				"-1161":   OperationRejected,
+				"-1164":   OperationRejected,
+				"-1165":   BadRequest,
+				"-1166":   BadRequest,
+				"-1170":   OperationRejected,
+				"-1171":   ExchangeError,
+				"-1172":   OperationFailed,
+				"-1181":   PermissionDenied,
+				"-1182":   PermissionDenied,
+				"-1193":   OperationRejected,
+				"-1194":   OperationRejected,
+				"-1195":   OperationRejected,
+				"-1196":   OperationRejected,
+				"-1197":   OperationRejected,
+				"-1198":   OperationRejected,
+				"-1199":   OperationRejected,
+				"-1200":   OperationRejected,
+				"-1201":   OperationRejected,
+				"-1202":   OperationRejected,
+				"-1203":   OperationRejected,
+				"-1204":   PermissionDenied,
+				"-1205":   BadRequest,
+				"-1206":   OperationRejected,
+				"-1207":   InvalidOrder,
+				"-1208":   InvalidOrder,
+				"-1209":   InvalidOrder,
+				"-1210":   InvalidOrder,
+				"-1211":   InvalidOrder,
+				"-1212":   InvalidOrder,
+				"-1213":   BadSymbol,
+				"-1214":   PermissionDenied,
+				"-1215":   PermissionDenied,
+				"-1216":   OperationRejected,
+				"-1217":   InvalidOrder,
+				"-1300":   BadRequest,
+				"-1400":   BadRequest,
+				"-1401":   PermissionDenied,
+				"-1402":   OperationFailed,
+				"-1403":   OperationFailed,
+				"-1404":   ExchangeError,
+				"-1405":   ExchangeError,
+				"-1406":   OperationRejected,
+				"-1407":   OperationRejected,
+				"-1408":   InsufficientFunds,
+				"-1409":   OperationRejected,
+				"-1410":   InsufficientFunds,
+				"-1411":   OperationRejected,
+				"-1412":   OperationRejected,
+				"-1413":   BadRequest,
+				"-1414":   BadRequest,
+				"-1415":   BadRequest,
+				"-1416":   InsufficientFunds,
+				"-1417":   OperationRejected,
+				"-2010":   OperationFailed,
+				"-2011":   OperationFailed,
+				"-2013":   OrderNotFound,
+				"-2014":   PermissionDenied,
+				"-2015":   PermissionDenied,
+				"-2016":   BadRequest,
+				"-2017":   PermissionDenied,
+				"-2018":   PermissionDenied,
+				"-3000":   BadRequest,
+				"-3001":   OperationRejected,
+				"-3002":   InvalidOrder,
+				"-3050":   ExchangeError,
+				"-3051":   OperationRejected,
+				"-3052":   BadRequest,
+				"-3101":   OperationRejected,
+				"-3102":   OperationRejected,
+				"-3103":   BadRequest,
+				"-3105":   OperationRejected,
+				"-3107":   OperationRejected,
+				"-3108":   OperationRejected,
+				"-3109":   OperationRejected,
+				"-3110":   InsufficientFunds,
+				"-3116":   OperationRejected,
+				"-3117":   OperationRejected,
+				"-3120":   OperationRejected,
+				"-3124":   OperationRejected,
+				"-3125":   OperationRejected,
+				"-3126":   OperationRejected,
+				"-3127":   OperationFailed,
+				"-3128":   OperationRejected,
+				"-3129":   BadRequest,
+				"-3130":   OperationRejected,
+				"-3131":   NotSupported,
+				"-3132":   InvalidOrder,
+				"-3133":   InvalidOrder,
+				"-3136":   OperationRejected,
+				"-3137":   OperationRejected,
+				"-3138":   OperationRejected,
+				"-3139":   OperationRejected,
+				"-3140":   OperationRejected,
+				"-3141":   InvalidOrder,
+				"-3142":   InvalidOrder,
+				"-3143":   InvalidOrder,
+				"-3144":   InvalidOrder,
+				"-3145":   InvalidOrder,
+				"-3147":   OperationRejected,
+				"-3148":   InvalidOrder,
+				"-3149":   InvalidOrder,
+				"-3150":   NotSupported,
+				"-3151":   NotSupported,
+				"-3152":   BadRequest,
+				"-3153":   BadRequest,
+				"-32045":  ExchangeError,
+				"-32090":  OperationRejected,
+				"-32093":  OperationRejected,
+				"-120041": PermissionDenied,
+				"-120047": ExchangeError,
+				"-120055": OperationRejected,
+				"-120067": ExchangeError,
+				"-120072": BadRequest,
+				"-120073": OperationRejected,
+				"-120078": BadRequest,
+				"-120510": BadRequest,
+				"-120511": BadRequest,
+				"-120512": BadRequest,
 			},
 			"broad": map[string]any{
 				"Unknown order sent":   OrderNotFound,
@@ -305,33 +606,33 @@ func (this *ToobitCore) Describe() any {
 				"swap": "FUTURES",
 			},
 			"networks": map[string]any{
-				"BTC":    "BTC",
-				"ERC20":  "ETH",
-				"ETH":    "ETH",
-				"BEP20":  "BSC",
-				"TRC20":  "TRX",
-				"SOL":    "SOL",
-				"MATIC":  "MATIC",
-				"ARBONE": "ARBITRUM",
-				"BASE":   "BASE",
-				"TON":    "TON",
-				"AVAXC":  "AVAXC",
-				"DOGE":   "DOGE",
-				"XRP":    "XRP",
-				"DOT":    "DOT",
-				"ADA":    "ADA",
-				"LTC":    "LTC",
-				"APT":    "APT",
-				"ATOM":   "ATOM",
-				"ALGO":   "ALGO",
-				"NEAR":   "NEAR",
-				"XLM":    "XLM",
-				"SUI":    "SUI",
-				"ETC":    "ETC",
-				"EOS":    "EOS",
-				"WAVES":  "WAVES",
-				"ICP":    "ICP",
-				"ONE":    "ONE",
+				"BTC":      "BTC",
+				"ERC20":    "ETH",
+				"ETH":      "ETH",
+				"BEP20":    "BSC",
+				"TRC20":    "TRX",
+				"SOL":      "SOL",
+				"MATIC":    "MATIC",
+				"ARBITRUM": "ARBITRUM",
+				"BASE":     "BASE",
+				"TON":      "TON",
+				"AVAXC":    "AVAXC",
+				"DOGE":     "DOGE",
+				"XRP":      "XRP",
+				"DOT":      "DOT",
+				"ADA":      "ADA",
+				"LTC":      "LTC",
+				"APT":      "APT",
+				"ATOM":     "ATOM",
+				"ALGO":     "ALGO",
+				"NEAR":     "NEAR",
+				"XLM":      "XLM",
+				"SUI":      "SUI",
+				"ETC":      "ETC",
+				"EOS":      "EOS",
+				"WAVES":    "WAVES",
+				"ICP":      "ICP",
+				"ONE":      "ONE",
 			},
 			"networksById": map[string]any{
 				"ETH":   "ERC20",
@@ -449,7 +750,7 @@ func (this *ToobitCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -480,6 +781,7 @@ func (this *ToobitCore) FetchTime(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -648,27 +950,29 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"margin":    nil,
-			"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
-			"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
-			"active":    nil,
-			"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
-			"precision": nil,
-			"limits": map[string]any{
-				"deposit": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"margin":    nil,
+				"deposit":   this.SafeBool(rawNetwork, "allowDeposit"),
+				"withdraw":  this.SafeBool(rawNetwork, "allowWithdraw"),
+				"active":    nil,
+				"fee":       this.SafeNumber(rawNetwork, "withdrawFee"),
+				"precision": nil,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minDepositQuantity"),
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
+						"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
+					},
 				},
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(rawNetwork, "minWithdrawQuantity"),
-					"max": this.SafeNumber(rawNetwork, "maxWithdrawQuantity"),
-				},
-			},
-			"info": rawNetwork,
-		})
+				"info": rawNetwork,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -699,8 +1003,8 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
  * @method
  * @name toobit#fetchMarkets
  * @description retrieves data on all markets for toobit
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -943,12 +1247,12 @@ func (this *ToobitCore) ParseMarket(market any) any {
  * @method
  * @name toobit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#order-book
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -961,8 +1265,8 @@ func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91212 := (<-this.LoadMarkets())
-			PanicOnError(retRes91212)
+			retRes104112 := (<-this.LoadMarkets())
+			PanicOnError(retRes104112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1014,8 +1318,8 @@ func (this *ToobitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @method
  * @name toobit#fetchTrades
  * @description get a list of the most recent trades for a particular symbol
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
@@ -1035,8 +1339,8 @@ func (this *ToobitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96712 := (<-this.LoadMarkets())
-			PanicOnError(retRes96712)
+			retRes109612 := (<-this.LoadMarkets())
+			PanicOnError(retRes109612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1171,8 +1475,10 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1195,8 +1501,8 @@ func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110512 := (<-this.LoadMarkets())
-			PanicOnError(retRes110512)
+			retRes123612 := (<-this.LoadMarkets())
+			PanicOnError(retRes123612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1232,8 +1538,12 @@ func (this *ToobitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params)))
 			PanicOnError(response)
 		}
+		var candles any = []any{}
+		if IsTrue(IsArray(response)) {
+			candles = response
+		}
 
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1249,8 +1559,8 @@ func (this *ToobitCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1266,8 +1576,8 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes122012 := (<-this.LoadMarkets())
-			PanicOnError(retRes122012)
+			retRes135512 := (<-this.LoadMarkets())
+			PanicOnError(retRes135512)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var typeVar any = nil
@@ -1354,7 +1664,7 @@ func (this *ToobitCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1371,8 +1681,8 @@ func (this *ToobitCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes130312 := (<-this.LoadMarkets())
-			PanicOnError(retRes130312)
+			retRes143812 := (<-this.LoadMarkets())
+			PanicOnError(retRes143812)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1420,7 +1730,7 @@ func (this *ToobitCore) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1437,8 +1747,8 @@ func (this *ToobitCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes135112 := (<-this.LoadMarkets())
-			PanicOnError(retRes135112)
+			retRes148612 := (<-this.LoadMarkets())
+			PanicOnError(retRes148612)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1500,10 +1810,10 @@ func (this *ToobitCore) ParseBidAskCustom(ticker any) any {
  * @method
  * @name toobit#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1516,8 +1826,8 @@ func (this *ToobitCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes141112 := (<-this.LoadMarkets())
-			PanicOnError(retRes141112)
+			retRes154612 := (<-this.LoadMarkets())
+			PanicOnError(retRes154612)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -1579,7 +1889,7 @@ func (this *ToobitCore) ParseFundingRate(contract any, optionalArgs ...any) any 
  * @method
  * @name toobit#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1603,8 +1913,8 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes147612 := (<-this.LoadMarkets())
-			PanicOnError(retRes147612)
+			retRes161112 := (<-this.LoadMarkets())
+			PanicOnError(retRes161112)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1612,9 +1922,9 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes148119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes148119)
-			ch <- retRes148119
+			retRes161619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes161619)
+			ch <- retRes161619
 			return nil
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -1664,9 +1974,9 @@ func (this *ToobitCore) ParseFundingRateHistory(contract any, optionalArgs ...an
  * @method
  * @name toobit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
- * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ToobitCore) FetchBalance(optionalArgs ...any) <-chan any {
@@ -1678,8 +1988,8 @@ func (this *ToobitCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes152912 := (<-this.LoadMarkets())
-			PanicOnError(retRes152912)
+			retRes166412 := (<-this.LoadMarkets())
+			PanicOnError(retRes166412)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -1716,7 +2026,9 @@ func (this *ToobitCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1725,8 +2037,8 @@ func (this *ToobitCore) ParseBalance(response any) any {
  * @method
  * @name toobit#createOrder
  * @description create a trade order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market', 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1746,8 +2058,8 @@ func (this *ToobitCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160412 := (<-this.LoadMarkets())
-			PanicOnError(retRes160412)
+			retRes174112 := (<-this.LoadMarkets())
+			PanicOnError(retRes174112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -1802,6 +2114,9 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
@@ -1843,6 +2158,12 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"symbol":   GetValue(market, "id"),
@@ -2050,8 +2371,8 @@ func (this *ToobitCore) ParseOrderType(status any) any {
  * @method
  * @name toobit#cancelOrder
  * @description cancels an open order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2109,8 +2430,8 @@ func (this *ToobitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
  * @param {string} symbol unified symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2126,8 +2447,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes192912 := (<-this.LoadMarkets())
-			PanicOnError(retRes192912)
+			retRes207512 := (<-this.LoadMarkets())
+			PanicOnError(retRes207512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2166,8 +2487,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#cancelOrders
  * @description cancel multiple orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2184,8 +2505,8 @@ func (this *ToobitCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes197412 := (<-this.LoadMarkets())
-			PanicOnError(retRes197412)
+			retRes212012 := (<-this.LoadMarkets())
+			PanicOnError(retRes212012)
 		}
 		var idsString any = Join(ids, ",")
 		var request any = map[string]any{
@@ -2225,8 +2546,8 @@ func (this *ToobitCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2246,8 +2567,8 @@ func (this *ToobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes203412 := (<-this.LoadMarkets())
-			PanicOnError(retRes203412)
+			retRes218012 := (<-this.LoadMarkets())
+			PanicOnError(retRes218012)
 		}
 		var request any = map[string]any{
 			"orderId": id,
@@ -2303,8 +2624,8 @@ func (this *ToobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2326,8 +2647,8 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes209112 := (<-this.LoadMarkets())
-			PanicOnError(retRes209112)
+			retRes223712 := (<-this.LoadMarkets())
+			PanicOnError(retRes223712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2339,7 +2660,7 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = []any{}
@@ -2364,7 +2685,7 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2386,8 +2707,8 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes215312 := (<-this.LoadMarkets())
-			PanicOnError(retRes215312)
+			retRes229912 := (<-this.LoadMarkets())
+			PanicOnError(retRes229912)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2428,7 +2749,7 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2451,8 +2772,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes222012 := (<-this.LoadMarkets())
-			PanicOnError(retRes222012)
+			retRes236612 := (<-this.LoadMarkets())
+			PanicOnError(retRes236612)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2479,9 +2800,13 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 		var ordersList any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+		var responseList any = []any{}
+		if IsTrue(IsArray(response)) {
+			responseList = response
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(responseList)); i++ {
 			AppendToArray(&ordersList, map[string]any{
-				"result": GetValue(response, i),
+				"result": GetValue(responseList, i),
 			})
 		}
 
@@ -2496,8 +2821,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -2523,8 +2848,8 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes229112 := (<-this.LoadMarkets())
-			PanicOnError(retRes229112)
+			retRes244112 := (<-this.LoadMarkets())
+			PanicOnError(retRes244112)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -2564,7 +2889,7 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount 'spot', 'swap'
@@ -2581,8 +2906,8 @@ func (this *ToobitCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes237312 := (<-this.LoadMarkets())
-			PanicOnError(retRes237312)
+			retRes252312 := (<-this.LoadMarkets())
+			PanicOnError(retRes252312)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2636,8 +2961,8 @@ func (this *ToobitCore) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2660,8 +2985,8 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes243012 := (<-this.LoadMarkets())
-			PanicOnError(retRes243012)
+			retRes258012 := (<-this.LoadMarkets())
+			PanicOnError(retRes258012)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2679,7 +3004,7 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = nil
@@ -2760,7 +3085,7 @@ func (this *ToobitCore) ParseLedgerType(typeVar any) any {
  * @method
  * @name toobit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2773,8 +3098,8 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes252212 := (<-this.LoadMarkets())
-			PanicOnError(retRes252212)
+			retRes267212 := (<-this.LoadMarkets())
+			PanicOnError(retRes267212)
 		}
 		var response any = nil
 		var marketType any = nil
@@ -2839,7 +3164,7 @@ func (this *ToobitCore) ParseTradingFee(data any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposit structures to retrieve
@@ -2860,9 +3185,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes258315 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
-		PanicOnError(retRes258315)
-		ch <- retRes258315
+		retRes273315 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+		PanicOnError(retRes273315)
+		ch <- retRes273315
 		return nil
 
 	}()
@@ -2873,7 +3198,7 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
@@ -2894,9 +3219,9 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes259815 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
-		PanicOnError(retRes259815)
-		ch <- retRes259815
+		retRes274815 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+		PanicOnError(retRes274815)
+		ch <- retRes274815
 		return nil
 
 	}()
@@ -2911,8 +3236,8 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes260312 := (<-this.LoadMarkets())
-			PanicOnError(retRes260312)
+			retRes275312 := (<-this.LoadMarkets())
+			PanicOnError(retRes275312)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -3047,7 +3372,7 @@ func (this *ToobitCore) ParseTransactionStatus(status any) any {
  * @method
  * @name toobit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3061,8 +3386,8 @@ func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes278212 := (<-this.LoadMarkets())
-			PanicOnError(retRes278212)
+			retRes293212 := (<-this.LoadMarkets())
+			PanicOnError(retRes293212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3114,12 +3439,13 @@ func (this *ToobitCore) ParseDepositAddress(depositAddress any, optionalArgs ...
  * @method
  * @name toobit#withdraw
  * @description make a withdrawal
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
@@ -3141,8 +3467,8 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes284012 := (<-this.LoadMarkets())
-			PanicOnError(retRes284012)
+			retRes299112 := (<-this.LoadMarkets())
+			PanicOnError(retRes299112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3179,7 +3505,7 @@ func (this *ToobitCore) Withdraw(code any, amount any, address any, optionalArgs
  * @method
  * @name toobit#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3199,8 +3525,8 @@ func (this *ToobitCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes288112 := (<-this.LoadMarkets())
-			PanicOnError(retRes288112)
+			retRes303212 := (<-this.LoadMarkets())
+			PanicOnError(retRes303212)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
@@ -3229,7 +3555,7 @@ func (this *ToobitCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
  * @method
  * @name toobit#setLeverage
  * @description set the level of leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3249,8 +3575,8 @@ func (this *ToobitCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291412 := (<-this.LoadMarkets())
-			PanicOnError(retRes291412)
+			retRes306512 := (<-this.LoadMarkets())
+			PanicOnError(retRes306512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3275,7 +3601,7 @@ func (this *ToobitCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
  * @method
  * @name toobit#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3289,8 +3615,8 @@ func (this *ToobitCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes293912 := (<-this.LoadMarkets())
-			PanicOnError(retRes293912)
+			retRes309012 := (<-this.LoadMarkets())
+			PanicOnError(retRes309012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3336,7 +3662,7 @@ func (this *ToobitCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @method
  * @name toobit#fetchPositions
  * @description fetch all open positions
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3352,8 +3678,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes298412 := (<-this.LoadMarkets())
-			PanicOnError(retRes298412)
+			retRes313512 := (<-this.LoadMarkets())
+			PanicOnError(retRes313512)
 		}
 		var request any = map[string]any{}
 		var market any = nil

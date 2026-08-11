@@ -277,7 +277,7 @@ public partial class bitfinex : ccxt.bitfinex
         object symbol = getValue(market, "symbol");
         object messageHash = add(add(add(add(channel, ":"), interval), ":"), marketId);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -416,7 +416,7 @@ public partial class bitfinex : ccxt.bitfinex
         object data = this.safeValue(message, 2);
         object trade = this.parseWsTrade(data);
         object symbol = getValue(trade, "symbol");
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -696,7 +696,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -746,7 +746,7 @@ public partial class bitfinex : ccxt.bitfinex
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -871,7 +871,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 ((IList<object>)stringArray).Add(((string)this.numberToString(getValue(getValue(asks, i), idToCheck))));
                 object aski1 = getValue(getValue(asks, i), 1);
-                ((IList<object>)stringArray).Add(((string)this.numberToString(prefixUnaryNeg(ref aski1))));
+                ((IList<object>)stringArray).Add(this.numberToString(prefixUnaryNeg(ref aski1)));
             }
         }
         object payload = String.Join(":", ((IList<object>)stringArray).ToArray());
@@ -992,8 +992,11 @@ public partial class bitfinex : ccxt.bitfinex
             object code = this.safeCurrencyCode(currencyId);
             object balance = this.parseWsBalance(rawBalance);
             object balanceType = this.safeString(rawBalance, 0);
-            object oldBalance = this.safeValue(this.balance, ((string)balanceType), new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)oldBalance)[(string)code] = balance;
+            object oldBalance = this.safeValue(this.balance, balanceType, new Dictionary<string, object>() {});
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)oldBalance)[(string)code] = balance;
+            }
             ((IDictionary<string,object>)oldBalance)["info"] = message;
             ((IDictionary<string,object>)this.balance)[(string)((string)balanceType)] = this.safeBalance(oldBalance);
             ((IDictionary<string,object>)updatedTypes)[(string)((string)balanceType)] = true;
@@ -1225,7 +1228,7 @@ public partial class bitfinex : ccxt.bitfinex
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1317,7 +1320,7 @@ public partial class bitfinex : ccxt.bitfinex
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,
@@ -1361,7 +1364,7 @@ public partial class bitfinex : ccxt.bitfinex
         object price = this.safeString(order, 16);
         object timestamp = this.safeInteger2(order, 5, 4);
         object average = this.safeString(order, 17);
-        object stopPrice = this.omitZero(((string)this.safeString(order, 18)));
+        object stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1420,7 +1423,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 return;  // skip heartbeats within subscription channels for now
             }
-            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, ((string)channelId), new Dictionary<string, object>() {});
+            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, channelId, new Dictionary<string, object>() {});
             object channel = this.safeString(subscription, "channel");
             object name = this.safeString(message, 1);
             object publicMethods = new Dictionary<string, object>() {
@@ -1442,10 +1445,10 @@ public partial class bitfinex : ccxt.bitfinex
             object method = null;
             if (isTrue(isEqual(channelId, "0")))
             {
-                method = this.safeValue(privateMethods, ((string)name));
+                method = this.safeValue(privateMethods, name);
             } else
             {
-                method = this.safeValue2(publicMethods, ((string)name), ((string)channel));
+                method = this.safeValue2(publicMethods, name, channel);
             }
             if (isTrue(!isEqual(method, null)))
             {

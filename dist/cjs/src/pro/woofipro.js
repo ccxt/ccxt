@@ -93,12 +93,12 @@ class woofipro extends woofipro$1["default"] {
     /**
      * @method
      * @name woofipro#watchOrderBook
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -154,7 +154,7 @@ class woofipro extends woofipro$1["default"] {
     /**
      * @method
      * @name woofipro#watchTicker
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -243,7 +243,7 @@ class woofipro extends woofipro$1["default"] {
     /**
      * @method
      * @name woofipro#watchTickers
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -300,7 +300,7 @@ class woofipro extends woofipro$1["default"] {
     /**
      * @method
      * @name woofipro#watchBidsAsks
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -343,7 +343,9 @@ class woofipro extends woofipro$1["default"] {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk(this.extend(data[i], { 'ts': timestamp }));
-            this.tickers[ticker['symbol']] = ticker;
+            if (ticker['symbol'] !== undefined) {
+                this.tickers[ticker['symbol']] = ticker;
+            }
             result.push(ticker);
         }
         client.resolve(result, topic);
@@ -368,7 +370,7 @@ class woofipro extends woofipro$1["default"] {
      * @method
      * @name woofipro#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -433,21 +435,22 @@ class woofipro extends woofipro$1["default"] {
             this.safeNumber(data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if ((symbol !== undefined) && (timeframe !== undefined)) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
-        ohlcvCache.append(parsed);
-        client.resolve(ohlcvCache, topic);
+        stored.append(parsed);
+        client.resolve(stored, topic);
     }
     /**
      * @method
      * @name woofipro#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -654,8 +657,8 @@ class woofipro extends woofipro$1["default"] {
      * @method
      * @name woofipro#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -691,8 +694,8 @@ class woofipro extends woofipro$1["default"] {
      * @method
      * @name woofipro#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -916,7 +919,7 @@ class woofipro extends woofipro$1["default"] {
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeList(order, 'trades');
+                parsed['trades'] = this.safeList(order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger(order, 'timestamp');
                 parsed['datetime'] = this.safeString(order, 'datetime');
             }
@@ -974,7 +977,7 @@ class woofipro extends woofipro$1["default"] {
     /**
      * @method
      * @name woofipro#watchPositions
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -989,7 +992,13 @@ class woofipro extends woofipro$1["default"] {
         const messageHashes = [];
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
             for (let i = 0; i < symbols.length; i++) {
+                if (symbols === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+                }
                 const symbol = symbols[i];
                 messageHashes.push('positions::' + symbol);
             }
@@ -1016,7 +1025,7 @@ class woofipro extends woofipro$1["default"] {
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
     }
-    setPositionsCache(client, type, symbols = undefined) {
+    setPositionsCache(client, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1176,7 +1185,7 @@ class woofipro extends woofipro$1["default"] {
      * @method
      * @name woofipro#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1232,13 +1241,18 @@ class woofipro extends woofipro$1["default"] {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode(key);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
+            let account = this.account();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise["default"].stringSub(total, used);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
@@ -1313,6 +1327,9 @@ class woofipro extends woofipro$1["default"] {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString(splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
                     method.call(this, client, message);

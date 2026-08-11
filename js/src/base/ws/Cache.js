@@ -157,14 +157,17 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         this.nestedNewUpdatesBySymbol = true;
-        // Object.defineProperty (this, 'hashmap', {
-        //     __proto__: null, // make it invisible
-        //     value: {},
-        //     writable: true,
-        // })
+        // non-enumerable so it stays invisible to array equality/iteration (this extends Array);
+        // the item field used as the first nesting level, overridden by ArrayCacheByOutcomeById
+        Object.defineProperty(this, 'keyField', {
+            __proto__: null, // make it invisible
+            value: 'symbol',
+            writable: true,
+        });
     }
     append(item) {
-        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};
+        const key = item[this.keyField];
+        const byId = this.hashmap[key] = this.hashmap[key] || {};
         if (item.id in byId) {
             const reference = byId[item.id];
             if (reference !== item) {
@@ -173,7 +176,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference;
-            const index = this.findIndex((x) => x.id === item.id);
+            // match on both the key field (e.g. symbol) and id - different symbols
+            // can share an order id (exchanges like binance use per-symbol id
+            // sequences), and matching on id alone would splice out the wrong row
+            const index = this.findIndex((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]));
             // move the order to the end of the array
             this.splice(index, 1);
         }
@@ -182,7 +188,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift();
-            delete this.hashmap[deleteReference.symbol][deleteReference.id];
+            delete this.hashmap[deleteReference[this.keyField]][deleteReference.id];
         }
         this.push(item);
         if (this.clearAllUpdates) {
@@ -191,19 +197,25 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.allNewUpdates = 0;
             this.newUpdatesBySymbol = {};
         }
-        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
-            this.newUpdatesBySymbol[item.symbol] = new Set();
+        if (this.newUpdatesBySymbol[key] === undefined) {
+            this.newUpdatesBySymbol[key] = new Set();
         }
-        if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.clearUpdatesBySymbol[item.symbol] = false;
-            this.newUpdatesBySymbol[item.symbol].clear();
+        if (this.clearUpdatesBySymbol[key]) {
+            this.clearUpdatesBySymbol[key] = false;
+            this.newUpdatesBySymbol[key].clear();
         }
         // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[item.symbol];
+        const idSet = this.newUpdatesBySymbol[key];
         const beforeLength = idSet.size;
         idSet.add(item.id);
         const afterLength = idSet.size;
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
+    }
+}
+class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
+    constructor(maxSize = undefined) {
+        super(maxSize);
+        this.keyField = 'outcome';
     }
 }
 class ArrayCacheBySymbolBySide extends ArrayCache {
@@ -255,4 +267,4 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
     }
 }
-export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, };
+export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide, };

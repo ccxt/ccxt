@@ -124,35 +124,35 @@ class bit2c extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
+                        'Exchanges/{pair}/Ticker' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/orderbook' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/trades' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/lasttrades' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
+                        'Merchant/CreateCheckout' => array( 'cost' => 1 ),
+                        'Funds/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Order/AddFund' => array( 'cost' => 1 ),
+                        'Order/AddOrder' => array( 'cost' => 1 ),
+                        'Order/GetById' => array( 'cost' => 1 ),
+                        'Order/AddOrderMarketPriceBuy' => array( 'cost' => 1 ),
+                        'Order/AddOrderMarketPriceSell' => array( 'cost' => 1 ),
+                        'Order/CancelOrder' => array( 'cost' => 1 ),
+                        'Order/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Order/AddStopOrder' => array( 'cost' => 1 ),
+                        'Payment/GetMyId' => array( 'cost' => 1 ),
+                        'Payment/Send' => array( 'cost' => 1 ),
+                        'Payment/Pay' => array( 'cost' => 1 ),
                     ),
                     'get' => array(
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
+                        'Account/Balance' => array( 'cost' => 1 ),
+                        'Account/Balance/v2' => array( 'cost' => 1 ),
+                        'Order/MyOrders' => array( 'cost' => 1 ),
+                        'Order/GetById' => array( 'cost' => 1 ),
+                        'Order/AccountHistory' => array( 'cost' => 1 ),
+                        'Order/OrderHistory' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -201,7 +201,9 @@ class bit2c extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_exchanges_pair_trades',
+                'fetchTrades' => array(
+                    'method' => 'public_get_exchanges_pair_trades',
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -278,7 +280,7 @@ class bit2c extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -290,7 +292,7 @@ class bit2c extends Exchange {
             $account = $this->account();
             $currency = $this->currency($code);
             $uppercase = strtoupper($currency['id']);
-            if (is_array($response) && array_key_exists($uppercase, $response)) {
+            if (is_array($response) && array_key_exists($uppercase ?? '', $response)) {
                 $account['free'] = $this->safe_string($response, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_string($response, $uppercase);
             }
@@ -366,7 +368,7 @@ class bit2c extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -446,7 +448,8 @@ class bit2c extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $method = $this->options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
+        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -456,23 +459,28 @@ class bit2c extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 100000
         }
-        $response = null;
+        $responseList = array();
         if ($method === 'public_get_exchanges_pair_trades') {
             $response = $this->publicGetExchangesPairTrades($this->extend($request, $params));
+            //
+            //     array(
+            //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
+            //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
+            //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
+            //     )
+            //
+            if (gettype($response) === 'string') {
+                throw new ExchangeError($response);
+            }
+            $responseList = $this->to_array($response);
         } else {
             $response = $this->publicGetExchangesPairLasttrades($this->extend($request, $params));
+            if (gettype($response) === 'string') {
+                throw new ExchangeError($response);
+            }
+            $responseList = $this->to_array($response);
         }
-        //
-        //     array(
-        //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
-        //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
-        //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
-        //     )
-        //
-        if (gettype($response) === 'string') {
-            throw new ExchangeError($response);
-        }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -679,7 +687,7 @@ class bit2c extends Exchange {
         //
         $orderUnified = null;
         $isNewOrder = false;
-        if (is_array($order) && array_key_exists('NewOrder', $order)) {
+        if (is_array($order) && array_key_exists('NewOrder' ?? '', $order)) {
             $orderUnified = $order['NewOrder'];
             $isNewOrder = true;
         } else {
@@ -828,10 +836,14 @@ class bit2c extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $this->to_array($response);
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function remove_comma_from_value($str) {
+    public function remove_comma_from_value(mixed $str) {
         $newString = '';
         $strParts = explode(',', $str);
         for ($i = 0; $i < count($strParts); $i++) {
@@ -937,7 +949,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function is_fiat($code) {
+    public function is_fiat(mixed $code) {
         return $code === 'NIS';
     }
 
@@ -971,7 +983,7 @@ class bit2c extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -994,7 +1006,7 @@ class bit2c extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';
@@ -1022,7 +1034,7 @@ class bit2c extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

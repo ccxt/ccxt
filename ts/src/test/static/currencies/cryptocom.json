@@ -281,7 +281,7 @@
                     }
                 }
             },
-            "ARB": {
+            "ARBITRUM": {
                 "info": {
                     "network_id": "ARB",
                     "withdrawal_fee": "1.18000000",
@@ -291,7 +291,7 @@
                     "confirmation_required": "10"
                 },
                 "id": "ARB",
-                "network": "ARB",
+                "network": "ARBITRUM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,

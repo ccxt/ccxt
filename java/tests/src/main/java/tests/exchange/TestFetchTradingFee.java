@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,14 +11,14 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchTradingFee extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchTradingFee(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchTradingFee(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchTradingFee";
-        Object fee = (exchange.fetchTradingFee(symbol)).join();
-        Assert(exchange.isDictionary(fee), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(fee)));
+        Object fee = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol})).join();
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
         });

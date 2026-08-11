@@ -11,11 +11,11 @@ func CreateOrderAfterDelay(exchange ccxt.ICoreExchange) <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes54 := (<-exchange.Sleep(3000))
-		PanicOnError(retRes54)
-
-		retRes64 := (<-exchange.CreateOrder("BTC/USDT:USDT", "market", "buy", 0.001))
+		retRes64 := (<-exchange.Sleep(3000))
 		PanicOnError(retRes64)
+
+		retRes74 := (<-exchange.CreateOrder("BTC/USDT:USDT", "market", "buy", 0.001))
+		PanicOnError(retRes74)
 		return nil
 	}()
 	return ch

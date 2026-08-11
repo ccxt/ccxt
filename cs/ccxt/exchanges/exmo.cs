@@ -27,6 +27,7 @@ public partial class exmo : Exchange
                 { "createMarketBuyOrder", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", true },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -111,13 +112,169 @@ public partial class exmo : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "web", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ctrl/feesAndLimits", "en/docs/fees"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ctrl/feesAndLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "en/docs/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currency", "currency/list/extended", "order_book", "pair_settings", "ticker", "trades", "candles_history", "required_amount", "payments/providers/crypto/list"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/list/extended", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair_settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "required_amount", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "payments/providers/crypto/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"user_info", "order_create", "order_cancel", "stop_market_order_create", "stop_market_order_cancel", "user_open_orders", "user_trades", "user_cancelled_orders", "order_trades", "deposit_address", "withdraw_crypt", "withdraw_get_txid", "excode_create", "excode_load", "code_check", "wallet_history", "wallet_operations", "margin/user/order/create", "margin/user/order/update", "margin/user/order/cancel", "margin/user/position/close", "margin/user/position/margin_add", "margin/user/position/margin_remove", "margin/currency/list", "margin/pair/list", "margin/settings", "margin/funding/list", "margin/user/info", "margin/user/order/list", "margin/user/order/history", "margin/user/order/trades", "margin/user/order/max_quantity", "margin/user/position/list", "margin/user/position/margin_remove_info", "margin/user/position/margin_add_info", "margin/user/wallet/list", "margin/user/wallet/history", "margin/user/trade/list", "margin/trades", "margin/liquidation/feed"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "user_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stop_market_order_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stop_market_order_cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_open_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_cancelled_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw_crypt", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw_get_txid", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "excode_create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "excode_load", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "code_check", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wallet_operations", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/update", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/close", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_remove", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/currency/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/pair/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/funding/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/order/max_quantity", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_remove_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/position/margin_add_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/wallet/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/wallet/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/user/trade/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/liquidation/feed", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -432,9 +589,10 @@ public partial class exmo : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
             object makerString = this.safeString(fee, "commission_maker_percent");
@@ -548,7 +706,10 @@ public partial class exmo : Exchange
                 object typeInner = this.safeString(provider, "type");
                 object commissionDesc = this.safeString(provider, "commission_desc");
                 object fee = this.parseFixedFloatValue(commissionDesc);
-                ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(typeInner, null))))
+                {
+                    ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                }
             }
             ((IDictionary<string,object>)getValue(result, code))["info"] = providers;
         }
@@ -639,21 +800,27 @@ public partial class exmo : Exchange
             object network = this.safeValue(getValue(result, "networks"), networkCode);
             if (isTrue(isEqual(network, null)))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                    };
+                }
+            }
+            if (isTrue(isTrue((!isEqual(networkCode, null))) && isTrue((!isEqual(type, null)))))
+            {
+                ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
+                    { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
+                    { "percentage", percentage },
                 };
             }
-            ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
-                { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
-                { "percentage", percentage },
-            };
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -741,38 +908,45 @@ public partial class exmo : Exchange
                 object provider = getValue(providers, j);
                 object name = this.safeString(provider, "name");
                 // get network-id by removing extra things
+                if (isTrue(isEqual(name, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " parseCurrency() missing name")) ;
+                }
                 object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
                 networkId = ((string)networkId).Replace((string)"(", (string)"");
                 object replaceChar = ")"; // transpiler trick
                 networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
                 object networkCode = this.networkIdToCode(networkId, code);
-                if (!isTrue((inOp(networks, networkCode))))
+                if (isTrue(isTrue((isEqual(networkCode, null))) || !isTrue((inOp(networks, networkCode)))))
                 {
-                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                        { "id", networkId },
-                        { "network", networkCode },
-                        { "active", null },
-                        { "deposit", null },
-                        { "withdraw", null },
-                        { "fee", null },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                            { "id", networkId },
+                            { "network", networkCode },
+                            { "active", null },
+                            { "deposit", null },
+                            { "withdraw", null },
+                            { "fee", null },
+                            { "limits", new Dictionary<string, object>() {
+                                { "withdraw", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                                { "deposit", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
                             } },
-                            { "deposit", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
-                            } },
-                        } },
-                        { "info", new List<object>() {} },
-                    };
+                            { "info", new List<object>() {} },
+                        };
+                    }
                 }
                 object typeInner = this.safeString(provider, "type");
                 object minValue = this.safeString(provider, "min");
                 object maxValue = this.safeString(provider, "max");
                 object activeProvider = this.safeBool(provider, "enabled");
-                object networkEntry = getValue(networks, networkCode);
+                object networkEntry = this.safeValue(networks, networkCode);
                 if (isTrue(isEqual(typeInner, "deposit")))
                 {
                     ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
@@ -787,7 +961,10 @@ public partial class exmo : Exchange
                 object info = this.safeList(networkEntry, "info", new List<object>() {});
                 ((IList<object>)info).Add(provider);
                 ((IDictionary<string,object>)networkEntry)["info"] = info;
-                ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
+                }
             }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -1042,7 +1219,10 @@ public partial class exmo : Exchange
                 ((IDictionary<string,object>)account)["used"] = this.safeString(item, "used");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(item, "free");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(item, "balance");
-                ((IDictionary<string,object>)result)[(string)currency] = account;
+                if (isTrue(!isEqual(currency, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)currency] = account;
+                }
             }
         } else
         {
@@ -1062,7 +1242,10 @@ public partial class exmo : Exchange
                 {
                     ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1112,7 +1295,7 @@ public partial class exmo : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1184,7 +1367,8 @@ public partial class exmo : Exchange
         {
             object marketId = getValue(marketIds, i);
             object symbol = this.safeSymbol(marketId);
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(getValue(response, marketId), symbol, null, "bid", "ask");
+            object rawOrderBook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(rawOrderBook, symbol, null, "bid", "ask");
         }
         return result;
     }
@@ -1295,7 +1479,7 @@ public partial class exmo : Exchange
         }
         object response = await this.publicGetTicker(parameters);
         object market = this.market(symbol);
-        return this.parseTicker(getValue(response, getValue(market, "id")), market);
+        return this.parseTicker(this.safeValue(response, getValue(market, "id")), market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1756,7 +1940,7 @@ public partial class exmo : Exchange
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
      * @param {string} id order id
-     * @param {string} symbol not used by exmo cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true to cancel a trigger order
      * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
@@ -1889,7 +2073,12 @@ public partial class exmo : Exchange
             response = await this.privatePostOrderTrades(this.extend(request, parameters));
         }
         object trades = this.safeList(response, "trades");
-        return this.parseTrades(trades, market, since, limit);
+        object tradesList = new List<object>() {};
+        if (isTrue(!isEqual(trades, null)))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -2200,7 +2389,7 @@ public partial class exmo : Exchange
             await this.loadMarkets();
         }
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchCanceledOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, "cross")))
@@ -2376,7 +2565,7 @@ public partial class exmo : Exchange
         object numSymbols = getArrayLength(symbols);
         if (isTrue(isEqual(numSymbols, 1)))
         {
-            return getValue(this.markets, getValue(symbols, 0));
+            return this.market(getValue(symbols, 0));
         }
         return null;
     }
@@ -2525,7 +2714,10 @@ public partial class exmo : Exchange
                 if (isTrue(isEqual(numParts, 2)))
                 {
                     address = this.safeString(parts, 1);
-                    address = ((string)address).Replace((string)" ", (string)"");
+                    if (isTrue(!isEqual(address, null)))
+                    {
+                        address = ((string)address).Replace((string)" ", (string)"");
+                    }
                 }
             }
         }
@@ -2645,7 +2837,8 @@ public partial class exmo : Exchange
         //       ],
         //     }
         //
-        return this.parseTransactions(getValue(response, "history"), currency, since, limit);
+        object history = this.safeList(response, "history", new List<object>() {});
+        return this.parseTransactions(history, currency, since, limit);
     }
 
     /**
@@ -2975,6 +3168,10 @@ public partial class exmo : Exchange
             {
                 object code = null;
                 object message = this.safeString2(response, "error", "errmsg");
+                if (isTrue(isEqual(message, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " handleErrors() missing message")) ;
+                }
                 object errorParts = ((string)message).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object numParts = getArrayLength(errorParts);
                 if (isTrue(isGreaterThan(numParts, 1)))

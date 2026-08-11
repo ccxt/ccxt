@@ -1,6 +1,6 @@
 Every endpoint in `xt`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/xt) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicSpotGetCurrencies`); the snake_case alias (`public_spot_get_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicSpotGetCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicSpotGetCurrencies`); the snake_case alias (`public_spot_get_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicSpotGetCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 153 implicit endpoints across 2 access groups.
+> 162 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -89,6 +89,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicLinearGetFutureMarketV1PublicQSymbolIndexPrice` | GET | `future/market/v1/public/q/symbol-index-price` | 1 |
 | `publicLinearGetFutureMarketV1PublicQSymbolMarkPrice` | GET | `future/market/v1/public/q/symbol-mark-price` | 1 |
 | `publicLinearGetFutureMarketV1PublicQTicker` | GET | `future/market/v1/public/q/ticker` | 1 |
+| `publicLinearGetFutureMarketV1PublicQTickerBooks` | GET | `future/market/v1/public/q/ticker/books` | 1 |
 | `publicLinearGetFutureMarketV1PublicQTickers` | GET | `future/market/v1/public/q/tickers` | 1 |
 | `publicLinearGetFutureMarketV1PublicSymbolCoins` | GET | `future/market/v1/public/symbol/coins` | 3.33 |
 | `publicLinearGetFutureMarketV1PublicSymbolDetail` | GET | `future/market/v1/public/symbol/detail` | 3.33 |
@@ -109,6 +110,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicInverseGetFutureMarketV1PublicQSymbolIndexPrice` | GET | `future/market/v1/public/q/symbol-index-price` | 1 |
 | `publicInverseGetFutureMarketV1PublicQSymbolMarkPrice` | GET | `future/market/v1/public/q/symbol-mark-price` | 1 |
 | `publicInverseGetFutureMarketV1PublicQTicker` | GET | `future/market/v1/public/q/ticker` | 1 |
+| `publicInverseGetFutureMarketV1PublicQTickerBooks` | GET | `future/market/v1/public/q/ticker/books` | 1 |
 | `publicInverseGetFutureMarketV1PublicQTickers` | GET | `future/market/v1/public/q/tickers` | 1 |
 | `publicInverseGetFutureMarketV1PublicSymbolCoins` | GET | `future/market/v1/public/symbol/coins` | 3.33 |
 | `publicInverseGetFutureMarketV1PublicSymbolDetail` | GET | `future/market/v1/public/symbol/detail` | 3.33 |
@@ -146,6 +148,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateLinearGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateLinearGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
 | `privateLinearGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
 | `privateLinearGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
 | `privateLinearGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |
@@ -153,7 +156,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateLinearGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
 | `privateLinearGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
+| `privateLinearGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateLinearGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateLinearGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateLinearGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateLinearPostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
@@ -184,6 +189,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateInverseGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateInverseGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
 | `privateInverseGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
 | `privateInverseGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
 | `privateInverseGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |
@@ -191,7 +197,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateInverseGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
 | `privateInverseGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
+| `privateInverseGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateInverseGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateInverseGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateInverseGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
 | `privateInversePostFutureTradeV1EntrustCancelAllPlan` | POST | `future/trade/v1/entrust/cancel-all-plan` | 1 |
@@ -213,6 +221,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInversePostFutureUserV1PositionMargin` | POST | `future/user/v1/position/margin` | 1 |
 | `privateInversePostFutureUserV1UserCollectionAdd` | POST | `future/user/v1/user/collection/add` | 1 |
 | `privateInversePostFutureUserV1UserCollectionCancel` | POST | `future/user/v1/user/collection/cancel` | 1 |
+| `privateInversePostFutureUserV1PositionChangeType` | POST | `future/user/v1/position/change-type` | 1 |
 | `privateUserGetUserAccount` | GET | `user/account` | 1 |
 | `privateUserGetUserAccountApiKey` | GET | `user/account/api-key` | 1 |
 | `privateUserPostUserAccount` | POST | `user/account` | 1 |

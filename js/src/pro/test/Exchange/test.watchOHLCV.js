@@ -26,6 +26,9 @@ async function testWatchOHLCV(exchange, skippedProperties, symbol) {
         let success = true;
         try {
             response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
         }
         catch (e) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
@@ -36,6 +39,9 @@ async function testWatchOHLCV(exchange, skippedProperties, symbol) {
             success = false;
         }
         if (success === true) {
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds();
             for (let i = 0; i < response.length; i++) {

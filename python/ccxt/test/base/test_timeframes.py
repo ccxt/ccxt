@@ -16,7 +16,6 @@ from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_round_timeframe():
     exchange = ccxt.Exchange({

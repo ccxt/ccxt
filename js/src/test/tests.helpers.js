@@ -71,9 +71,6 @@ function jsonStringify(elem) {
 function convertAscii(input) {
     return input; // stub for c#
 }
-function getTestName(str) {
-    return str;
-}
 function ioFileExists(path) {
     return fs.existsSync(path);
 }
@@ -122,10 +119,18 @@ function setExchangeProp(exchange, prop, value) {
     exchange[unCamelCase(prop)] = value;
 }
 function initExchange(exchangeId, args, isWs = false) {
-    if (isWs) {
-        return new (ccxt.pro)[exchangeId](args);
+    const prediction = ccxt.prediction;
+    const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
+    // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
+    // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
+    // the prediction class carries the watch* methods too (no ccxt.pro variant), so route WS there as well
+    if (hasPrediction && (getCliArgValue('--prediction') || !(exchangeId in ccxt))) {
+        return new (prediction)[exchangeId](args);
     }
-    return new (ccxt)[exchangeId](args);
+    if (isWs) {
+        return new ccxt.pro[exchangeId](args);
+    }
+    return new ccxt[exchangeId](args);
 }
 async function importTestFile(filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat

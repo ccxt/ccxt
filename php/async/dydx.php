@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class dydx extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -152,71 +154,71 @@ class dydx extends Exchange {
             'api' => array(
                 'indexer' => array(
                     'get' => array(
-                        'addresses/{address}' => 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => 1,
-                        'assetPositions' => 1,
-                        'assetPositions/parentSubaccountNumber' => 1,
-                        'candles/perpetualMarkets/{market}' => 1,
-                        'compliance/screen/{address}' => 1,
-                        'fills' => 1,
-                        'fills/parentSubaccountNumber' => 1,
-                        'fundingPayments' => 1,
-                        'fundingPayments/parentSubaccount' => 1,
-                        'height' => 0.1,
-                        'historical-pnl' => 1,
-                        'historical-pnl/parentSubaccountNumber' => 1,
-                        'historicalBlockTradingRewards/{address}' => 1,
-                        'historicalFunding/{market}' => 1,
-                        'historicalTradingRewardAggregations/{address}' => 1,
-                        'orderbooks/perpetualMarket/{market}' => 1,
-                        'orders' => 1,
-                        'orders/parentSubaccountNumber' => 1,
-                        'orders/{orderId}' => 1,
-                        'perpetualMarkets' => 1,
-                        'perpetualPositions' => 1,
-                        'perpetualPositions/parentSubaccountNumber' => 1,
-                        'screen' => 1,
-                        'sparklines' => 1,
-                        'time' => 1,
-                        'trades/perpetualMarket/{market}' => 1,
-                        'transfers' => 1,
-                        'transfers/between' => 1,
-                        'transfers/parentSubaccountNumber' => 1,
-                        'vault/v1/megavault/historicalPnl' => 1,
-                        'vault/v1/megavault/positions' => 1,
-                        'vault/v1/vaults/historicalPnl' => 1,
+                        'addresses/{address}' => array( 'cost' => 1 ),
+                        'addresses/{address}/parentSubaccountNumber/{number}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => array( 'cost' => 1 ),
+                        'assetPositions' => array( 'cost' => 1 ),
+                        'assetPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'candles/perpetualMarkets/{market}' => array( 'cost' => 1 ),
+                        'compliance/screen/{address}' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'fills/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'fundingPayments' => array( 'cost' => 1 ),
+                        'fundingPayments/parentSubaccount' => array( 'cost' => 1 ),
+                        'height' => array( 'cost' => 0.1 ),
+                        'historical-pnl' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'historicalBlockTradingRewards/{address}' => array( 'cost' => 1 ),
+                        'historicalFunding/{market}' => array( 'cost' => 1 ),
+                        'historicalTradingRewardAggregations/{address}' => array( 'cost' => 1 ),
+                        'orderbooks/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'orders/{orderId}' => array( 'cost' => 1 ),
+                        'perpetualMarkets' => array( 'cost' => 1 ),
+                        'perpetualPositions' => array( 'cost' => 1 ),
+                        'perpetualPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'screen' => array( 'cost' => 1 ),
+                        'sparklines' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/between' => array( 'cost' => 1 ),
+                        'transfers/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/historicalPnl' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/positions' => array( 'cost' => 1 ),
+                        'vault/v1/vaults/historicalPnl' => array( 'cost' => 1 ),
                         //
-                        'perpetualMarketSparklines' => 1,
-                        'perpetualMarkets/{ticker}' => 1,
-                        'perpetualMarkets/{ticker}/orderbook' => 1,
-                        'trades/perpetualMarket/{ticker}' => 1,
-                        'historicalFunding/{ticker}' => 1,
-                        'candles/{ticker}/{resolution}' => 1,
-                        'addresses/{address}/subaccounts' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => 1,
-                        'fills/parentSubaccount' => 1,
-                        'historical-pnl/parentSubaccount' => 1,
+                        'perpetualMarketSparklines' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}/orderbook' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{ticker}' => array( 'cost' => 1 ),
+                        'historicalFunding/{ticker}' => array( 'cost' => 1 ),
+                        'candles/{ticker}/{resolution}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccounts' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
+                        'fills/parentSubaccount' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(
                     'get' => array(
-                        'abci_info' => 1,
-                        'block' => 1,
-                        'broadcast_tx_async' => 1,
-                        'broadcast_tx_sync' => 1,
-                        'tx' => 1,
+                        'abci_info' => array( 'cost' => 1 ),
+                        'block' => array( 'cost' => 1 ),
+                        'broadcast_tx_async' => array( 'cost' => 1 ),
+                        'broadcast_tx_sync' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRest' => array(
                     'get' => array(
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'cosmos/tx/v1beta1/encode' => 1,
-                        'cosmos/tx/v1beta1/simulate' => 1,
+                        'cosmos/tx/v1beta1/encode' => array( 'cost' => 1 ),
+                        'cosmos/tx/v1beta1/simulate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -457,24 +459,26 @@ class dydx extends Exchange {
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-time
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->indexerGetTime($params));
-            //
-            // {
-            //     "iso" => "2025-07-20T15:12:13.466Z",
-            //     "epoch" => 1753024333.466
-            // }
-            //
-            return $this->safe_integer($response, 'epoch');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->indexerGetTime($params));
+        //
+        // {
+        //     "iso" => "2025-07-20T15:12:13.466Z",
+        //     "epoch" => 1753024333.466
+        // }
+        //
+        return $this->safe_integer($response, 'epoch');
     }
 
     public function parse_market(array $market): array {
@@ -506,6 +510,9 @@ class dydx extends Exchange {
         //
         $quoteId = 'USDC';
         $marketId = $this->safe_string($market, 'ticker');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
         $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
@@ -578,53 +585,55 @@ class dydx extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves $data on all $markets for dydx
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market $data
-             */
-            $request = array(
-                // 'limit' => 1000,
-            );
-            $response = Async\await($this->indexerGetPerpetualMarkets($this->extend($request, $params)));
-            //
-            // {
-            //     "markets" => {
-            //         "BTC-USD" => {
-            //             "clobPairId" => "0",
-            //             "ticker" => "BTC-USD",
-            //             "status" => "ACTIVE",
-            //             "oraclePrice" => "118976.5376",
-            //             "priceChange24H" => "659.9736",
-            //             "volume24H" => "1292729.3605",
-            //             "trades24H" => 9387,
-            //             "nextFundingRate" => "0",
-            //             "initialMarginFraction" => "0.02",
-            //             "maintenanceMarginFraction" => "0.012",
-            //             "openInterest" => "52.0691",
-            //             "atomicResolution" => -10,
-            //             "quantumConversionExponent" => -9,
-            //             "tickSize" => "1",
-            //             "stepSize" => "0.0001",
-            //             "stepBaseQuantums" => 1000000,
-            //             "subticksPerTick" => 100000,
-            //             "marketType" => "CROSS",
-            //             "openInterestLowerCap" => "0",
-            //             "openInterestUpperCap" => "0",
-            //             "baseOpenInterest" => "50.3776",
-            //             "defaultFundingRate1H" => "0"
-            //         }
-            //     }
-            // }
-            //
-            $data = $this->safe_dict($response, 'markets', array());
-            $markets = is_array($data) ? array_values($data) : array();
-            return $this->parse_markets($markets);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves $data on all $markets for dydx
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market $data
+         */
+        $request = array(
+            // 'limit' => 1000,
+        );
+        $response = Async\await($this->indexerGetPerpetualMarkets($this->extend($request, $params)));
+        //
+        // {
+        //     "markets" => {
+        //         "BTC-USD" => {
+        //             "clobPairId" => "0",
+        //             "ticker" => "BTC-USD",
+        //             "status" => "ACTIVE",
+        //             "oraclePrice" => "118976.5376",
+        //             "priceChange24H" => "659.9736",
+        //             "volume24H" => "1292729.3605",
+        //             "trades24H" => 9387,
+        //             "nextFundingRate" => "0",
+        //             "initialMarginFraction" => "0.02",
+        //             "maintenanceMarginFraction" => "0.012",
+        //             "openInterest" => "52.0691",
+        //             "atomicResolution" => -10,
+        //             "quantumConversionExponent" => -9,
+        //             "tickSize" => "1",
+        //             "stepSize" => "0.0001",
+        //             "stepBaseQuantums" => 1000000,
+        //             "subticksPerTick" => 100000,
+        //             "marketType" => "CROSS",
+        //             "openInterestLowerCap" => "0",
+        //             "openInterestUpperCap" => "0",
+        //             "baseOpenInterest" => "50.3776",
+        //             "defaultFundingRate1H" => "0"
+        //         }
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'markets', array());
+        $markets = is_array($data) ? array_values($data) : array();
+        return $this->parse_markets($markets);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -663,50 +672,52 @@ class dydx extends Exchange {
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            $response = Async\await($this->indexerGetTradesPerpetualMarketMarket($this->extend($request, $params)));
-            //
-            // {
-            //     "trades" => array(
-            //         {
-            //             "id" => "02ac5b1f0000000200000002",
-            //             "side" => "BUY",
-            //             "size" => "0.0501",
-            //             "price" => "115732",
-            //             "type" => "LIMIT",
-            //             "createdAt" => "2025-07-25T05:11:09.800Z",
-            //             "createdAtHeight" => "44849951"
-            //         }
-            //     )
-            // }
-            //
-            $rows = $this->safe_list($response, 'trades', array());
-            return $this->parse_trades($rows, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        $response = Async\await($this->indexerGetTradesPerpetualMarketMarket($this->extend($request, $params)));
+        //
+        // {
+        //     "trades" => array(
+        //         {
+        //             "id" => "02ac5b1f0000000200000002",
+        //             "side" => "BUY",
+        //             "size" => "0.0501",
+        //             "price" => "115732",
+        //             "type" => "LIMIT",
+        //             "createdAt" => "2025-07-25T05:11:09.800Z",
+        //             "createdAtHeight" => "44849951"
+        //         }
+        //     )
+        // }
+        //
+        $rows = $this->safe_list($response, 'trades', array());
+        return $this->parse_trades($rows, $market, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
         //     "startedAt" => "2025-07-25T09:47:00.000Z",
@@ -735,131 +746,135 @@ class dydx extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-candles
-             *
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000);
-            }
-            if ($since !== null) {
-                $request['fromIso'] = $this->iso8601($since);
-            }
-            $until = $this->safe_integer($params, 'until');
-            $params = $this->omit($params, 'until');
-            if ($until !== null) {
-                $request['toIso'] = $this->iso8601($until);
-            }
-            $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params)));
-            //
-            // {
-            //     "candles" => array(
-            //         {
-            //             "startedAt" => "2025-07-25T09:47:00.000Z",
-            //             "ticker" => "BTC-USD",
-            //             "resolution" => "1MIN",
-            //             "low" => "116099",
-            //             "high" => "116099",
-            //             "open" => "116099",
-            //             "close" => "116099",
-            //             "baseTokenVolume" => "0",
-            //             "usdVolume" => "0",
-            //             "trades" => 0,
-            //             "startingOpenInterest" => "54.0594",
-            //             "orderbookMidPriceOpen" => "115845.5",
-            //             "orderbookMidPriceClose" => "115845.5"
-            //         }
-            //     )
-            // }
-            //
-            $rows = $this->safe_list($response, 'candles', array());
-            return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-candles
+         *
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000);
+        }
+        if ($since !== null) {
+            $request['fromIso'] = $this->iso8601($since);
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($until !== null) {
+            $request['toIso'] = $this->iso8601($until);
+        }
+        $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $params)));
+        //
+        // {
+        //     "candles" => array(
+        //         {
+        //             "startedAt" => "2025-07-25T09:47:00.000Z",
+        //             "ticker" => "BTC-USD",
+        //             "resolution" => "1MIN",
+        //             "low" => "116099",
+        //             "high" => "116099",
+        //             "open" => "116099",
+        //             "close" => "116099",
+        //             "baseTokenVolume" => "0",
+        //             "usdVolume" => "0",
+        //             "trades" => 0,
+        //             "startingOpenInterest" => "54.0594",
+        //             "orderbookMidPriceOpen" => "115845.5",
+        //             "orderbookMidPriceClose" => "115845.5"
+        //         }
+        //     )
+        // }
+        //
+        $rows = $this->safe_list($response, 'candles', array());
+        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $request['effectiveBeforeOrAt'] = $this->iso8601($until);
-            }
-            $response = Async\await($this->indexerGetHistoricalFundingMarket($this->extend($request, $params)));
-            //
-            // {
-            //     "historicalFunding" => array(
-            //         {
-            //             "ticker" => "BTC-USD",
-            //             "rate" => "0",
-            //             "price" => "116302.62419",
-            //             "effectiveAtHeight" => "44865196",
-            //             "effectiveAt" => "2025-07-25T11:00:00.013Z"
-            //         }
-            //     )
-            // }
-            //
-            $rates = array();
-            $rows = $this->safe_list($response, 'historicalFunding', array());
-            for ($i = 0; $i < count($rows); $i++) {
-                $entry = $rows[$i];
-                $timestamp = $this->parse8601($this->safe_string($entry, 'effectiveAt'));
-                $marketId = $this->safe_string($entry, 'ticker');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $this->safe_symbol($marketId, $market),
-                    'fundingRate' => $this->safe_number($entry, 'rate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['effectiveBeforeOrAt'] = $this->iso8601($until);
+        }
+        $response = Async\await($this->indexerGetHistoricalFundingMarket($this->extend($request, $params)));
+        //
+        // {
+        //     "historicalFunding" => array(
+        //         {
+        //             "ticker" => "BTC-USD",
+        //             "rate" => "0",
+        //             "price" => "116302.62419",
+        //             "effectiveAtHeight" => "44865196",
+        //             "effectiveAt" => "2025-07-25T11:00:00.013Z"
+        //         }
+        //     )
+        // }
+        //
+        $rates = array();
+        $rows = $this->safe_list($response, 'historicalFunding', array());
+        for ($i = 0; $i < count($rows); $i++) {
+            $entry = $rows[$i];
+            $timestamp = $this->parse8601($this->safe_string($entry, 'effectiveAt'));
+            $marketId = $this->safe_string($entry, 'ticker');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'fundingRate' => $this->safe_number($entry, 'rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function handle_public_address(?string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
@@ -961,136 +976,144 @@ class dydx extends Exchange {
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an $order made by the user
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-$order
-             *
-             * @param {string} $id the $order $id
-             * @param {string} $symbol unified $symbol of the market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'orderId' => $id,
-            );
-            $order = Async\await($this->indexerGetOrdersOrderId($this->extend($request, $params)));
-            return $this->parse_order($order);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an $order made by the user
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-$order
+         *
+         * @param {string} $id the $order $id
+         * @param {string} $symbol unified $symbol of the market the $order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'orderId' => $id,
+        );
+        $order = Async\await($this->indexerGetOrdersOrderId($this->extend($request, $params)));
+        return $this->parse_order($order);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $userAddress = null;
-            $subAccountNumber = null;
-            list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
-            list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'address' => $userAddress,
-                'subaccountNumber' => $subAccountNumber,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['ticker'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->indexerGetOrders($this->extend($request, $params)));
-            //
-            // array(
-            //     {
-            //         "id" => "dad46410-3444-5566-a129-19a619300fb7",
-            //         "subaccountId" => "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
-            //         "clientId" => "716238006",
-            //         "clobPairId" => "0",
-            //         "side" => "BUY",
-            //         "size" => "0.001",
-            //         "totalFilled" => "0.001",
-            //         "price" => "400000",
-            //         "type" => "LIMIT",
-            //         "status" => "FILLED",
-            //         "timeInForce" => "GTT",
-            //         "reduceOnly" => false,
-            //         "orderFlags" => "64",
-            //         "goodTilBlockTime" => "2025-07-28T12:07:33.000Z",
-            //         "createdAtHeight" => "45058325",
-            //         "clientMetadata" => "2",
-            //         "updatedAt" => "2025-07-28T12:06:35.330Z",
-            //         "updatedAtHeight" => "45058326",
-            //         "postOnly" => false,
-            //         "ticker" => "BTC-USD",
-            //         "subaccountNumber" => 0
-            //     }
-            // )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $userAddress = null;
+        $subAccountNumber = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'address' => $userAddress,
+            'subaccountNumber' => $subAccountNumber,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['ticker'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->indexerGetOrders($this->extend($request, $params)));
+        //
+        // array(
+        //     {
+        //         "id" => "dad46410-3444-5566-a129-19a619300fb7",
+        //         "subaccountId" => "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //         "clientId" => "716238006",
+        //         "clobPairId" => "0",
+        //         "side" => "BUY",
+        //         "size" => "0.001",
+        //         "totalFilled" => "0.001",
+        //         "price" => "400000",
+        //         "type" => "LIMIT",
+        //         "status" => "FILLED",
+        //         "timeInForce" => "GTT",
+        //         "reduceOnly" => false,
+        //         "orderFlags" => "64",
+        //         "goodTilBlockTime" => "2025-07-28T12:07:33.000Z",
+        //         "createdAtHeight" => "45058325",
+        //         "clientMetadata" => "2",
+        //         "updatedAt" => "2025-07-28T12:06:35.330Z",
+        //         "updatedAtHeight" => "45058326",
+        //         "postOnly" => false,
+        //         "ticker" => "BTC-USD",
+        //         "subaccountNumber" => 0
+        //     }
+        // )
+        //
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed orders made by the user
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-orders
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
+        );
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -1151,83 +1174,87 @@ class dydx extends Exchange {
     }
 
     public function fetch_position(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch data on an open position
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-$positions
-             *
-             * @param {string} $symbol unified market $symbol of the market the position is held in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
-            return $this->safe_dict($positions, 0, array());
-        })();
+        return Async\async(self::do_fetch_position(...))($symbol, $params);
+    }
+
+    private function do_fetch_position(string $symbol, $params = array()) {
+        /**
+         * fetch data on an open position
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#list-$positions
+         *
+         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
+        return $this->safe_dict($positions, 0, array());
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#list-positions
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            $userAddress = null;
-            $subAccountNumber = null;
-            list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-            list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'address' => $userAddress,
-                'subaccountNumber' => $subAccountNumber,
-                'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
-            );
-            $response = Async\await($this->indexerGetPerpetualPositions($this->extend($request, $params)));
-            //
-            // {
-            //     "positions" => array(
-            //         {
-            //             "market" => "BTC-USD",
-            //             "status" => "OPEN",
-            //             "side" => "SHORT",
-            //             "size" => "-0.407",
-            //             "maxSize" => "-0.009",
-            //             "entryPrice" => "118692.04840909090909090909",
-            //             "exitPrice" => "119526.565625",
-            //             "realizedPnl" => "476.42665909090909090909088",
-            //             "unrealizedPnl" => "-57.26681734000000000000037",
-            //             "createdAt" => "2025-07-14T07:53:55.631Z",
-            //             "createdAtHeight" => "44140908",
-            //             "closedAt" => null,
-            //             "sumOpen" => "0.44",
-            //             "sumClose" => "0.032",
-            //             "netFunding" => "503.13121",
-            //             "subaccountNumber" => 0
-            //         }
-            //     )
-            // }
-            //
-            $rows = $this->safe_list($response, 'positions', array());
-            return $this->parse_positions($rows, $symbols);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
     }
 
-    public function hash_message($message) {
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#list-positions
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        $userAddress = null;
+        $subAccountNumber = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'address' => $userAddress,
+            'subaccountNumber' => $subAccountNumber,
+            'status' => 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
+        );
+        $response = Async\await($this->indexerGetPerpetualPositions($this->extend($request, $params)));
+        //
+        // {
+        //     "positions" => array(
+        //         {
+        //             "market" => "BTC-USD",
+        //             "status" => "OPEN",
+        //             "side" => "SHORT",
+        //             "size" => "-0.407",
+        //             "maxSize" => "-0.009",
+        //             "entryPrice" => "118692.04840909090909090909",
+        //             "exitPrice" => "119526.565625",
+        //             "realizedPnl" => "476.42665909090909090909088",
+        //             "unrealizedPnl" => "-57.26681734000000000000037",
+        //             "createdAt" => "2025-07-14T07:53:55.631Z",
+        //             "createdAtHeight" => "44140908",
+        //             "closedAt" => null,
+        //             "sumOpen" => "0.44",
+        //             "sumClose" => "0.032",
+        //             "netFunding" => "503.13121",
+        //             "subaccountNumber" => 0
+        //         }
+        //     )
+        // }
+        //
+        $rows = $this->safe_list($response, 'positions', array());
+        return $this->parse_positions($rows, $symbols);
+    }
+
+    public function hash_message(mixed $message) {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1238,7 +1265,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1262,7 +1289,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         return $this->encode_dydx_tx_raw($signDoc, $signature['r'] . $signature['s']);
@@ -1286,47 +1313,49 @@ class dydx extends Exchange {
     }
 
     public function fetch_dydx_account() {
-        return Async\async(function () {
-            // required in js
-            Async\await($this->load_dydx_protos());
-            $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
-            if ($dydxAccount !== null) {
-                return $dydxAccount;
-            }
-            if ($this->walletAddress === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
-            }
-            if (str_starts_with(!$this->walletAddress, 'dydx')) {
-                throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
-            }
-            $request = array(
-                'dydxAddress' => $this->walletAddress,
-            );
-            //
-            // {
-            //     "info" => {
-            //         "address" => "string",
-            //         "pub_key" => array(
-            //             "type_url" => "string",
-            //             "key" => "string"
-            //         ),
-            //         "account_number" => "string",
-            //         "sequence" => "string"
-            //     }
-            // }
-            //
-            $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress($request));
-            $account = $this->safe_dict($response, 'info', array());
-            $account['pub_key'] = array(
-                // encode with binary key would fail in python
-                'key' => $account['pub_key']['key'],
-            );
-            $this->options['dydxAccount'] = $account;
-            return $account;
-        })();
+        return Async\async(self::do_fetch_dydx_account(...))();
     }
 
-    public function pow(string $n, string $m) {
+    private function do_fetch_dydx_account() {
+        // required in js
+        Async\await($this->load_dydx_protos());
+        $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
+        if ($dydxAccount !== null) {
+            return $dydxAccount;
+        }
+        if ($this->walletAddress === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
+        }
+        if (!str_starts_with($this->walletAddress, 'dydx')) {
+            throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
+        }
+        $request = array(
+            'dydxAddress' => $this->walletAddress,
+        );
+        //
+        // {
+        //     "info" => {
+        //         "address" => "string",
+        //         "pub_key" => array(
+        //             "type_url" => "string",
+        //             "key" => "string"
+        //         ),
+        //         "account_number" => "string",
+        //         "sequence" => "string"
+        //     }
+        // }
+        //
+        $response = Async\await($this->nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress($request));
+        $account = $this->safe_dict($response, 'info', array());
+        $account['pub_key'] = array(
+            // encode with binary key would fail in python
+            'key' => $account['pub_key']['key'],
+        );
+        $this->options['dydxAccount'] = $account;
+        return $account;
+    }
+
+    public function pow(string $n, ?string $m) {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         // TODO => cap
@@ -1336,10 +1365,19 @@ class dydx extends Exchange {
         return $r;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
         list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
@@ -1413,6 +1451,9 @@ class dydx extends Exchange {
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
+                if ($latestBlockHeight === null) {
+                    throw new ExchangeError($this->id . ' method() missing latestBlockHeight');
+                }
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
@@ -1453,7 +1494,13 @@ class dydx extends Exchange {
             'value' => $orderPayload,
         );
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
-        $orderId = $this->create_order_id_from_parts($this->get_wallet_address(), $subaccountId, $clientOrderId, $orderFlag, $marketInfo['clobPairId']);
+        $walletAddress = $this->get_wallet_address();
+        $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
+        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
+        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
+        $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $params) );
     }
 
@@ -1466,309 +1513,323 @@ class dydx extends Exchange {
     }
 
     public function fetch_latest_block_height($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            $response = Async\await($this->nodeRpcGetAbciInfo($params));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "response" => {
-            //             "data" => "dydxprotocol",
-            //             "version" => "9.1.0-rc0",
-            //             "last_block_height" => "49157714",
-            //             "last_block_app_hash" => "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
-            //         }
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result');
-            $info = $this->safe_dict($result, 'response');
-            return $this->safe_integer($info, 'last_block_height');
-        })();
+        return Async\async(self::do_fetch_latest_block_height(...))($params);
+    }
+
+    private function do_fetch_latest_block_height($params = array()) {
+        $response = Async\await($this->nodeRpcGetAbciInfo($params));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "response" => {
+        //             "data" => "dydxprotocol",
+        //             "version" => "9.1.0-rc0",
+        //             "last_block_height" => "49157714",
+        //             "last_block_app_hash" => "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
+        //         }
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        $info = $this->safe_dict($result, 'response');
+        $height = $this->safe_integer($info, 'last_block_height');
+        if ($height === null) {
+            throw new ExchangeError($this->id . ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return $height;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             *
-             * @see https://docs.dydx.xyz/interaction/trading#place-an-order
-             *
-             * create a trade order
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->timeInForce] "GTT", "IOC", or "PO"
-             * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
-             * @param {float} [$params->stopLossPrice] $price for a stoploss order
-             * @param {float} [$params->takeProfitPrice] $price for a takeprofit order
-             * @param {string} [$params->clientOrderId] a unique id for the order
-             * @param {bool} [$params->postOnly] true or false whether the order is post-only
-             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
-             * @param {float} [$params->goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-             * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
-            $lastBlockHeight = Async\await($this->fetch_latest_block_height());
-            // $params['latestBlockHeight'] = $lastBlockHeight;
-            $newParams = $this->extend($params, array( 'latestBlockHeight' => $lastBlockHeight ));
-            $orderRequestRes = $this->create_order_request($symbol, $type, $side, $amount, $price, $newParams);
-            $orderId = $orderRequestRes[0];
-            $orderRequest = $orderRequestRes[1];
-            $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
-            $request = array(
-                'tx' => $signedTx,
-            );
-            // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "code" => 0,
-            //         "data" => "",
-            //         "log" => "array()",
-            //         "codespace" => "",
-            //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result');
-            return $this->safe_order(array(
-                'info' => $result,
-                'id' => $orderId,
-                'clientOrderId' => $orderRequest['value']['order']['orderId']['clientId'],
-            ));
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.dydx.xyz/interaction/trading#place-an-order
+         *
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] "GTT", "IOC", or "PO"
+         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] $price for a stoploss order
+         * @param {float} [$params->takeProfitPrice] $price for a takeprofit order
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @param {bool} [$params->postOnly] true or false whether the order is post-only
+         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [$params->goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
+         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $credentials = $this->retrieve_credentials();
+        $account = Async\await($this->fetch_dydx_account());
+        $lastBlockHeight = Async\await($this->fetch_latest_block_height());
+        // $params['latestBlockHeight'] = $lastBlockHeight;
+        $newParams = $this->extend($params, array( 'latestBlockHeight' => $lastBlockHeight ));
+        $orderRequestRes = $this->create_order_request($symbol, $type, $side, $amount, $price, $newParams);
+        $orderId = $orderRequestRes[0];
+        $orderRequest = $orderRequestRes[1];
+        $chainName = $this->options['chainName'];
+        $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $orderRequest, '', $chainName, $account, null);
+        $request = array(
+            'tx' => $signedTx,
+        );
+        // nodeRpcGetBroadcastTxAsync
+        $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "code" => 0,
+        //         "data" => "",
+        //         "log" => "array()",
+        //         "codespace" => "",
+        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        return $this->safe_order(array(
+            'info' => $result,
+            'id' => $orderId,
+            'clientOrderId' => $orderRequest['value']['order']['orderId']['clientId'],
+        ));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
-             *
-             * @param {string} $id it should be the property_exists($this, $clientOrderId) case
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order $id used when creating the order
-             * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
-             * @param {float} [$params->orderFlags] default is 64, $orderFlags for the order, $market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
-             * @param {float} [$params->goodTillBlock] expired block number for the order, required for $market order and non limit GTT order ($orderFlags = 0), default value is $latestBlockHeight + 20
-             * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
-             * @param {int} [$params->subAccountId] sub $account $id, default is 0
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $params = $this->omit($params, array( 'trigger', 'stop' ));
-            if (!$isTrigger && ($symbol === null)) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
-            if ($clientOrderId === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
-            }
-            $idString = (string) $id;
-            if ($id !== null && mb_strpos($idString, '-') > -1) {
-                throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
-            }
-            $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
-            $goodTillBlockTimeInSeconds = 2592000;
-            list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
-            $goodTillBlockTime = null;
-            $defaultOrderFlags = ($isTrigger) ? 32 : 64;
-            $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
-            $subAccountId = 0;
-            list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
-            $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
-            if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
-                throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
-            }
-            if ($orderFlags > 0) {
-                if ($goodTillBlockTimeInSeconds === null) {
-                    throw new ArgumentsRequired($this->id . ' $goodTillBlockTimeInSeconds is required in $params for long term or conditional order.');
-                }
-                if ($goodTillBlock !== null && $goodTillBlock > 0) {
-                    throw new InvalidOrder($this->id . ' $goodTillBlock should be 0 for long term or conditional order.');
-                }
-                $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
-            } else {
-                if ($goodTillBlock === null) {
-                    $latestBlockHeight = Async\await($this->fetch_latest_block_height());
-                    $goodTillBlock = $latestBlockHeight + 20;
-                }
-            }
-            $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
-            $cancelPayload = array(
-                'orderId' => array(
-                    'subaccountId' => array(
-                        'owner' => $this->get_wallet_address(),
-                        'number' => $subAccountId,
-                    ),
-                    'clientId' => $clientOrderId,
-                    'orderFlags' => $orderFlags,
-                    'clobPairId' => $market['info']['clobPairId'],
-                ),
-                'goodTilBlock' => $goodTillBlock,
-                'goodTilBlockTime' => $goodTillBlockTime,
-            );
-            $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.clob.MsgCancelOrder',
-                'value' => $cancelPayload,
-            );
-            $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
-            $request = array(
-                'tx' => $signedTx,
-            );
-            // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "code" => 0,
-            //         "data" => "",
-            //         "log" => "array()",
-            //         "codespace" => "",
-            //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result');
-            return $this->safe_order(array(
-                'info' => $result,
-            ));
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-             * @param {int} [$params->subAccountId] sub $account id, default is 0
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
+         *
+         * @param {string} $id it should be the property_exists($this, $clientOrderId) case
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id used when creating the order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
+         * @param {float} [$params->orderFlags] default is 64, $orderFlags for the order, $market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+         * @param {float} [$params->goodTillBlock] expired block number for the order, required for $market order and non limit GTT order ($orderFlags = 0), default value is $latestBlockHeight + 20
+         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+         * @param {int} [$params->subAccountId] sub $account $id, default is 0
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        if (!$isTrigger && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
+        if ($clientOrderId === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
+        }
+        $idString = (string) $id;
+        if ($id !== null && mb_strpos($idString, '-') > -1) {
+            throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
+        }
+        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        $goodTillBlockTimeInSeconds = 2592000;
+        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        $goodTillBlockTime = null;
+        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
+        $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
+        $subAccountId = 0;
+        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
+        $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
+        if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
+            throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
+        }
+        if ($orderFlags > 0) {
+            if ($goodTillBlockTimeInSeconds === null) {
+                throw new ArgumentsRequired($this->id . ' $goodTillBlockTimeInSeconds is required in $params for long term or conditional order.');
             }
-            $market = $this->market($symbol);
-            $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
-            if (!$clientOrderIds) {
-                throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
+            if ($goodTillBlock !== null && $goodTillBlock > 0) {
+                throw new InvalidOrder($this->id . ' $goodTillBlock should be 0 for long term or conditional order.');
             }
-            $subAccountId = 0;
-            list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
-            $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+            $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSeconds;
+        } else {
             if ($goodTillBlock === null) {
                 $latestBlockHeight = Async\await($this->fetch_latest_block_height());
                 $goodTillBlock = $latestBlockHeight + 20;
             }
-            $params = $this->omit($params, array( 'clientOrderIds', 'goodTillBlock', 'subaccountId' ));
-            $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
-            $cancelOrders = array(
-                'clientIds' => $clientOrderIds,
-                'clobPairId' => $market['info']['clobPairId'],
-            );
-            $cancelPayload = array(
+        }
+        $credentials = $this->retrieve_credentials();
+        $account = Async\await($this->fetch_dydx_account());
+        $cancelPayload = array(
+            'orderId' => array(
                 'subaccountId' => array(
                     'owner' => $this->get_wallet_address(),
                     'number' => $subAccountId,
                 ),
-                'shortTermCancels' => array( $cancelOrders ),
-                'goodTilBlock' => $goodTillBlock,
-            );
-            $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.clob.MsgBatchCancel',
-                'value' => $cancelPayload,
-            );
-            $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
-            $request = array(
-                'tx' => $signedTx,
-            );
-            // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "code" => 0,
-            //         "data" => "",
-            //         "log" => "array()",
-            //         "codespace" => "",
-            //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            $result = $this->safe_dict($response, 'result');
-            return array( $this->safe_order(array(
-                'info' => $result,
-            )) );
-        })();
+                'clientId' => $clientOrderId,
+                'orderFlags' => $orderFlags,
+                'clobPairId' => $market['info']['clobPairId'],
+            ),
+            'goodTilBlock' => $goodTillBlock,
+            'goodTilBlockTime' => $goodTillBlockTime,
+        );
+        $signingPayload = array(
+            'typeUrl' => '/dydxprotocol.clob.MsgCancelOrder',
+            'value' => $cancelPayload,
+        );
+        $chainName = $this->options['chainName'];
+        $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
+        $request = array(
+            'tx' => $signedTx,
+        );
+        // nodeRpcGetBroadcastTxAsync
+        $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "code" => 0,
+        //         "data" => "",
+        //         "log" => "array()",
+        //         "codespace" => "",
+        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        return $this->safe_order(array(
+            'info' => $result,
+        ));
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+         * @param {int} [$params->subAccountId] sub $account id, default is 0
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
+        if (!$clientOrderIds) {
+            throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
+        }
+        $subAccountId = 0;
+        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
+        $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
+        if ($goodTillBlock === null) {
+            $latestBlockHeight = Async\await($this->fetch_latest_block_height());
+            $goodTillBlock = $latestBlockHeight + 20;
+        }
+        $params = $this->omit($params, array( 'clientOrderIds', 'goodTillBlock', 'subaccountId' ));
+        $credentials = $this->retrieve_credentials();
+        $account = Async\await($this->fetch_dydx_account());
+        $cancelOrders = array(
+            'clientIds' => $clientOrderIds,
+            'clobPairId' => $market['info']['clobPairId'],
+        );
+        $cancelPayload = array(
+            'subaccountId' => array(
+                'owner' => $this->get_wallet_address(),
+                'number' => $subAccountId,
+            ),
+            'shortTermCancels' => array( $cancelOrders ),
+            'goodTilBlock' => $goodTillBlock,
+        );
+        $signingPayload = array(
+            'typeUrl' => '/dydxprotocol.clob.MsgBatchCancel',
+            'value' => $cancelPayload,
+        );
+        $chainName = $this->options['chainName'];
+        $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null);
+        $request = array(
+            'tx' => $signedTx,
+        );
+        // nodeRpcGetBroadcastTxAsync
+        $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "code" => 0,
+        //         "data" => "",
+        //         "log" => "array()",
+        //         "codespace" => "",
+        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        return array( $this->safe_order(array(
+            'info' => $result,
+        )) );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$market-orderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket($this->extend($request, $params)));
-            //
-            // {
-            //     "bids" => array(
-            //         {
-            //             "price" => "118267",
-            //             "size" => "0.3182"
-            //         }
-            //     ),
-            //     "asks" => array(
-            //         {
-            //             "price" => "118485",
-            //             "size" => "0.0001"
-            //         }
-            //     )
-            // }
-            //
-            return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-$market-orderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = Async\await($this->indexerGetOrderbooksPerpetualMarketMarket($this->extend($request, $params)));
+        //
+        // {
+        //     "bids" => array(
+        //         {
+        //             "price" => "118267",
+        //             "size" => "0.3182"
+        //         }
+        //     ),
+        //     "asks" => array(
+        //         {
+        //             "price" => "118485",
+        //             "size" => "0.0001"
+        //         }
+        //     )
+        // }
+        //
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -1826,7 +1887,7 @@ class dydx extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRANSFER_IN' => 'transfer',
             'TRANSFER_OUT' => 'transfer',
@@ -1837,179 +1898,188 @@ class dydx extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-             *
-             * @param {string} [$code] unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchLedger' ))));
-            return $this->parse_ledger($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
     }
 
-    public function estimate_tx_fee(mixed $message, string $memo, mixed $account): PromiseInterface {
-        return Async\async(function () use ($message, $memo, $account) {
-            $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
-            $request = array(
-                'txBytes' => $txBytes,
-            );
-            $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate($request));
-            //
-            // {
-            //     gas_info => array( gas_wanted => '18446744073709551615', gas_used => '86055' ),
-            //     result => {
-            //         ...
-            //     }
-            // }
-            //
-            $gasInfo = $this->safe_dict($response, 'gas_info');
-            if ($gasInfo === null) {
-                throw new ExchangeError($this->id . ' failed to simulate transaction.');
-            }
-            $gasUsed = $this->safe_string($gasInfo, 'gas_used');
-            if ($gasUsed === null) {
-                throw new ExchangeError($this->id . ' failed to simulate transaction.');
-            }
-            $defaultFeeDenom = $this->safe_string($this->options, 'defaultFeeDenom');
-            $defaultFeeMultiplier = $this->safe_string($this->options, 'defaultFeeMultiplier');
-            $feeDenom = $this->safe_dict($this->options, 'feeDenom', array());
-            $gasPrice = null;
-            $denom = null;
-            if ($defaultFeeDenom === 'uusdc') {
-                $gasPrice = $feeDenom['USDC_GAS_PRICE'];
-                $denom = $feeDenom['USDC_DENOM'];
-            } else {
-                $gasPrice = $feeDenom['CHAINTOKEN_GAS_PRICE'];
-                $denom = $feeDenom['CHAINTOKEN_DENOM'];
-            }
-            $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
-            $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
-            if (mb_strpos($feeAmount, '.') !== false) {
-                $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
-            }
-            $feeObj = array(
-                'amount' => $feeAmount,
-                'denom' => $denom,
-            );
-            return array(
-                'amount' => array( $feeObj ),
-                'gasLimit' => $gasLimit,
-            );
-        })();
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchLedger' ))));
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): PromiseInterface {
+        return Async\async(self::do_estimate_tx_fee(...))($message, $memo, $account);
+    }
+
+    private function do_estimate_tx_fee(mixed $message, ?string $memo, mixed $account) {
+        $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
+        $request = array(
+            'txBytes' => $txBytes,
+        );
+        $response = Async\await($this->nodeRestPostCosmosTxV1beta1Simulate($request));
+        //
+        // {
+        //     gas_info => array( gas_wanted => '18446744073709551615', gas_used => '86055' ),
+        //     result => {
+        //         ...
+        //     }
+        // }
+        //
+        $gasInfo = $this->safe_dict($response, 'gas_info');
+        if ($gasInfo === null) {
+            throw new ExchangeError($this->id . ' failed to simulate transaction.');
+        }
+        $gasUsed = $this->safe_string($gasInfo, 'gas_used');
+        if ($gasUsed === null) {
+            throw new ExchangeError($this->id . ' failed to simulate transaction.');
+        }
+        $defaultFeeDenom = $this->safe_string($this->options, 'defaultFeeDenom');
+        $defaultFeeMultiplier = $this->safe_string($this->options, 'defaultFeeMultiplier');
+        $feeDenom = $this->safe_dict($this->options, 'feeDenom', array());
+        $gasPrice = null;
+        $denom = null;
+        if ($defaultFeeDenom === 'uusdc') {
+            $gasPrice = $feeDenom['USDC_GAS_PRICE'];
+            $denom = $feeDenom['USDC_DENOM'];
+        } else {
+            $gasPrice = $feeDenom['CHAINTOKEN_GAS_PRICE'];
+            $denom = $feeDenom['CHAINTOKEN_DENOM'];
+        }
+        $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
+        $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
+        if ($feeAmount === null) {
+            throw new ExchangeError($this->id . ' estimateTxFee() missing feeAmount');
+        }
+        if (mb_strpos($feeAmount, '.') !== false) {
+            $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
+        }
+        $feeObj = array(
+            'amount' => $feeAmount,
+            'denom' => $denom,
+        );
+        return array(
+            'amount' => array( $feeObj ),
+            'gasLimit' => $gasLimit,
+        );
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer currency internally between wallets on the same $account
-             * @param {string} $code unified currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount $account to transfer from *main, subaccount*
-             * @param {string} $toAccount $account to transfer to *subaccount, address*
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->vaultAddress] the vault address for order
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            if ($code !== 'USDC') {
-                throw new NotSupported($this->id . ' transfer() only support USDC');
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer currency internally between wallets on the same $account
+         * @param {string} $code unified currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount $account to transfer from *main, subaccount*
+         * @param {string} $toAccount $account to transfer to *subaccount, address*
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vaultAddress] the vault address for order
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($code !== 'USDC') {
+            throw new NotSupported($this->id . ' transfer() only support USDC');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
+        $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
+        if ($fromAccount !== 'main') {
+            // throw error if from subaccount id is null
+            if ($fromAccount === null) {
+                throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+            if ($fromSubaccountId === null || $toSubaccountId === null) {
+                throw new ArgumentsRequired($this->id . ' transfer requires $fromSubaccountId and $toSubaccountId->');
             }
-            $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
-            $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
-            if ($fromAccount !== 'main') {
-                // throw error if from subaccount id is undefind
-                if ($fromAccount === null) {
-                    throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
-                }
-                if ($fromSubaccountId === null || $toSubaccountId === null) {
-                    throw new ArgumentsRequired($this->id . ' transfer requires $fromSubaccountId and $toSubaccountId->');
-                }
+        }
+        $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
+        $credentials = $this->retrieve_credentials();
+        $account = Async\await($this->fetch_dydx_account());
+        $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
+        $payload = null;
+        $signingPayload = null;
+        if ($fromAccount === 'main') {
+            // deposit to subaccount
+            if ($toSubaccountId === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() requeire toSubaccoutnId.');
             }
-            $params = $this->omit($params, array( 'fromSubaccountId', 'toSubaccountId' ));
-            $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
-            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
-            $payload = null;
-            $signingPayload = null;
-            if ($fromAccount === 'main') {
-                // deposit to subaccount
-                if ($toSubaccountId === null) {
-                    throw new ArgumentsRequired($this->id . ' transfer() requeire toSubaccoutnId.');
-                }
-                $payload = array(
-                    'sender' => $this->get_wallet_address(),
+            $payload = array(
+                'sender' => $this->get_wallet_address(),
+                'recipient' => array(
+                    'owner' => $this->get_wallet_address(),
+                    'number' => $toSubaccountId,
+                ),
+                'assetId' => 0,
+                'quantums' => $usd,
+            );
+            $signingPayload = array(
+                'typeUrl' => '/dydxprotocol.sending.MsgDepositToSubaccount',
+                'value' => $payload,
+            );
+        } else {
+            $payload = array(
+                'transfer' => array(
+                    'sender' => array(
+                        'owner' => $fromAccount,
+                        'number' => $fromSubaccountId,
+                    ),
                     'recipient' => array(
-                        'owner' => $this->get_wallet_address(),
+                        'owner' => $toAccount,
                         'number' => $toSubaccountId,
                     ),
                     'assetId' => 0,
-                    'quantums' => $usd,
-                );
-                $signingPayload = array(
-                    'typeUrl' => '/dydxprotocol.sending.MsgDepositToSubaccount',
-                    'value' => $payload,
-                );
-            } else {
-                $payload = array(
-                    'transfer' => array(
-                        'sender' => array(
-                            'owner' => $fromAccount,
-                            'number' => $fromSubaccountId,
-                        ),
-                        'recipient' => array(
-                            'owner' => $toAccount,
-                            'number' => $toSubaccountId,
-                        ),
-                        'assetId' => 0,
-                        'amount' => $usd,
-                    ),
-                );
-                $signingPayload = array(
-                    'typeUrl' => '/dydxprotocol.sending.MsgCreateTransfer',
-                    'value' => $payload,
-                );
-            }
-            $txFee = Async\await($this->estimate_tx_fee($signingPayload, '', $account));
-            $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
-            $request = array(
-                'tx' => $signedTx,
+                    'amount' => $usd,
+                ),
             );
-            // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "code" => 0,
-            //         "data" => "",
-            //         "log" => "array()",
-            //         "codespace" => "",
-            //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            return $this->parse_transfer($response);
-        })();
+            $signingPayload = array(
+                'typeUrl' => '/dydxprotocol.sending.MsgCreateTransfer',
+                'value' => $payload,
+            );
+        }
+        $txFee = Async\await($this->estimate_tx_fee($signingPayload, '', $account));
+        $chainName = $this->options['chainName'];
+        $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, '', $chainName, $account, null, $txFee);
+        $request = array(
+            'tx' => $signedTx,
+        );
+        // nodeRpcGetBroadcastTxAsync
+        $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "code" => 0,
+        //         "data" => "",
+        //         "log" => "array()",
+        //         "codespace" => "",
+        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        return $this->parse_transfer($response);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2055,33 +2125,35 @@ class dydx extends Exchange {
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal transfers made on an account
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchTransfers' ))));
-            $transferIn = $this->filter_by($response, 'type', 'TRANSFER_IN');
-            $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
-            $rows = $this->array_concat($transferIn, $transferOut);
-            return $this->parse_transfers($rows, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfers structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchTransfers' ))));
+        $transferIn = $this->filter_by($response, 'type', 'TRANSFER_IN');
+        $transferOut = $this->filter_by($response, 'type', 'TRANSFER_OUT');
+        $rows = $this->array_concat($transferIn, $transferOut);
+        return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2139,363 +2211,377 @@ class dydx extends Exchange {
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            if ($code !== 'USDC') {
-                throw new NotSupported($this->id . ' withdraw() only support USDC');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $this->check_address($address);
-            $subaccountId = $this->safe_integer($params, 'subaccountId');
-            if ($subaccountId === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw requires $subaccountId->');
-            }
-            $params = $this->omit($params, array( 'subaccountId' ));
-            $currency = $this->currency($code);
-            $credentials = $this->retrieve_credentials();
-            $account = Async\await($this->fetch_dydx_account());
-            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
-            $payload = array(
-                'sender' => array(
-                    'owner' => $this->get_wallet_address(),
-                    'number' => $subaccountId,
-                ),
-                'recipient' => $address,
-                'assetId' => 0,
-                'quantums' => $usd,
-            );
-            $signingPayload = array(
-                'typeUrl' => '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
-                'value' => $payload,
-            );
-            $txFee = Async\await($this->estimate_tx_fee($signingPayload, $tag, $account));
-            $chainName = $this->options['chainName'];
-            $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
-            $request = array(
-                'tx' => $signedTx,
-            );
-            // nodeRpcGetBroadcastTxAsync
-            $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
-            //
-            // {
-            //     "jsonrpc" => "2.0",
-            //     "id" => -1,
-            //     "result" => {
-            //         "code" => 0,
-            //         "data" => "",
-            //         "log" => "array()",
-            //         "codespace" => "",
-            //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            $data = $this->safe_dict($response, 'result', array());
-            return $this->parse_transaction($data, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        if ($code !== 'USDC') {
+            throw new NotSupported($this->id . ' withdraw() only support USDC');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $this->check_address($address);
+        $subaccountId = $this->safe_integer($params, 'subaccountId');
+        if ($subaccountId === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw requires $subaccountId->');
+        }
+        $params = $this->omit($params, array( 'subaccountId' ));
+        $currency = $this->currency($code);
+        $credentials = $this->retrieve_credentials();
+        $account = Async\await($this->fetch_dydx_account());
+        $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
+        $payload = array(
+            'sender' => array(
+                'owner' => $this->get_wallet_address(),
+                'number' => $subaccountId,
+            ),
+            'recipient' => $address,
+            'assetId' => 0,
+            'quantums' => $usd,
+        );
+        $signingPayload = array(
+            'typeUrl' => '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
+            'value' => $payload,
+        );
+        $txFee = Async\await($this->estimate_tx_fee($signingPayload, $tag, $account));
+        $chainName = $this->options['chainName'];
+        $signedTx = $this->sign_dydx_tx($credentials['privateKey'], $signingPayload, $tag, $chainName, $account, null, $txFee);
+        $request = array(
+            'tx' => $signedTx,
+        );
+        // nodeRpcGetBroadcastTxAsync
+        $response = Async\await($this->nodeRpcGetBroadcastTxSync($request));
+        //
+        // {
+        //     "jsonrpc" => "2.0",
+        //     "id" => -1,
+        //     "result" => {
+        //         "code" => 0,
+        //         "data" => "",
+        //         "log" => "array()",
+        //         "codespace" => "",
+        //         "hash" => "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'result', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchWithdrawals' ))));
-            $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
-            return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchWithdrawals' ))));
+        $rows = $this->filter_by($response, 'type', 'WITHDRAWAL');
+        return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDeposits' ))));
-            $rows = $this->filter_by($response, 'type', 'DEPOSIT');
-            return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDeposits' ))));
+        $rows = $this->filter_by($response, 'type', 'DEPOSIT');
+        return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch history of $deposits and $withdrawals
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
-             *
-             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
-             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
-             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDepositsWithdrawals' ))));
-            $withdrawals = $this->filter_by($response, 'type', 'WITHDRAWAL');
-            $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
-            $rows = $this->array_concat($withdrawals, $deposits);
-            return $this->parse_transactions($rows, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch history of $deposits and $withdrawals
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+         *
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @param {string} [$params->subAccountNumber] sub account number
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->fetch_transactions_helper($code, $since, $limit, $this->extend($params, array( 'methodName' => 'fetchDepositsWithdrawals' ))));
+        $withdrawals = $this->filter_by($response, 'type', 'WITHDRAWAL');
+        $deposits = $this->filter_by($response, 'type', 'DEPOSIT');
+        $rows = $this->array_concat($withdrawals, $deposits);
+        return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            $methodName = $this->safe_string($params, 'methodName');
-            $params = $this->omit($params, 'methodName');
-            $userAddress = null;
-            $subAccountNumber = null;
-            list($userAddress, $params) = $this->handle_public_address($methodName, $params);
-            list($subAccountNumber, $params) = $this->handle_option_and_params($params, $methodName, 'subAccountNumber', '0');
-            $request = array(
-                'address' => $userAddress,
-                'subaccountNumber' => $subAccountNumber,
-            );
-            $response = Async\await($this->indexerGetTransfers($this->extend($request, $params)));
-            //
-            // {
-            //     "transfers" => array(
-            //         {
-            //             "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-            //             "sender" => array(
-            //                 "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //                 "subaccountNumber" => 0
-            //             ),
-            //             "recipient" => array(
-            //                 "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-            //                 "subaccountNumber" => 1
-            //             ),
-            //             "size" => "0.000001",
-            //             "createdAt" => "2025-07-29T09:43:02.105Z",
-            //             "createdAtHeight" => "45116125",
-            //             "symbol" => "USDC",
-            //             "type" => "TRANSFER_OUT",
-            //             "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
-            //         }
-            //     )
-            // }
-            //
-            return $this->safe_list($response, 'transfers', array());
-        })();
+        return Async\async(self::do_fetch_transactions_helper(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        $methodName = $this->safe_string($params, 'methodName');
+        $params = $this->omit($params, 'methodName');
+        $userAddress = null;
+        $subAccountNumber = null;
+        list($userAddress, $params) = $this->handle_public_address($methodName, $params);
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, $methodName, 'subAccountNumber', '0');
+        $request = array(
+            'address' => $userAddress,
+            'subaccountNumber' => $subAccountNumber,
+        );
+        $response = Async\await($this->indexerGetTransfers($this->extend($request, $params)));
+        //
+        // {
+        //     "transfers" => array(
+        //         {
+        //             "id" => "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender" => array(
+        //                 "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber" => 0
+        //             ),
+        //             "recipient" => array(
+        //                 "address" => "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber" => 1
+        //             ),
+        //             "size" => "0.000001",
+        //             "createdAt" => "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight" => "45116125",
+        //             "symbol" => "USDC",
+        //             "type" => "TRANSFER_OUT",
+        //             "transactionHash" => "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //         }
+        //     )
+        // }
+        //
+        return $this->safe_list($response, 'transfers', array());
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch all the accounts associated with a profile
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->address] wallet address that made trades
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
-             */
-            $userAddress = null;
-            list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
-            $request = array(
-                'address' => $userAddress,
+        return Async\async(self::do_fetch_accounts(...))($params);
+    }
+
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the accounts associated with a profile
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->address] wallet address that made trades
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
+         */
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        $request = array(
+            'address' => $userAddress,
+        );
+        $response = Async\await($this->indexerGetAddressesAddress($this->extend($request, $params)));
+        //
+        // {
+        //     "subaccounts" => array(
+        //         {
+        //             "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //             "subaccountNumber" => 0,
+        //             "equity" => "25346.73993597",
+        //             "freeCollateral" => "24207.8530595294",
+        //             "openPerpetualPositions" => {
+        //                 "BTC-USD" => array(
+        //                     "market" => "BTC-USD",
+        //                     "status" => "OPEN",
+        //                     "side" => "SHORT",
+        //                     "size" => "-0.491",
+        //                     "maxSize" => "-0.009",
+        //                     "entryPrice" => "118703.60811320754716981132",
+        //                     "exitPrice" => "119655.95",
+        //                     "realizedPnl" => "3075.17994830188679245283016",
+        //                     "unrealizedPnl" => "1339.12776155490566037735812",
+        //                     "createdAt" => "2025-07-14T07:53:55.631Z",
+        //                     "createdAtHeight" => "44140908",
+        //                     "closedAt" => null,
+        //                     "sumOpen" => "0.53",
+        //                     "sumClose" => "0.038",
+        //                     "netFunding" => "3111.36894",
+        //                     "subaccountNumber" => 0
+        //                 }
+        //             ),
+        //             "assetPositions" => {
+        //                 "USDC" => array(
+        //                     "size" => "82291.083758",
+        //                     "symbol" => "USDC",
+        //                     "side" => "LONG",
+        //                     "assetId" => "0",
+        //                     "subaccountNumber" => 0
+        //                 }
+        //             ),
+        //             "marginEnabled" => true,
+        //             "updatedAtHeight" => "45234659",
+        //             "latestProcessedBlockHeight" => "45293477"
+        //         }
+        //     )
+        // }
+        //
+        $rows = $this->safe_list($response, 'subaccounts', array());
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $account = $rows[$i];
+            $accountId = $this->safe_string($account, 'subaccountNumber');
+            $result[] = array(
+                'id' => $accountId,
+                'type' => null,
+                'currency' => null,
+                'info' => $account,
+                'code' => null,
             );
-            $response = Async\await($this->indexerGetAddressesAddress($this->extend($request, $params)));
-            //
-            // {
-            //     "subaccounts" => array(
-            //         {
-            //             "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //             "subaccountNumber" => 0,
-            //             "equity" => "25346.73993597",
-            //             "freeCollateral" => "24207.8530595294",
-            //             "openPerpetualPositions" => {
-            //                 "BTC-USD" => array(
-            //                     "market" => "BTC-USD",
-            //                     "status" => "OPEN",
-            //                     "side" => "SHORT",
-            //                     "size" => "-0.491",
-            //                     "maxSize" => "-0.009",
-            //                     "entryPrice" => "118703.60811320754716981132",
-            //                     "exitPrice" => "119655.95",
-            //                     "realizedPnl" => "3075.17994830188679245283016",
-            //                     "unrealizedPnl" => "1339.12776155490566037735812",
-            //                     "createdAt" => "2025-07-14T07:53:55.631Z",
-            //                     "createdAtHeight" => "44140908",
-            //                     "closedAt" => null,
-            //                     "sumOpen" => "0.53",
-            //                     "sumClose" => "0.038",
-            //                     "netFunding" => "3111.36894",
-            //                     "subaccountNumber" => 0
-            //                 }
-            //             ),
-            //             "assetPositions" => {
-            //                 "USDC" => array(
-            //                     "size" => "82291.083758",
-            //                     "symbol" => "USDC",
-            //                     "side" => "LONG",
-            //                     "assetId" => "0",
-            //                     "subaccountNumber" => 0
-            //                 }
-            //             ),
-            //             "marginEnabled" => true,
-            //             "updatedAtHeight" => "45234659",
-            //             "latestProcessedBlockHeight" => "45293477"
-            //         }
-            //     )
-            // }
-            //
-            $rows = $this->safe_list($response, 'subaccounts', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $account = $rows[$i];
-                $accountId = $this->safe_string($account, 'subaccountNumber');
-                $result[] = array(
-                    'id' => $accountId,
-                    'type' => null,
-                    'currency' => null,
-                    'info' => $account,
-                    'code' => null,
-                );
-            }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $userAddress = null;
-            list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
-            $subaccountNumber = null;
-            list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'subaccountNumber', 0);
-            $request = array(
-                'address' => $userAddress,
-                'subaccountNumber' => $subaccountNumber,
-            );
-            $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params)));
-            //
-            // {
-            //     "subaccount" => {
-            //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //         "subaccountNumber" => 0,
-            //         "equity" => "161451.040416029",
-            //         "freeCollateral" => "152508.28819133578",
-            //         "openPerpetualPositions" => {
-            //             "ETH-USD" => array(
-            //                 "market" => "ETH-USD",
-            //                 "status" => "OPEN",
-            //                 "side" => "LONG",
-            //                 "size" => "0.001",
-            //                 "maxSize" => "0.002",
-            //                 "entryPrice" => "3894.7",
-            //                 "exitPrice" => "3864.5",
-            //                 "realizedPnl" => "-0.034847",
-            //                 "unrealizedPnl" => "-0.044675155",
-            //                 "createdAt" => "2025-10-22T08:34:05.883Z",
-            //                 "createdAtHeight" => "52228825",
-            //                 "closedAt" => null,
-            //                 "sumOpen" => "0.002",
-            //                 "sumClose" => "0.001",
-            //                 "netFunding" => "-0.004647",
-            //                 "subaccountNumber" => 0
-            //             ),
-            //             "BTC-USD" => array(
-            //                 "market" => "BTC-USD",
-            //                 "status" => "OPEN",
-            //                 "side" => "SHORT",
-            //                 "size" => "-4.1368",
-            //                 "maxSize" => "-0.009",
-            //                 "entryPrice" => "112196.87848803433219017636",
-            //                 "exitPrice" => "113885.21872652924977050823",
-            //                 "realizedPnl" => "-15180.426770788459736511679821",
-            //                 "unrealizedPnl" => "17002.285719484425404321566048",
-            //                 "createdAt" => "2025-07-14T07:53:55.631Z",
-            //                 "createdAtHeight" => "44140908",
-            //                 "closedAt" => null,
-            //                 "sumOpen" => "5.3361",
-            //                 "sumClose" => "1.1983",
-            //                 "netFunding" => "-13157.288663",
-            //                 "subaccountNumber" => 0
-            //             }
-            //         ),
-            //         "assetPositions" => {
-            //             "USDC" => array(
-            //                 "size" => "608580.951601",
-            //                 "symbol" => "USDC",
-            //                 "side" => "LONG",
-            //                 "assetId" => "0",
-            //                 "subaccountNumber" => 0
-            //             }
-            //         ),
-            //         "marginEnabled" => true,
-            //         "updatedAtHeight" => "52228833",
-            //         "latestProcessedBlockHeight" => "52246761"
-            //     }
-            // }
-            //
-            $data = $this->safe_dict($response, 'subaccount');
-            return $this->parse_balance($data);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance($response): array {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
+        $subaccountNumber = null;
+        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
+        $request = array(
+            'address' => $userAddress,
+            'subaccountNumber' => $subaccountNumber,
+        );
+        $response = Async\await($this->indexerGetAddressesAddressSubaccountNumberSubaccountNumber($this->extend($request, $params)));
+        //
+        // {
+        //     "subaccount" => {
+        //         "address" => "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber" => 0,
+        //         "equity" => "161451.040416029",
+        //         "freeCollateral" => "152508.28819133578",
+        //         "openPerpetualPositions" => {
+        //             "ETH-USD" => array(
+        //                 "market" => "ETH-USD",
+        //                 "status" => "OPEN",
+        //                 "side" => "LONG",
+        //                 "size" => "0.001",
+        //                 "maxSize" => "0.002",
+        //                 "entryPrice" => "3894.7",
+        //                 "exitPrice" => "3864.5",
+        //                 "realizedPnl" => "-0.034847",
+        //                 "unrealizedPnl" => "-0.044675155",
+        //                 "createdAt" => "2025-10-22T08:34:05.883Z",
+        //                 "createdAtHeight" => "52228825",
+        //                 "closedAt" => null,
+        //                 "sumOpen" => "0.002",
+        //                 "sumClose" => "0.001",
+        //                 "netFunding" => "-0.004647",
+        //                 "subaccountNumber" => 0
+        //             ),
+        //             "BTC-USD" => array(
+        //                 "market" => "BTC-USD",
+        //                 "status" => "OPEN",
+        //                 "side" => "SHORT",
+        //                 "size" => "-4.1368",
+        //                 "maxSize" => "-0.009",
+        //                 "entryPrice" => "112196.87848803433219017636",
+        //                 "exitPrice" => "113885.21872652924977050823",
+        //                 "realizedPnl" => "-15180.426770788459736511679821",
+        //                 "unrealizedPnl" => "17002.285719484425404321566048",
+        //                 "createdAt" => "2025-07-14T07:53:55.631Z",
+        //                 "createdAtHeight" => "44140908",
+        //                 "closedAt" => null,
+        //                 "sumOpen" => "5.3361",
+        //                 "sumClose" => "1.1983",
+        //                 "netFunding" => "-13157.288663",
+        //                 "subaccountNumber" => 0
+        //             }
+        //         ),
+        //         "assetPositions" => {
+        //             "USDC" => array(
+        //                 "size" => "608580.951601",
+        //                 "symbol" => "USDC",
+        //                 "side" => "LONG",
+        //                 "assetId" => "0",
+        //                 "subaccountNumber" => 0
+        //             }
+        //         ),
+        //         "marginEnabled" => true,
+        //         "updatedAtHeight" => "52228833",
+        //         "latestProcessedBlockHeight" => "52246761"
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'subaccount');
+        return $this->parse_balance($data);
+    }
+
+    public function parse_balance(mixed $response): array {
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'freeCollateral');
         $result = array(
@@ -2524,9 +2610,9 @@ class dydx extends Exchange {
         throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$section]);
+        $url = $this->urls['api'][$section];
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;
@@ -2543,7 +2629,7 @@ class dydx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

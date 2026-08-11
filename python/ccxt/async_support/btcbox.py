@@ -82,6 +82,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
@@ -135,27 +136,27 @@ class btcbox(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': {'cost': 1},
+                        'trade_add': {'cost': 1},
+                        'trade_cancel': {'cost': 1},
+                        'trade_list': {'cost': 1},
+                        'trade_view': {'cost': 1},
+                        'wallet': {'cost': 1},
+                    },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': {'cost': 1},
+                    },
                 },
             },
             'options': {
@@ -163,7 +164,6 @@ class btcbox(Exchange, ImplicitAPI):
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 3,
                 },
-                'amountPrecision': '0.0001',  # exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {
@@ -261,7 +261,7 @@ class btcbox(Exchange, ImplicitAPI):
             quote = self.safe_string(symbolParts, 1, '')
             quoteId = quote.lower()
             id = baseCurr.lower()
-            res = response1[marketId]
+            res = self.safe_dict(response1, marketId, {})
             symbol = baseCurr + '/' + quote
             fee = self.parse_number('0.0005') if (id == 'BTC') else self.parse_number('0.0010')
             details = self.safe_dict(result2Data, id, {})
@@ -326,7 +326,7 @@ class btcbox(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        return {
+        return self.safe_market_structure({
             'id': self.safe_string(market, 'symbol'),
             'uppercaseId': None,
             'symbol': symbol,
@@ -375,9 +375,9 @@ class btcbox(Exchange, ImplicitAPI):
             'active': None,
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -416,13 +416,13 @@ class btcbox(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
+        numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = await self.publicGetDepth(self.extend(request, params))
@@ -468,7 +468,7 @@ class btcbox(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
+        numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = await self.publicGetTicker(self.extend(request, params))
@@ -537,7 +537,7 @@ class btcbox(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
+        numSymbols = len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = await self.publicGetOrders(self.extend(request, params))
@@ -716,7 +716,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_orders_by_type(self, type, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_type(self, type: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.markets is None:
             await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
@@ -779,7 +779,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -802,7 +802,7 @@ class btcbox(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
@@ -816,7 +816,7 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+    async def request(self, path: Any, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json

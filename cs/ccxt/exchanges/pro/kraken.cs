@@ -163,11 +163,11 @@ public partial class kraken : ccxt.kraken
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isTrailingLimitAmountOrder = !isEqual(trailingLimitAmount, null);
         object isTrailingLimitPercentOrder = !isEqual(trailingLimitPercent, null);
-        object offset = ((string)this.safeString(parameters, "offset", "")); // can set this to - for minus
-        object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add(offset, ((string)this.numberToString(trailingAmount))) : null;
-        object trailingPercentString = ((bool) isTrue((!isEqual(trailingPercent, null)))) ? add(offset, ((string)this.numberToString(trailingPercent))) : null;
-        object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, ((string)this.numberToString(trailingLimitAmount))) : null;
-        object trailingLimitPercentString = ((bool) isTrue((!isEqual(trailingLimitPercent, null)))) ? add(offset, ((string)this.numberToString(trailingLimitPercent))) : null;
+        object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
+        object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add(offset, this.numberToString(trailingAmount)) : null;
+        object trailingPercentString = ((bool) isTrue((!isEqual(trailingPercent, null)))) ? add(offset, this.numberToString(trailingPercent)) : null;
+        object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+        object trailingLimitPercentString = ((bool) isTrue((!isEqual(trailingLimitPercent, null)))) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
         object priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (isTrue(isEqual(method, "createOrderWs")))
         {
@@ -306,7 +306,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#createOrderWs
      * @description create a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -379,7 +379,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -416,7 +416,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#cancelOrdersWs
      * @description cancel multiple orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -449,7 +449,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#cancelOrderWs
      * @description cancels an open order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -500,7 +500,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#cancelAllOrdersWs
      * @description cancel all open orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -681,7 +681,7 @@ public partial class kraken : ccxt.kraken
         object interval = this.safeInteger(first, "interval");
         object timeframe = ((string)this.findTimeframe(interval));
         object messageHash = this.getMessageHash("ohlcv", null, symbol);
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (isTrue(isEqual(stored, null)))
         {
@@ -715,7 +715,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -733,7 +733,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -757,7 +757,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -782,7 +782,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -799,7 +799,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -823,7 +823,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -839,11 +839,11 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -869,7 +869,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -921,7 +921,7 @@ public partial class kraken : ccxt.kraken
                 for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbols, i);
-                    object market = getValue(this.markets, symbol);
+                    object market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
                     object wsName = ((string)this.safeString(info, "wsname"));
                     ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
@@ -1128,8 +1128,8 @@ public partial class kraken : ccxt.kraken
     public virtual object formatNumber(object data)
     {
         object parts = ((string)data).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object integer = ((string)this.safeString(parts, 0));
-        object decimals = ((string)this.safeString(parts, 1, ""));
+        object integer = this.safeString(parts, 0);
+        object decimals = this.safeString(parts, 1, "");
         object joinedResult = add(integer, decimals);
         object i = 0;
         while (isEqual(getValue(joinedResult, i), "0"))
@@ -1235,14 +1235,14 @@ public partial class kraken : ccxt.kraken
         {
             limit = callDynamically(result, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
 
     /**
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1384,7 +1384,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1445,8 +1445,8 @@ public partial class kraken : ccxt.kraken
                 object id = this.safeString(order, "order_id");
                 object parsed = this.parseWsOrder(order);
                 object symbol = this.safeString(order, "symbol");
-                object previousOrders = this.safeValue((stored as ArrayCache).hashmap, ((string)symbol));
-                object previousOrder = this.safeValue(previousOrders, ((string)id));
+                object previousOrders = this.safeValue((stored as ArrayCache).hashmap, symbol);
+                object previousOrder = this.safeValue(previousOrders, id);
                 object newOrder = parsed;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {
@@ -1592,7 +1592,7 @@ public partial class kraken : ccxt.kraken
      * @method
      * @name kraken#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1797,7 +1797,7 @@ public partial class kraken : ccxt.kraken
                 { "cancel_all", this.handleCancelAllOrders },
                 { "pong", this.handlePong },
             };
-            object method = this.safeValue(methods, ((string)eventVar));
+            object method = this.safeValue(methods, eventVar);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

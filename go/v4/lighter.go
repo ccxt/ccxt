@@ -164,64 +164,156 @@ func (this *LighterCore) Describe() any {
 		"api": map[string]any{
 			"root": map[string]any{
 				"get": map[string]any{
-					"":     1,
-					"info": 1,
+					"": map[string]any{
+						"cost": 1,
+					},
+					"info": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"account":             1,
-					"accountsByL1Address": 1,
-					"apikeys":             1,
-					"exchangeStats":       1,
-					"assetDetails":        1,
-					"orderBookDetails":    1,
-					"orderBookOrders":     1,
-					"orderBooks":          1,
-					"recentTrades":        1,
-					"blockTxs":            1,
-					"nextNonce":           1,
-					"tx":                  1,
-					"txFromL1TxHash":      1,
-					"txs":                 1,
-					"announcement":        1,
-					"block":               1,
-					"blocks":              1,
-					"currentHeight":       1,
-					"candles":             1,
-					"fundings":            1,
-					"fastbridge/info":     1,
-					"funding-rates":       1,
-					"withdrawalDelay":     1,
+					"account": map[string]any{
+						"cost": 1,
+					},
+					"accountsByL1Address": map[string]any{
+						"cost": 1,
+					},
+					"apikeys": map[string]any{
+						"cost": 1,
+					},
+					"exchangeStats": map[string]any{
+						"cost": 1,
+					},
+					"assetDetails": map[string]any{
+						"cost": 1,
+					},
+					"orderBookDetails": map[string]any{
+						"cost": 1,
+					},
+					"orderBookOrders": map[string]any{
+						"cost": 1,
+					},
+					"orderBooks": map[string]any{
+						"cost": 1,
+					},
+					"recentTrades": map[string]any{
+						"cost": 1,
+					},
+					"blockTxs": map[string]any{
+						"cost": 1,
+					},
+					"nextNonce": map[string]any{
+						"cost": 1,
+					},
+					"tx": map[string]any{
+						"cost": 1,
+					},
+					"txFromL1TxHash": map[string]any{
+						"cost": 1,
+					},
+					"txs": map[string]any{
+						"cost": 1,
+					},
+					"announcement": map[string]any{
+						"cost": 1,
+					},
+					"block": map[string]any{
+						"cost": 1,
+					},
+					"blocks": map[string]any{
+						"cost": 1,
+					},
+					"currentHeight": map[string]any{
+						"cost": 1,
+					},
+					"candles": map[string]any{
+						"cost": 1,
+					},
+					"fundings": map[string]any{
+						"cost": 1,
+					},
+					"fastbridge/info": map[string]any{
+						"cost": 1,
+					},
+					"funding-rates": map[string]any{
+						"cost": 1,
+					},
+					"withdrawalDelay": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"sendTx":      1,
-					"sendTxBatch": 1,
+					"sendTx": map[string]any{
+						"cost": 1,
+					},
+					"sendTxBatch": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"accountLimits":         1,
-					"accountMetadata":       1,
-					"pnl":                   1,
-					"l1Metadata":            1,
-					"liquidations":          1,
-					"positionFunding":       1,
-					"publicPoolsMetadata":   1,
-					"accountActiveOrders":   1,
-					"accountInactiveOrders": 1,
-					"export":                1,
-					"trades":                1,
-					"accountTxs":            1,
-					"deposit/history":       1,
-					"transfer/history":      1,
-					"withdraw/history":      1,
-					"referral/points":       1,
-					"transferFeeInfo":       1,
+					"accountLimits": map[string]any{
+						"cost": 1,
+					},
+					"accountMetadata": map[string]any{
+						"cost": 1,
+					},
+					"pnl": map[string]any{
+						"cost": 1,
+					},
+					"l1Metadata": map[string]any{
+						"cost": 1,
+					},
+					"liquidations": map[string]any{
+						"cost": 1,
+					},
+					"positionFunding": map[string]any{
+						"cost": 1,
+					},
+					"publicPoolsMetadata": map[string]any{
+						"cost": 1,
+					},
+					"accountActiveOrders": map[string]any{
+						"cost": 1,
+					},
+					"accountInactiveOrders": map[string]any{
+						"cost": 1,
+					},
+					"export": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"accountTxs": map[string]any{
+						"cost": 1,
+					},
+					"deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"transfer/history": map[string]any{
+						"cost": 1,
+					},
+					"withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"referral/points": map[string]any{
+						"cost": 1,
+					},
+					"transferFeeInfo": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"changeAccountTier": 1,
-					"notification/ack":  1,
+					"changeAccountTier": map[string]any{
+						"cost": 1,
+					},
+					"notification/ack": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -853,6 +945,16 @@ func (this *LighterCore) SetSandboxMode(enable any) {
 	AddElementToObject(this.Options, "chainId", Ternary(IsTrue(enable), 300, 304))
 }
 func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	/**
 	 * @method
 	 * @ignore
@@ -870,10 +972,6 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	 * @param {int} [params.orderExpiry] orderExpiry
 	 * @returns {any[]} request to be sent to the exchange
 	 */
-	price := GetArg(optionalArgs, 0, nil)
-	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
 	if IsTrue(IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
 	}
@@ -932,6 +1030,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	}
 	if IsTrue(postOnly) {
 		timeInForceNum = 2
+		orderExpiry = OpNeg(1)
 	} else {
 		if !IsTrue(isMarketOrder) {
 			if IsTrue(IsEqual(timeInForce, "ioc")) {
@@ -996,12 +1095,12 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		} else {
 			triggerOrderSide = "buy"
 		}
-		var stopLossOrderTriggerPrice any = this.SafeNumberN(stopLoss, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderTriggerPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 		var stopLossOrderType any = this.SafeString(stopLoss, "type", "limit")
-		var stopLossOrderLimitPrice any = this.SafeNumberN(stopLoss, []any{"price", "stopLossPrice"}, stopLossOrderTriggerPrice)
-		var takeProfitOrderTriggerPrice any = this.SafeNumberN(takeProfit, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderLimitPrice any = this.SafeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
+		var takeProfitOrderTriggerPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 		var takeProfitOrderType any = this.SafeString(takeProfit, "type", "limit")
-		var takeProfitOrderLimitPrice any = this.SafeNumberN(takeProfit, []any{"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice)
+		var takeProfitOrderLimitPrice any = this.SafeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 		// amount should be 0 for child orders
 		if IsTrue(!IsEqual(stopLoss, nil)) {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.Extend(params, map[string]any{
@@ -1098,8 +1197,8 @@ func (this *LighterCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91912 := (<-this.LoadMarkets())
-			PanicOnError(retRes91912)
+			retRes92612 := (<-this.LoadMarkets())
+			PanicOnError(retRes92612)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "createOrder", "accountIndex", "account_index"))
@@ -1203,8 +1302,8 @@ func (this *LighterCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes99512 := (<-this.LoadMarkets())
-			PanicOnError(retRes99512)
+			retRes100212 := (<-this.LoadMarkets())
+			PanicOnError(retRes100212)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
@@ -1548,8 +1647,8 @@ func (this *LighterCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		PanicOnError(response)
 		if IsTrue(this.CheckRequiredCredentials(false)) {
 
-			retRes127412 := (<-this.PreLoadLighterLibrary())
-			PanicOnError(retRes127412)
+			retRes128112 := (<-this.PreLoadLighterLibrary())
+			PanicOnError(retRes128112)
 		}
 		//
 		//     {
@@ -1621,7 +1720,7 @@ func (this *LighterCore) ParseCurrency(rawCurrency any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LighterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1637,8 +1736,8 @@ func (this *LighterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes134912 := (<-this.LoadMarkets())
-			PanicOnError(retRes134912)
+			retRes135612 := (<-this.LoadMarkets())
+			PanicOnError(retRes135612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1809,8 +1908,8 @@ func (this *LighterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150512 := (<-this.LoadMarkets())
-			PanicOnError(retRes150512)
+			retRes151212 := (<-this.LoadMarkets())
+			PanicOnError(retRes151212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1895,8 +1994,8 @@ func (this *LighterCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes157412 := (<-this.LoadMarkets())
-			PanicOnError(retRes157412)
+			retRes158112 := (<-this.LoadMarkets())
+			PanicOnError(retRes158112)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -1965,8 +2064,8 @@ func (this *LighterCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162912 := (<-this.LoadMarkets())
-			PanicOnError(retRes162912)
+			retRes163612 := (<-this.LoadMarkets())
+			PanicOnError(retRes163612)
 		}
 		var market any = this.Market(symbol)
 		var until any = this.SafeInteger(params, "until")
@@ -2087,8 +2186,8 @@ func (this *LighterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173312 := (<-this.LoadMarkets())
-			PanicOnError(retRes173312)
+			retRes174012 := (<-this.LoadMarkets())
+			PanicOnError(retRes174012)
 		}
 
 		response := (<-this.PublicGetFundingRates(this.Extend(params)))
@@ -2142,8 +2241,8 @@ func (this *LighterCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177312 := (<-this.LoadMarkets())
-			PanicOnError(retRes177312)
+			retRes178012 := (<-this.LoadMarkets())
+			PanicOnError(retRes178012)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchBalance", "accountIndex", "account_index"))
@@ -2217,7 +2316,9 @@ func (this *LighterCore) FetchBalance(optionalArgs ...any) <-chan any {
 					var balance any = this.SafeDict(result, code, this.Account())
 					AddElementToObject(balance, "total", Precise.StringAdd(GetValue(balance, "total"), this.SafeString(asset, "balance")))
 					AddElementToObject(balance, "used", Precise.StringAdd(GetValue(balance, "used"), this.SafeString(asset, "locked_balance")))
-					AddElementToObject(result, code, balance)
+					if IsTrue(!IsEqual(code, nil)) {
+						AddElementToObject(result, code, balance)
+					}
 				}
 			} else {
 				var perpBalance any = this.SafeDict(result, "USDC", this.Account())
@@ -2289,8 +2390,8 @@ func (this *LighterCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes188612 := (<-this.LoadMarkets())
-			PanicOnError(retRes188612)
+			retRes189512 := (<-this.LoadMarkets())
+			PanicOnError(retRes189512)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchPositions", "accountIndex", "account_index"))
@@ -2456,8 +2557,8 @@ func (this *LighterCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes203512 := (<-this.LoadMarkets())
-			PanicOnError(retRes203512)
+			retRes204412 := (<-this.LoadMarkets())
+			PanicOnError(retRes204412)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchAccounts", "accountIndex", "account_index"))
@@ -2574,8 +2675,8 @@ func (this *LighterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes213112 := (<-this.LoadMarkets())
-			PanicOnError(retRes213112)
+			retRes214012 := (<-this.LoadMarkets())
+			PanicOnError(retRes214012)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchOpenOrders", "accountIndex", "account_index"))
@@ -2588,8 +2689,8 @@ func (this *LighterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes21398 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes21398)
+		retRes21488 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes21488)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market_id":     GetValue(market, "id"),
@@ -2679,8 +2780,8 @@ func (this *LighterCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220912 := (<-this.LoadMarkets())
-			PanicOnError(retRes220912)
+			retRes221812 := (<-this.LoadMarkets())
+			PanicOnError(retRes221812)
 		}
 		var accountIndex any = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchClosedOrders", "accountIndex", "account_index"))
@@ -2693,8 +2794,8 @@ func (this *LighterCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes22178 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes22178)
+		retRes22268 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes22268)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market_id":     GetValue(market, "id"),
@@ -2965,8 +3066,8 @@ func (this *LighterCore) Transfer(code any, amount any, fromAccount any, toAccou
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes247812 := (<-this.LoadMarkets())
-			PanicOnError(retRes247812)
+			retRes248712 := (<-this.LoadMarkets())
+			PanicOnError(retRes248712)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
@@ -3058,8 +3159,8 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes253812 := (<-this.LoadMarkets())
-			PanicOnError(retRes253812)
+			retRes254712 := (<-this.LoadMarkets())
+			PanicOnError(retRes254712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
@@ -3067,9 +3168,9 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes254319 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes254319)
-			ch <- retRes254319
+			retRes255219 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes255219)
+			ch <- retRes255219
 			return nil
 		}
 		var accountIndex any = nil
@@ -3086,8 +3187,8 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes25548 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes25548)
+		retRes25638 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes25638)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -3198,8 +3299,8 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes264412 := (<-this.LoadMarkets())
-			PanicOnError(retRes264412)
+			retRes265312 := (<-this.LoadMarkets())
+			PanicOnError(retRes265312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -3207,9 +3308,9 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes264919 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes264919)
-			ch <- retRes264919
+			retRes265819 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes265819)
+			ch <- retRes265819
 			return nil
 		}
 		var address any = nil
@@ -3234,8 +3335,8 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes26668 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes26668)
+		retRes26758 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes26758)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -3306,9 +3407,9 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes271519 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes271519)
-			ch <- retRes271519
+			retRes272419 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes272419)
+			ch <- retRes272419
 			return nil
 		}
 		var accountIndex any = nil
@@ -3317,8 +3418,8 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(accountIndexparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes272012 := (<-this.LoadMarkets())
-			PanicOnError(retRes272012)
+			retRes272912 := (<-this.LoadMarkets())
+			PanicOnError(retRes272912)
 		}
 		var request any = map[string]any{
 			"account_index": accountIndex,
@@ -3330,8 +3431,8 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes27298 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes27298)
+		retRes27388 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes27388)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -3460,8 +3561,8 @@ func (this *LighterCore) Withdraw(code any, amount any, address any, optionalArg
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes284212 := (<-this.LoadMarkets())
-			PanicOnError(retRes284212)
+			retRes285112 := (<-this.LoadMarkets())
+			PanicOnError(retRes285112)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
@@ -3544,8 +3645,8 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes289512 := (<-this.LoadMarkets())
-			PanicOnError(retRes289512)
+			retRes290412 := (<-this.LoadMarkets())
+			PanicOnError(retRes290412)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -3553,9 +3654,9 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes290019 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
-			PanicOnError(retRes290019)
-			ch <- retRes290019
+			retRes290919 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
+			PanicOnError(retRes290919)
+			ch <- retRes290919
 			return nil
 		}
 		var accountIndex any = nil
@@ -3569,8 +3670,8 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var strAccountIndex any = this.NumberToString(accountIndex)
 		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
 
-		retRes29088 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes29088)
+		retRes29178 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+		PanicOnError(retRes29178)
 		var request any = map[string]any{
 			"sort_by":       "timestamp",
 			"limit":         100,
@@ -3742,9 +3843,9 @@ func (this *LighterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan a
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires an marginMode parameter")))
 		}
 
-		retRes305915 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes305915)
-		ch <- retRes305915
+		retRes306815 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+		PanicOnError(retRes306815)
+		ch <- retRes306815
 		return nil
 
 	}()
@@ -3776,16 +3877,16 @@ func (this *LighterCore) SetMarginMode(marginMode any, optionalArgs ...any) <-ch
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an marginMode parameter")))
 		}
 		var leverage any = nil
-		leverageparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "leverage", "leverage")
+		leverageparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "leverage")
 		leverage = GetValue(leverageparamsVariable, 0)
 		params = GetValue(leverageparamsVariable, 1)
 		if IsTrue(IsEqual(leverage, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an leverage parameter")))
 		}
 
-		retRes308315 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes308315)
-		ch <- retRes308315
+		retRes309215 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+		PanicOnError(retRes309215)
+		ch <- retRes309215
 		return nil
 
 	}()
@@ -3802,8 +3903,8 @@ func (this *LighterCore) ModifyLeverageAndMarginMode(leverage any, marginMode an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes308812 := (<-this.LoadMarkets())
-			PanicOnError(retRes308812)
+			retRes309712 := (<-this.LoadMarkets())
+			PanicOnError(retRes309712)
 		}
 		if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
 			panic(BadRequest(Add(this.Id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")))
@@ -3844,9 +3945,9 @@ func (this *LighterCore) ModifyLeverageAndMarginMode(leverage any, marginMode an
 			"tx_info": txInfo,
 		}
 
-		retRes311815 := (<-this.PublicPostSendTx(request))
-		PanicOnError(retRes311815)
-		ch <- retRes311815
+		retRes312715 := (<-this.PublicPostSendTx(request))
+		PanicOnError(retRes312715)
+		ch <- retRes312715
 		return nil
 
 	}()
@@ -3875,8 +3976,8 @@ func (this *LighterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes313412 := (<-this.LoadMarkets())
-			PanicOnError(retRes313412)
+			retRes314312 := (<-this.LoadMarkets())
+			PanicOnError(retRes314312)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
@@ -3952,8 +4053,8 @@ func (this *LighterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes318412 := (<-this.LoadMarkets())
-			PanicOnError(retRes318412)
+			retRes319312 := (<-this.LoadMarkets())
+			PanicOnError(retRes319312)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelAllOrders", "apiKeyIndex", "api_key_index")
@@ -4013,8 +4114,8 @@ func (this *LighterCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes322012 := (<-this.LoadMarkets())
-			PanicOnError(retRes322012)
+			retRes322912 := (<-this.LoadMarkets())
+			PanicOnError(retRes322912)
 		}
 		if IsTrue(IsTrue((IsLessThan(timeout, 300000))) || IsTrue((IsGreaterThan(timeout, 1296000000)))) {
 			panic(BadRequest(Add(this.Id, " timeout should be between 5 minutes and 15 days.")))
@@ -4080,9 +4181,9 @@ func (this *LighterCore) AddMargin(symbol any, amount any, optionalArgs ...any) 
 			"direction": 1,
 		}
 
-		retRes326215 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes326215)
-		ch <- retRes326215
+		retRes327115 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes327115)
+		ch <- retRes327115
 		return nil
 
 	}()
@@ -4109,9 +4210,9 @@ func (this *LighterCore) ReduceMargin(symbol any, amount any, optionalArgs ...an
 			"direction": 0,
 		}
 
-		retRes327815 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes327815)
-		ch <- retRes327815
+		retRes328715 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes328715)
+		ch <- retRes328715
 		return nil
 
 	}()
@@ -4124,7 +4225,7 @@ func (this *LighterCore) ReduceMargin(symbol any, amount any, optionalArgs ...an
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
- * @param {object} [params] parameters specific to the bingx api endpoint
+ * @param {object} [params] parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
@@ -4138,8 +4239,8 @@ func (this *LighterCore) SetMargin(symbol any, amount any, optionalArgs ...any) 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes329412 := (<-this.LoadMarkets())
-			PanicOnError(retRes329412)
+			retRes330312 := (<-this.LoadMarkets())
+			PanicOnError(retRes330312)
 		}
 		var apiKeyIndex any = nil
 		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "setMargin", "apiKeyIndex", "api_key_index")

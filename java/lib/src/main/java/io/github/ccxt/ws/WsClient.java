@@ -248,16 +248,24 @@ public class WsClient {
      * If already connecting/connected, returns the existing future.
      */
     public CompletableFuture<Boolean> connect(int backoffDelay) {
-        if (this.startedConnecting.compareAndSet(false, true)) {
-            if (backoffDelay > 0) {
-                CompletableFuture.delayedExecutor(backoffDelay,
-                        java.util.concurrent.TimeUnit.MILLISECONDS)
-                        .execute(this::createConnection);
-            } else {
-                Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
+        // The CAS and the read of `connected` must be one atomic unit: onError()
+        // clears the flag and swaps in a fresh future under connectedLock, so an
+        // unsynchronized reader here could pair a successful CAS with a stale
+        // future (or vice versa) and concurrent callers would observe different
+        // future references, see https://github.com/ccxt/ccxt/issues/23490 and
+        // WsClientConcurrencyTest.testConnectIsAtomic
+        synchronized (connectedLock) {
+            if (this.startedConnecting.compareAndSet(false, true)) {
+                if (backoffDelay > 0) {
+                    CompletableFuture.delayedExecutor(backoffDelay,
+                            java.util.concurrent.TimeUnit.MILLISECONDS)
+                            .execute(this::createConnection);
+                } else {
+                    Exchange.VIRTUAL_EXECUTOR.execute(this::createConnection);
+                }
             }
+            return this.connected;
         }
-        return this.connected;
     }
 
     private void createConnection() {
@@ -309,6 +317,8 @@ public class WsClient {
 
             final WsClientHandler handler = new WsClientHandler(handshaker, this);
             final int finalPort = port;
+
+            // Dual-stack via NioSocketChannel + JDK resolver (no preferIPv4Stack; no HE delay API).
 
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(SHARED_EVENT_LOOP)
@@ -429,7 +439,9 @@ public class WsClient {
             System.out.println(getFormattedDate() + "WsClient closed: " + this.url + " reason: " + reason);
         }
         this.isConnected = false;
-        this.startedConnecting.set(false);
+        synchronized (connectedLock) {
+            this.startedConnecting.set(false);
+        }
         this.error = false;
         if (this.onCloseCallback != null) {
             this.onCloseCallback.accept(this, reason);
@@ -441,7 +453,6 @@ public class WsClient {
             System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
         }
         this.isConnected = false;
-        this.startedConnecting.set(false);
         this.error = true;
 
         Throwable t = (err instanceof Throwable th)
@@ -463,6 +474,9 @@ public class WsClient {
                 this.connected.completeExceptionally(wrapped);
             }
             this.connected = new CompletableFuture<>();
+            // cleared only after the fresh future is installed - a connect() caller
+            // that wins the CAS must be guaranteed to read the new future
+            this.startedConnecting.set(false);
         }
 
         if (this.onErrorCallback != null) {

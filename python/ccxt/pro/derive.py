@@ -54,14 +54,14 @@ class derive(ccxt.async_support.derive):
             },
         })
 
-    def request_id(self, url):
+    def request_id(self, url: Any):
         options = self.safe_value(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
-    async def watch_public(self, messageHash, message, subscription):
+    async def watch_public(self, messageHash: Any, message: Any, subscription: Any):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         request = self.extend(message, {
@@ -82,7 +82,7 @@ class derive(ccxt.async_support.derive):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -107,7 +107,7 @@ class derive(ccxt.async_support.derive):
         orderbook = await self.watch_public(topic, request, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # {
         #     method: 'subscription',
@@ -153,7 +153,7 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'ticker.' + market['id'] + '.100'
+        topic = 'ticker_slim.' + market['id'] + '.100'  # the venue deprecated the fat ticker channel in favor of ticker_slim
         request = {
             'method': 'subscribe',
             'params': {
@@ -169,7 +169,7 @@ class derive(ccxt.async_support.derive):
         }
         return await self.watch_public(topic, request, subscription)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         # {
         #     method: 'subscription',
@@ -237,8 +237,34 @@ class derive(ccxt.async_support.derive):
         params = self.safe_dict(message, 'params')
         rawData = self.safe_dict(params, 'data')
         data = self.safe_dict(rawData, 'instrument_ticker', {})
-        topic = self.safe_value(params, 'channel')
-        ticker = self.parse_ticker(data)
+        topic = self.safe_string(params, 'channel')
+        ticker = None
+        if topic is not None and topic.startswith('ticker_slim'):
+            # the slim payload uses short keys and does not carry the instrument name,
+            # so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            parts = topic.split('.')
+            marketId = self.safe_string(parts, 1)
+            market = self.safe_market(marketId)
+            stats = self.safe_dict(data, 'stats', {})
+            ticker = self.safe_ticker({
+                'symbol': market['symbol'],
+                'timestamp': self.safe_integer(data, 't'),
+                'datetime': self.iso8601(self.safe_integer(data, 't')),
+                'bid': self.safe_string(data, 'b'),
+                'bidVolume': self.safe_string(data, 'B'),
+                'ask': self.safe_string(data, 'a'),
+                'askVolume': self.safe_string(data, 'A'),
+                'high': self.safe_string(stats, 'h'),
+                'low': self.safe_string(stats, 'l'),
+                'baseVolume': self.safe_string(stats, 'c'),
+                'quoteVolume': self.safe_string(stats, 'v'),
+                'percentage': self.safe_string(stats, 'p'),
+                'markPrice': self.safe_string(data, 'M'),
+                'indexPrice': self.safe_string(data, 'I'),
+                'info': rawData,
+            }, market)
+        else:
+            ticker = self.parse_ticker(data)
         tickerSymbol = ticker['symbol']
         if tickerSymbol is not None:
             self.tickers[tickerSymbol] = ticker
@@ -299,7 +325,7 @@ class derive(ccxt.async_support.derive):
         }
         return await self.un_watch_public(messageHah, request, subscription)
 
-    async def un_watch_public(self, messageHash, message, subscription):
+    async def un_watch_public(self, messageHash: Any, message: Any, subscription: Any):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         request = self.extend(message, {
@@ -311,7 +337,7 @@ class derive(ccxt.async_support.derive):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    def handle_order_book_un_subscription(self, client: Client, topic):
+    def handle_order_book_un_subscription(self, client: Client, topic: Any):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
@@ -324,7 +350,7 @@ class derive(ccxt.async_support.derive):
         client.reject(error, topic)
         client.resolve(error, 'unwatch' + topic)
 
-    def handle_trades_un_subscription(self, client: Client, topic):
+    def handle_trades_un_subscription(self, client: Client, topic: Any):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
@@ -337,7 +363,7 @@ class derive(ccxt.async_support.derive):
         client.reject(error, topic)
         client.resolve(error, 'unwatch' + topic)
 
-    def handle_un_subscribe(self, client: Client, message):
+    def handle_un_subscribe(self, client: Client, message: Any):
         #
         # {
         #     id: 1,
@@ -393,7 +419,7 @@ class derive(ccxt.async_support.derive):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #
         params = self.safe_dict(message, 'params')
@@ -443,7 +469,7 @@ class derive(ccxt.async_support.derive):
             self.watch(url, messageHash, message, messageHash, message)
         return await future
 
-    async def watch_private(self, messageHash, message, subscription):
+    async def watch_private(self, messageHash: Any, message: Any, subscription: Any):
         await self.authenticate()
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
@@ -497,7 +523,7 @@ class derive(ccxt.async_support.derive):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         # {
         #     method: 'subscription',
@@ -610,7 +636,7 @@ class derive(ccxt.async_support.derive):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         #
         #
         myTrades = self.myTrades
@@ -627,7 +653,7 @@ class derive(ccxt.async_support.derive):
             messageHash = topic + self.safe_string(trade, 'symbol', '')
             client.resolve(myTrades, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         # {
         #     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -654,12 +680,13 @@ class derive(ccxt.async_support.derive):
                 client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         methods = {
             'orderbook': self.handle_order_book,
             'ticker': self.handle_ticker,
+            'ticker_slim': self.handle_ticker,
             'trades': self.handle_trade,
             'orders': self.handle_order,
             'mytrades': self.handle_my_trade,
@@ -692,7 +719,7 @@ class derive(ccxt.async_support.derive):
                     self.handle_un_subscribe(client, message)
                 # could handleSubscribe
 
-    def handle_auth(self, client: Client, message):
+    def handle_auth(self, client: Client, message: Any):
         #
         # {
         #     id: 1,

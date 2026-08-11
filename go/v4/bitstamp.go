@@ -44,6 +44,7 @@ func (this *BitstampCore) Describe() any {
 			"createStopLimitOrder":                   false,
 			"createStopMarketOrder":                  false,
 			"createStopOrder":                        false,
+			"editOrder":                              true,
 			"fetchBalance":                           true,
 			"fetchBorrowInterest":                    false,
 			"fetchBorrowRate":                        false,
@@ -63,8 +64,8 @@ func (this *BitstampCore) Describe() any {
 			"fetchFundingHistory":                    false,
 			"fetchFundingInterval":                   false,
 			"fetchFundingIntervals":                  false,
-			"fetchFundingRate":                       false,
-			"fetchFundingRateHistory":                false,
+			"fetchFundingRate":                       true,
+			"fetchFundingRateHistory":                true,
 			"fetchFundingRates":                      false,
 			"fetchGreeks":                            false,
 			"fetchIndexOHLCV":                        false,
@@ -155,275 +156,801 @@ func (this *BitstampCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"ohlc/{pair}/":                  1,
-					"order_book/{pair}/":            1,
-					"ticker/":                       1,
-					"ticker_hour/{pair}/":           1,
-					"ticker/{pair}/":                1,
-					"transactions/{pair}/":          1,
-					"trading-pairs-info/":           1,
-					"markets/":                      1,
-					"currencies/":                   1,
-					"eur_usd/":                      1,
-					"travel_rule/vasps/":            1,
-					"funding_rate/{market_symbol}/": 1,
-					"funding_rate_history/{pair}/":  1,
+					"ohlc/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"order_book/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"ticker/": map[string]any{
+						"cost": 1,
+					},
+					"ticker_hour/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"ticker/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"transactions/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"trading-pairs-info/": map[string]any{
+						"cost": 1,
+					},
+					"markets/": map[string]any{
+						"cost": 1,
+					},
+					"currencies/": map[string]any{
+						"cost": 1,
+					},
+					"eur_usd/": map[string]any{
+						"cost": 1,
+					},
+					"travel_rule/vasps/": map[string]any{
+						"cost": 1,
+					},
+					"funding_rate/{market_symbol}/": map[string]any{
+						"cost": 1,
+					},
+					"funding_rate_history/{pair}/": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"travel_rule/contacts/":    1,
-					"contacts/{contact_uuid}/": 1,
-					"earn/subscriptions/":      1,
-					"earn/transactions/":       1,
-					"trade_history/":           1,
-					"trade_history/{pair}":     1,
+					"travel_rule/contacts/": map[string]any{
+						"cost": 1,
+					},
+					"contacts/{contact_uuid}/": map[string]any{
+						"cost": 1,
+					},
+					"earn/subscriptions/": map[string]any{
+						"cost": 1,
+					},
+					"earn/transactions/": map[string]any{
+						"cost": 1,
+					},
+					"trade_history/": map[string]any{
+						"cost": 1,
+					},
+					"trade_history/{pair}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"account_balances/":            1,
-					"account_balances/{currency}/": 1,
-					"balance/":                     1,
-					"balance/{pair}/":              1,
-					"bch_withdrawal/":              1,
-					"bch_address/":                 1,
-					"user_transactions/":           1,
-					"user_transactions/{pair}/":    1,
-					"crypto-transactions/":         1,
-					"open_order":                   1,
-					"open_orders/all/":             1,
-					"open_orders/{pair}/":          1,
-					"replace_order/":               1,
-					"order_status/":                1,
-					"cancel_order/":                1,
-					"cancel_all_orders/":           1,
-					"cancel_all_orders/{pair}/":    1,
-					"buy/{pair}/":                  1,
-					"buy/market/{pair}/":           1,
-					"buy/instant/{pair}/":          1,
-					"sell/{pair}/":                 1,
-					"sell/market/{pair}/":          1,
-					"sell/instant/{pair}/":         1,
-					"transfer-to-main/":            1,
-					"transfer-from-main/":          1,
-					"my_trading_pairs/":            1,
-					"fees/trading/":                1,
-					"fees/trading/{market_symbol}": 1,
-					"fees/withdrawal/":             1,
-					"fees/withdrawal/{currency}/":  1,
-					"withdrawal-requests/":         1,
-					"withdrawal/open/":             1,
-					"withdrawal/status/":           1,
-					"withdrawal/cancel/":           1,
-					"liquidation_address/new/":     1,
-					"liquidation_address/info/":    1,
-					"btc_unconfirmed/":             1,
-					"websockets_token/":            1,
-					"revoke_all_api_keys/":         1,
-					"get_max_order_amount/":        1,
-					"btc_withdrawal/":              1,
-					"btc_address/":                 1,
-					"ripple_withdrawal/":           1,
-					"ripple_address/":              1,
-					"ltc_withdrawal/":              1,
-					"ltc_address/":                 1,
-					"eth_withdrawal/":              1,
-					"eth_address/":                 1,
-					"xrp_withdrawal/":              1,
-					"xrp_address/":                 1,
-					"xlm_withdrawal/":              1,
-					"xlm_address/":                 1,
-					"pax_withdrawal/":              1,
-					"pax_address/":                 1,
-					"link_withdrawal/":             1,
-					"link_address/":                1,
-					"usdc_withdrawal/":             1,
-					"usdc_address/":                1,
-					"omg_withdrawal/":              1,
-					"omg_address/":                 1,
-					"dai_withdrawal/":              1,
-					"dai_address/":                 1,
-					"knc_withdrawal/":              1,
-					"knc_address/":                 1,
-					"mkr_withdrawal/":              1,
-					"mkr_address/":                 1,
-					"zrx_withdrawal/":              1,
-					"zrx_address/":                 1,
-					"gusd_withdrawal/":             1,
-					"gusd_address/":                1,
-					"aave_withdrawal/":             1,
-					"aave_address/":                1,
-					"bat_withdrawal/":              1,
-					"bat_address/":                 1,
-					"uma_withdrawal/":              1,
-					"uma_address/":                 1,
-					"snx_withdrawal/":              1,
-					"snx_address/":                 1,
-					"uni_withdrawal/":              1,
-					"uni_address/":                 1,
-					"yfi_withdrawal/":              1,
-					"yfi_address/":                 1,
-					"audio_withdrawal/":            1,
-					"audio_address/":               1,
-					"crv_withdrawal/":              1,
-					"crv_address/":                 1,
-					"algo_withdrawal/":             1,
-					"algo_address/":                1,
-					"comp_withdrawal/":             1,
-					"comp_address/":                1,
-					"grt_withdrawal/":              1,
-					"grt_address/":                 1,
-					"usdt_withdrawal/":             1,
-					"usdt_address/":                1,
-					"eurt_withdrawal/":             1,
-					"eurt_address/":                1,
-					"matic_withdrawal/":            1,
-					"matic_address/":               1,
-					"sushi_withdrawal/":            1,
-					"sushi_address/":               1,
-					"chz_withdrawal/":              1,
-					"chz_address/":                 1,
-					"enj_withdrawal/":              1,
-					"enj_address/":                 1,
-					"alpha_withdrawal/":            1,
-					"alpha_address/":               1,
-					"ftt_withdrawal/":              1,
-					"ftt_address/":                 1,
-					"storj_withdrawal/":            1,
-					"storj_address/":               1,
-					"axs_withdrawal/":              1,
-					"axs_address/":                 1,
-					"sand_withdrawal/":             1,
-					"sand_address/":                1,
-					"hbar_withdrawal/":             1,
-					"hbar_address/":                1,
-					"rgt_withdrawal/":              1,
-					"rgt_address/":                 1,
-					"fet_withdrawal/":              1,
-					"fet_address/":                 1,
-					"skl_withdrawal/":              1,
-					"skl_address/":                 1,
-					"cel_withdrawal/":              1,
-					"cel_address/":                 1,
-					"sxp_withdrawal/":              1,
-					"sxp_address/":                 1,
-					"ada_withdrawal/":              1,
-					"ada_address/":                 1,
-					"slp_withdrawal/":              1,
-					"slp_address/":                 1,
-					"ftm_withdrawal/":              1,
-					"ftm_address/":                 1,
-					"perp_withdrawal/":             1,
-					"perp_address/":                1,
-					"dydx_withdrawal/":             1,
-					"dydx_address/":                1,
-					"gala_withdrawal/":             1,
-					"gala_address/":                1,
-					"shib_withdrawal/":             1,
-					"shib_address/":                1,
-					"amp_withdrawal/":              1,
-					"amp_address/":                 1,
-					"sgb_withdrawal/":              1,
-					"sgb_address/":                 1,
-					"avax_withdrawal/":             1,
-					"avax_address/":                1,
-					"wbtc_withdrawal/":             1,
-					"wbtc_address/":                1,
-					"ctsi_withdrawal/":             1,
-					"ctsi_address/":                1,
-					"cvx_withdrawal/":              1,
-					"cvx_address/":                 1,
-					"imx_withdrawal/":              1,
-					"imx_address/":                 1,
-					"nexo_withdrawal/":             1,
-					"nexo_address/":                1,
-					"ust_withdrawal/":              1,
-					"ust_address/":                 1,
-					"ant_withdrawal/":              1,
-					"ant_address/":                 1,
-					"gods_withdrawal/":             1,
-					"gods_address/":                1,
-					"rad_withdrawal/":              1,
-					"rad_address/":                 1,
-					"band_withdrawal/":             1,
-					"band_address/":                1,
-					"inj_withdrawal/":              1,
-					"inj_address/":                 1,
-					"rly_withdrawal/":              1,
-					"rly_address/":                 1,
-					"rndr_withdrawal/":             1,
-					"rndr_address/":                1,
-					"vega_withdrawal/":             1,
-					"vega_address/":                1,
-					"1inch_withdrawal/":            1,
-					"1inch_address/":               1,
-					"ens_withdrawal/":              1,
-					"ens_address/":                 1,
-					"mana_withdrawal/":             1,
-					"mana_address/":                1,
-					"lrc_withdrawal/":              1,
-					"lrc_address/":                 1,
-					"ape_withdrawal/":              1,
-					"ape_address/":                 1,
-					"mpl_withdrawal/":              1,
-					"mpl_address/":                 1,
-					"euroc_withdrawal/":            1,
-					"euroc_address/":               1,
-					"sol_withdrawal/":              1,
-					"sol_address/":                 1,
-					"dot_withdrawal/":              1,
-					"dot_address/":                 1,
-					"near_withdrawal/":             1,
-					"near_address/":                1,
-					"doge_withdrawal/":             1,
-					"doge_address/":                1,
-					"flr_withdrawal/":              1,
-					"flr_address/":                 1,
-					"dgld_withdrawal/":             1,
-					"dgld_address/":                1,
-					"ldo_withdrawal/":              1,
-					"ldo_address/":                 1,
-					"travel_rule/contacts/":        1,
-					"earn/subscribe/":              1,
-					"earn/subscriptions/setting/":  1,
-					"earn/unsubscribe":             1,
-					"wecan_withdrawal/":            1,
-					"wecan_address/":               1,
-					"trac_withdrawal/":             1,
-					"trac_address/":                1,
-					"eurcv_withdrawal/":            1,
-					"eurcv_address/":               1,
-					"pyusd_withdrawal/":            1,
-					"pyusd_address/":               1,
-					"lmwr_withdrawal/":             1,
-					"lmwr_address/":                1,
-					"pepe_withdrawal/":             1,
-					"pepe_address/":                1,
-					"blur_withdrawal/":             1,
-					"blur_address/":                1,
-					"vext_withdrawal/":             1,
-					"vext_address/":                1,
-					"cspr_withdrawal/":             1,
-					"cspr_address/":                1,
-					"vchf_withdrawal/":             1,
-					"vchf_address/":                1,
-					"veur_withdrawal/":             1,
-					"veur_address/":                1,
-					"truf_withdrawal/":             1,
-					"truf_address/":                1,
-					"wif_withdrawal/":              1,
-					"wif_address/":                 1,
-					"smt_withdrawal/":              1,
-					"smt_address/":                 1,
-					"sui_withdrawal/":              1,
-					"sui_address/":                 1,
-					"jup_withdrawal/":              1,
-					"jup_address/":                 1,
-					"ondo_withdrawal/":             1,
-					"ondo_address/":                1,
-					"boba_withdrawal/":             1,
-					"boba_address/":                1,
-					"pyth_withdrawal/":             1,
-					"pyth_address/":                1,
+					"account_balances/": map[string]any{
+						"cost": 1,
+					},
+					"account_balances/{currency}/": map[string]any{
+						"cost": 1,
+					},
+					"balance/": map[string]any{
+						"cost": 1,
+					},
+					"balance/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"bch_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"bch_address/": map[string]any{
+						"cost": 1,
+					},
+					"user_transactions/": map[string]any{
+						"cost": 1,
+					},
+					"user_transactions/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"crypto-transactions/": map[string]any{
+						"cost": 1,
+					},
+					"open_order": map[string]any{
+						"cost": 1,
+					},
+					"open_orders/all/": map[string]any{
+						"cost": 1,
+					},
+					"open_orders/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"replace_order/": map[string]any{
+						"cost": 1,
+					},
+					"order_status/": map[string]any{
+						"cost": 1,
+					},
+					"cancel_order/": map[string]any{
+						"cost": 1,
+					},
+					"cancel_all_orders/": map[string]any{
+						"cost": 1,
+					},
+					"cancel_all_orders/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"buy/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"buy/market/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"buy/instant/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"sell/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"sell/market/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"sell/instant/{pair}/": map[string]any{
+						"cost": 1,
+					},
+					"transfer-to-main/": map[string]any{
+						"cost": 1,
+					},
+					"transfer-from-main/": map[string]any{
+						"cost": 1,
+					},
+					"my_trading_pairs/": map[string]any{
+						"cost": 1,
+					},
+					"fees/trading/": map[string]any{
+						"cost": 1,
+					},
+					"fees/trading/{market_symbol}": map[string]any{
+						"cost": 1,
+					},
+					"fees/withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"fees/withdrawal/{currency}/": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal-requests/": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal/open/": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal/status/": map[string]any{
+						"cost": 1,
+					},
+					"withdrawal/cancel/": map[string]any{
+						"cost": 1,
+					},
+					"liquidation_address/new/": map[string]any{
+						"cost": 1,
+					},
+					"liquidation_address/info/": map[string]any{
+						"cost": 1,
+					},
+					"btc_unconfirmed/": map[string]any{
+						"cost": 1,
+					},
+					"websockets_token/": map[string]any{
+						"cost": 1,
+					},
+					"revoke_all_api_keys/": map[string]any{
+						"cost": 1,
+					},
+					"get_max_order_amount/": map[string]any{
+						"cost": 1,
+					},
+					"btc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"btc_address/": map[string]any{
+						"cost": 1,
+					},
+					"ripple_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ripple_address/": map[string]any{
+						"cost": 1,
+					},
+					"ltc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ltc_address/": map[string]any{
+						"cost": 1,
+					},
+					"eth_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"eth_address/": map[string]any{
+						"cost": 1,
+					},
+					"xrp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"xrp_address/": map[string]any{
+						"cost": 1,
+					},
+					"xlm_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"xlm_address/": map[string]any{
+						"cost": 1,
+					},
+					"pax_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"pax_address/": map[string]any{
+						"cost": 1,
+					},
+					"link_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"link_address/": map[string]any{
+						"cost": 1,
+					},
+					"usdc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"usdc_address/": map[string]any{
+						"cost": 1,
+					},
+					"omg_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"omg_address/": map[string]any{
+						"cost": 1,
+					},
+					"dai_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"dai_address/": map[string]any{
+						"cost": 1,
+					},
+					"knc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"knc_address/": map[string]any{
+						"cost": 1,
+					},
+					"mkr_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"mkr_address/": map[string]any{
+						"cost": 1,
+					},
+					"zrx_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"zrx_address/": map[string]any{
+						"cost": 1,
+					},
+					"gusd_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"gusd_address/": map[string]any{
+						"cost": 1,
+					},
+					"aave_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"aave_address/": map[string]any{
+						"cost": 1,
+					},
+					"bat_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"bat_address/": map[string]any{
+						"cost": 1,
+					},
+					"uma_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"uma_address/": map[string]any{
+						"cost": 1,
+					},
+					"snx_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"snx_address/": map[string]any{
+						"cost": 1,
+					},
+					"uni_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"uni_address/": map[string]any{
+						"cost": 1,
+					},
+					"yfi_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"yfi_address/": map[string]any{
+						"cost": 1,
+					},
+					"audio_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"audio_address/": map[string]any{
+						"cost": 1,
+					},
+					"crv_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"crv_address/": map[string]any{
+						"cost": 1,
+					},
+					"algo_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"algo_address/": map[string]any{
+						"cost": 1,
+					},
+					"comp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"comp_address/": map[string]any{
+						"cost": 1,
+					},
+					"grt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"grt_address/": map[string]any{
+						"cost": 1,
+					},
+					"usdt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"usdt_address/": map[string]any{
+						"cost": 1,
+					},
+					"eurt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"eurt_address/": map[string]any{
+						"cost": 1,
+					},
+					"matic_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"matic_address/": map[string]any{
+						"cost": 1,
+					},
+					"sushi_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sushi_address/": map[string]any{
+						"cost": 1,
+					},
+					"chz_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"chz_address/": map[string]any{
+						"cost": 1,
+					},
+					"enj_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"enj_address/": map[string]any{
+						"cost": 1,
+					},
+					"alpha_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"alpha_address/": map[string]any{
+						"cost": 1,
+					},
+					"ftt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ftt_address/": map[string]any{
+						"cost": 1,
+					},
+					"storj_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"storj_address/": map[string]any{
+						"cost": 1,
+					},
+					"axs_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"axs_address/": map[string]any{
+						"cost": 1,
+					},
+					"sand_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sand_address/": map[string]any{
+						"cost": 1,
+					},
+					"hbar_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"hbar_address/": map[string]any{
+						"cost": 1,
+					},
+					"rgt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"rgt_address/": map[string]any{
+						"cost": 1,
+					},
+					"fet_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"fet_address/": map[string]any{
+						"cost": 1,
+					},
+					"skl_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"skl_address/": map[string]any{
+						"cost": 1,
+					},
+					"cel_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"cel_address/": map[string]any{
+						"cost": 1,
+					},
+					"sxp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sxp_address/": map[string]any{
+						"cost": 1,
+					},
+					"ada_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ada_address/": map[string]any{
+						"cost": 1,
+					},
+					"slp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"slp_address/": map[string]any{
+						"cost": 1,
+					},
+					"ftm_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ftm_address/": map[string]any{
+						"cost": 1,
+					},
+					"perp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"perp_address/": map[string]any{
+						"cost": 1,
+					},
+					"dydx_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"dydx_address/": map[string]any{
+						"cost": 1,
+					},
+					"gala_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"gala_address/": map[string]any{
+						"cost": 1,
+					},
+					"shib_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"shib_address/": map[string]any{
+						"cost": 1,
+					},
+					"amp_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"amp_address/": map[string]any{
+						"cost": 1,
+					},
+					"sgb_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sgb_address/": map[string]any{
+						"cost": 1,
+					},
+					"avax_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"avax_address/": map[string]any{
+						"cost": 1,
+					},
+					"wbtc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"wbtc_address/": map[string]any{
+						"cost": 1,
+					},
+					"ctsi_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ctsi_address/": map[string]any{
+						"cost": 1,
+					},
+					"cvx_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"cvx_address/": map[string]any{
+						"cost": 1,
+					},
+					"imx_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"imx_address/": map[string]any{
+						"cost": 1,
+					},
+					"nexo_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"nexo_address/": map[string]any{
+						"cost": 1,
+					},
+					"ust_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ust_address/": map[string]any{
+						"cost": 1,
+					},
+					"ant_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ant_address/": map[string]any{
+						"cost": 1,
+					},
+					"gods_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"gods_address/": map[string]any{
+						"cost": 1,
+					},
+					"rad_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"rad_address/": map[string]any{
+						"cost": 1,
+					},
+					"band_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"band_address/": map[string]any{
+						"cost": 1,
+					},
+					"inj_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"inj_address/": map[string]any{
+						"cost": 1,
+					},
+					"rly_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"rly_address/": map[string]any{
+						"cost": 1,
+					},
+					"rndr_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"rndr_address/": map[string]any{
+						"cost": 1,
+					},
+					"vega_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"vega_address/": map[string]any{
+						"cost": 1,
+					},
+					"1inch_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"1inch_address/": map[string]any{
+						"cost": 1,
+					},
+					"ens_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ens_address/": map[string]any{
+						"cost": 1,
+					},
+					"mana_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"mana_address/": map[string]any{
+						"cost": 1,
+					},
+					"lrc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"lrc_address/": map[string]any{
+						"cost": 1,
+					},
+					"ape_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ape_address/": map[string]any{
+						"cost": 1,
+					},
+					"mpl_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"mpl_address/": map[string]any{
+						"cost": 1,
+					},
+					"euroc_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"euroc_address/": map[string]any{
+						"cost": 1,
+					},
+					"sol_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sol_address/": map[string]any{
+						"cost": 1,
+					},
+					"dot_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"dot_address/": map[string]any{
+						"cost": 1,
+					},
+					"near_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"near_address/": map[string]any{
+						"cost": 1,
+					},
+					"doge_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"doge_address/": map[string]any{
+						"cost": 1,
+					},
+					"flr_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"flr_address/": map[string]any{
+						"cost": 1,
+					},
+					"dgld_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"dgld_address/": map[string]any{
+						"cost": 1,
+					},
+					"ldo_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ldo_address/": map[string]any{
+						"cost": 1,
+					},
+					"travel_rule/contacts/": map[string]any{
+						"cost": 1,
+					},
+					"earn/subscribe/": map[string]any{
+						"cost": 1,
+					},
+					"earn/subscriptions/setting/": map[string]any{
+						"cost": 1,
+					},
+					"earn/unsubscribe": map[string]any{
+						"cost": 1,
+					},
+					"wecan_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"wecan_address/": map[string]any{
+						"cost": 1,
+					},
+					"trac_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"trac_address/": map[string]any{
+						"cost": 1,
+					},
+					"eurcv_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"eurcv_address/": map[string]any{
+						"cost": 1,
+					},
+					"pyusd_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"pyusd_address/": map[string]any{
+						"cost": 1,
+					},
+					"lmwr_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"lmwr_address/": map[string]any{
+						"cost": 1,
+					},
+					"pepe_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"pepe_address/": map[string]any{
+						"cost": 1,
+					},
+					"blur_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"blur_address/": map[string]any{
+						"cost": 1,
+					},
+					"vext_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"vext_address/": map[string]any{
+						"cost": 1,
+					},
+					"cspr_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"cspr_address/": map[string]any{
+						"cost": 1,
+					},
+					"vchf_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"vchf_address/": map[string]any{
+						"cost": 1,
+					},
+					"veur_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"veur_address/": map[string]any{
+						"cost": 1,
+					},
+					"truf_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"truf_address/": map[string]any{
+						"cost": 1,
+					},
+					"wif_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"wif_address/": map[string]any{
+						"cost": 1,
+					},
+					"smt_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"smt_address/": map[string]any{
+						"cost": 1,
+					},
+					"sui_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"sui_address/": map[string]any{
+						"cost": 1,
+					},
+					"jup_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"jup_address/": map[string]any{
+						"cost": 1,
+					},
+					"ondo_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"ondo_address/": map[string]any{
+						"cost": 1,
+					},
+					"boba_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"boba_address/": map[string]any{
+						"cost": 1,
+					},
+					"pyth_withdrawal/": map[string]any{
+						"cost": 1,
+					},
+					"pyth_address/": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -496,10 +1023,10 @@ func (this *BitstampCore) Describe() any {
 				"Your account is frozen":                      PermissionDenied,
 				"Please update your profile with your FATCA information, before using API.": PermissionDenied,
 				"Order not found.": OrderNotFound,
-				"Bitstamp.net is under scheduled maintenance. We\\'ll be back soon.": OnMaintenance,
-				"Order could not be placed.":                                         ExchangeNotAvailable,
-				"Invalid offset.":                                                    BadRequest,
-				"Trading is currently unavailable for your account.":                 AccountSuspended,
+				"Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,
+				"Order could not be placed.":                                       ExchangeNotAvailable,
+				"Invalid offset.":                                                  BadRequest,
+				"Trading is currently unavailable for your account.":               AccountSuspended,
 			},
 			"broad": map[string]any{
 				"Minimum order size is":                   InvalidOrder,
@@ -860,21 +1387,31 @@ func (this *BitstampCore) ParseCurrency(rawCurrency any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var description any = this.SafeString(market, "description")
+	if IsTrue(IsEqual(description, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseCurrency() missing description")))
+	}
 	baseDescriptionquoteDescriptionVariable := Split(description, " / ")
 	baseDescription := GetValue(baseDescriptionquoteDescriptionVariable, 0)
 	quoteDescription := GetValue(baseDescriptionquoteDescriptionVariable, 1)
 	var minimumOrder any = this.SafeString(market, "minimum_order_value")
+	if IsTrue(IsEqual(minimumOrder, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseCurrency() missing minimumOrder")))
+	}
 	var parts any = Split(minimumOrder, " ")
 	var cost any = GetValue(parts, 0)
-	if !IsTrue((InOp(existing, base))) {
+	if IsTrue(IsTrue((IsEqual(base, nil))) || !IsTrue((InOp(existing, base)))) {
 		var baseDecimals any = this.SafeInteger(market, "base_decimals")
-		AddElementToObject(GetValue(this.Options, "_temp_currencies_result"), base, this.ConstructCurrencyObject(baseId, base, baseDescription, baseDecimals, nil, market))
+		if IsTrue(!IsEqual(base, nil)) {
+			AddElementToObject(GetValue(this.Options, "_temp_currencies_result"), base, this.ConstructCurrencyObject(baseId, base, baseDescription, baseDecimals, nil, market))
+		}
 	}
-	if !IsTrue((InOp(existing, quote))) {
+	if IsTrue(IsTrue((IsEqual(quote, nil))) || !IsTrue((InOp(existing, quote)))) {
 		var counterDecimals any = this.SafeInteger(market, "counter_decimals")
-		AddElementToObject(GetValue(this.Options, "_temp_currencies_result"), quote, this.ConstructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.ParseNumber(cost), market))
+		if IsTrue(!IsEqual(quote, nil)) {
+			AddElementToObject(GetValue(this.Options, "_temp_currencies_result"), quote, this.ConstructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.ParseNumber(cost), market))
+		}
 	}
-	return GetValue(GetValue(this.Options, "_temp_currencies_result"), quote)
+	return this.SafeValue(GetValue(this.Options, "_temp_currencies_result"), quote)
 }
 
 /**
@@ -885,7 +1422,7 @@ func (this *BitstampCore) ParseCurrency(rawCurrency any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitstampCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -898,8 +1435,8 @@ func (this *BitstampCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes87812 := (<-this.LoadMarkets())
-			PanicOnError(retRes87812)
+			retRes89112 := (<-this.LoadMarkets())
+			PanicOnError(retRes89112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -925,6 +1462,9 @@ func (this *BitstampCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		//     }
 		//
 		var microtimestamp any = this.SafeInteger(response, "microtimestamp")
+		if IsTrue(IsEqual(microtimestamp, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchOrderBook() missing microtimestamp")))
+		}
 		var timestamp any = this.ParseToInt(Divide(microtimestamp, 1000))
 		var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
 		AddElementToObject(orderbook, "nonce", microtimestamp)
@@ -1003,8 +1543,8 @@ func (this *BitstampCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96712 := (<-this.LoadMarkets())
-			PanicOnError(retRes96712)
+			retRes98312 := (<-this.LoadMarkets())
+			PanicOnError(retRes98312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1056,8 +1596,8 @@ func (this *BitstampCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100312 := (<-this.LoadMarkets())
-			PanicOnError(retRes100312)
+			retRes101912 := (<-this.LoadMarkets())
+			PanicOnError(retRes101912)
 		}
 
 		response := (<-this.PublicGetTicker(params))
@@ -1125,11 +1665,11 @@ func (this *BitstampCore) GetMarketFromTrade(trade any) any {
 	}
 	if IsTrue(IsEqual(numCurrencyIds, 2)) {
 		var marketId any = Add(GetValue(currencyIds, 0), GetValue(currencyIds, 1))
-		if IsTrue(InOp(this.Markets_by_id, marketId)) {
+		if IsTrue(IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, marketId)))) {
 			return this.SafeMarket(marketId)
 		}
 		marketId = Add(GetValue(currencyIds, 1), GetValue(currencyIds, 0))
-		if IsTrue(InOp(this.Markets_by_id, marketId)) {
+		if IsTrue(IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, marketId)))) {
 			return this.SafeMarket(marketId)
 		}
 	}
@@ -1305,8 +1845,8 @@ func (this *BitstampCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124912 := (<-this.LoadMarkets())
-			PanicOnError(retRes124912)
+			retRes126512 := (<-this.LoadMarkets())
+			PanicOnError(retRes126512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1384,8 +1924,8 @@ func (this *BitstampCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes131312 := (<-this.LoadMarkets())
-			PanicOnError(retRes131312)
+			retRes132912 := (<-this.LoadMarkets())
+			PanicOnError(retRes132912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1453,7 +1993,9 @@ func (this *BitstampCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString(currencyBalance, "available"))
 		AddElementToObject(account, "used", this.SafeString(currencyBalance, "reserved"))
 		AddElementToObject(account, "total", this.SafeString(currencyBalance, "total"))
-		AddElementToObject(result, currencyCode, account)
+		if IsTrue(!IsEqual(currencyCode, nil)) {
+			AddElementToObject(result, currencyCode, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1475,8 +2017,8 @@ func (this *BitstampCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes139012 := (<-this.LoadMarkets())
-			PanicOnError(retRes139012)
+			retRes140812 := (<-this.LoadMarkets())
+			PanicOnError(retRes140812)
 		}
 
 		response := (<-this.PrivatePostAccountBalances(params))
@@ -1518,8 +2060,8 @@ func (this *BitstampCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes141812 := (<-this.LoadMarkets())
-			PanicOnError(retRes141812)
+			retRes143612 := (<-this.LoadMarkets())
+			PanicOnError(retRes143612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1544,6 +2086,9 @@ func (this *BitstampCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		//
 		var tradingFeesByMarketId any = this.IndexBy(response, "currency_pair")
 		var tradingFee any = this.SafeDict(tradingFeesByMarketId, GetValue(market, "id"))
+		if IsTrue(IsEqual(tradingFee, nil)) {
+			tradingFee = map[string]any{}
+		}
 
 		ch <- this.ParseTradingFee(tradingFee, market)
 		return nil
@@ -1572,7 +2117,9 @@ func (this *BitstampCore) ParseTradingFees(fees any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
 		var symbol any = GetValue(fee, "symbol")
-		AddElementToObject(result, symbol, fee)
+		if IsTrue(!IsEqual(symbol, nil)) {
+			AddElementToObject(result, symbol, fee)
+		}
 	}
 	return result
 }
@@ -1594,8 +2141,8 @@ func (this *BitstampCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes147712 := (<-this.LoadMarkets())
-			PanicOnError(retRes147712)
+			retRes150012 := (<-this.LoadMarkets())
+			PanicOnError(retRes150012)
 		}
 
 		response := (<-this.PrivatePostFeesTrading(params))
@@ -1643,8 +2190,8 @@ func (this *BitstampCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150912 := (<-this.LoadMarkets())
-			PanicOnError(retRes150912)
+			retRes153212 := (<-this.LoadMarkets())
+			PanicOnError(retRes153212)
 		}
 
 		response := (<-this.PrivatePostFeesWithdrawal(params))
@@ -1679,11 +2226,13 @@ func (this *BitstampCore) ParseTransactionFees(response any, optionalArgs ...any
 		if IsTrue(IsTrue((!IsEqual(codes, nil))) && !IsTrue(this.InArray(code, codes))) {
 			continue
 		}
-		AddElementToObject(result, code, map[string]any{
-			"withdraw_fee": this.SafeNumber(fees, "fee"),
-			"deposit":      map[string]any{},
-			"info":         this.SafeDict(currencies, id),
-		})
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, map[string]any{
+				"withdraw_fee": this.SafeNumber(fees, "fee"),
+				"deposit":      map[string]any{},
+				"info":         this.SafeDict(currencies, id),
+			})
+		}
 	}
 	return result
 }
@@ -1708,8 +2257,8 @@ func (this *BitstampCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes155612 := (<-this.LoadMarkets())
-			PanicOnError(retRes155612)
+			retRes158112 := (<-this.LoadMarkets())
+			PanicOnError(retRes158112)
 		}
 
 		response := (<-this.PrivatePostFeesWithdrawal(params))
@@ -1746,16 +2295,18 @@ func (this *BitstampCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
 			"fee":        withdrawFee,
 			"percentage": nil,
 		})
-		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
-			"withdraw": map[string]any{
-				"fee":        withdrawFee,
-				"percentage": nil,
-			},
-			"deposit": map[string]any{
-				"fee":        nil,
-				"percentage": nil,
-			},
-		})
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+				"withdraw": map[string]any{
+					"fee":        withdrawFee,
+					"percentage": nil,
+				},
+				"deposit": map[string]any{
+					"fee":        nil,
+					"percentage": nil,
+				},
+			})
+		}
 	}
 	return result
 }
@@ -1789,8 +2340,8 @@ func (this *BitstampCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes161912 := (<-this.LoadMarkets())
-			PanicOnError(retRes161912)
+			retRes164612 := (<-this.LoadMarkets())
+			PanicOnError(retRes164612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1836,7 +2387,8 @@ func (this *BitstampCore) CreateOrder(symbol any, typeVar any, side any, amount 
 				PanicOnError(response)
 			}
 		}
-		var order any = this.ParseOrder(response, market)
+		var orderResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
+		var order any = this.ParseOrder(orderResponse, market)
 		AddElementToObject(order, "type", typeVar)
 
 		ch <- order
@@ -1876,8 +2428,8 @@ func (this *BitstampCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167712 := (<-this.LoadMarkets())
-			PanicOnError(retRes167712)
+			retRes170512 := (<-this.LoadMarkets())
+			PanicOnError(retRes170512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1925,8 +2477,8 @@ func (this *BitstampCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes170912 := (<-this.LoadMarkets())
-			PanicOnError(retRes170912)
+			retRes173712 := (<-this.LoadMarkets())
+			PanicOnError(retRes173712)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1957,7 +2509,7 @@ func (this *BitstampCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel all open orders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1972,8 +2524,8 @@ func (this *BitstampCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173912 := (<-this.LoadMarkets())
-			PanicOnError(retRes173912)
+			retRes176712 := (<-this.LoadMarkets())
+			PanicOnError(retRes176712)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -2033,8 +2585,8 @@ func (this *BitstampCore) FetchOrderStatus(id any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes178312 := (<-this.LoadMarkets())
-			PanicOnError(retRes178312)
+			retRes181112 := (<-this.LoadMarkets())
+			PanicOnError(retRes181112)
 		}
 		var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
 		var request any = map[string]any{}
@@ -2076,8 +2628,8 @@ func (this *BitstampCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180912 := (<-this.LoadMarkets())
-			PanicOnError(retRes180912)
+			retRes183712 := (<-this.LoadMarkets())
+			PanicOnError(retRes183712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2147,8 +2699,8 @@ func (this *BitstampCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes185912 := (<-this.LoadMarkets())
-			PanicOnError(retRes185912)
+			retRes188712 := (<-this.LoadMarkets())
+			PanicOnError(retRes188712)
 		}
 		var request any = map[string]any{}
 		var method any = "privatePostUserTransactions"
@@ -2206,15 +2758,15 @@ func (this *BitstampCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes189519 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes189519)
-			ch <- retRes189519
+			retRes192319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes192319)
+			ch <- retRes192319
 			return nil
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes189812 := (<-this.LoadMarkets())
-			PanicOnError(retRes189812)
+			retRes192612 := (<-this.LoadMarkets())
+			PanicOnError(retRes192612)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2298,8 +2850,8 @@ func (this *BitstampCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes195912 := (<-this.LoadMarkets())
-			PanicOnError(retRes195912)
+			retRes198712 := (<-this.LoadMarkets())
+			PanicOnError(retRes198712)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2373,8 +2925,8 @@ func (this *BitstampCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes201312 := (<-this.LoadMarkets())
-			PanicOnError(retRes201312)
+			retRes204112 := (<-this.LoadMarkets())
+			PanicOnError(retRes204112)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -2774,8 +3326,8 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes239212 := (<-this.LoadMarkets())
-			PanicOnError(retRes239212)
+			retRes242012 := (<-this.LoadMarkets())
+			PanicOnError(retRes242012)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2814,8 +3366,8 @@ func (this *BitstampCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes241712 := (<-this.LoadMarkets())
-			PanicOnError(retRes241712)
+			retRes244512 := (<-this.LoadMarkets())
+			PanicOnError(retRes244512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2903,8 +3455,8 @@ func (this *BitstampCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var market any = nil
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes248412 := (<-this.LoadMarkets())
-			PanicOnError(retRes248412)
+			retRes251212 := (<-this.LoadMarkets())
+			PanicOnError(retRes251212)
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3018,8 +3570,8 @@ func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalAr
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes256912 := (<-this.LoadMarkets())
-			PanicOnError(retRes256912)
+			retRes259712 := (<-this.LoadMarkets())
+			PanicOnError(retRes259712)
 		}
 		this.CheckAddress(address)
 		var request any = map[string]any{
@@ -3079,8 +3631,8 @@ func (this *BitstampCore) Transfer(code any, amount any, fromAccount any, toAcco
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes261512 := (<-this.LoadMarkets())
-			PanicOnError(retRes261512)
+			retRes264312 := (<-this.LoadMarkets())
+			PanicOnError(retRes264312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -3122,7 +3674,10 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var status any = this.SafeString(transfer, "status")
-	return map[string]any{
+	if IsTrue(IsEqual(currency, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseTransfer() could not resolve currency")))
+	}
+	var result any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
@@ -3133,6 +3688,7 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"toAccount":   nil,
 		"status":      this.ParseTransferStatus(status),
 	}
+	return result
 }
 func (this *BitstampCore) ParseTransferStatus(status any) any {
 	var statuses any = map[string]any{

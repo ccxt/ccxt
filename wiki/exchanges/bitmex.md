@@ -119,7 +119,7 @@ bitmex.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2  
 
@@ -430,7 +430,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bitmex cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -452,7 +452,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by bitmex cancelOrders () |
+| symbol | <code>string</code> | Yes | not used by cancelOrders () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -473,12 +473,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitmex.cancelAllOrders (symbol, params?)
+bitmex.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -818,7 +818,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied |
-| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -1054,7 +1054,7 @@ bitmex.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 

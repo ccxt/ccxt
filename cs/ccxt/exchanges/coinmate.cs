@@ -88,6 +88,7 @@ public partial class coinmate : Exchange
                 { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
@@ -121,10 +122,195 @@ public partial class coinmate : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs", "system/time"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "orderBook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickerAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "products", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradingPairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "system/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"currencies", "balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits", "bankWireWithdrawal"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoinCashWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoinCashDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoinDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoinWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bitcoinWithdrawalFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buyInstant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buyLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrderWithInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "createVoucher", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dashDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dashWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ethereumWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ethereumDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "litecoinWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "litecoinDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderById", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pusherAuth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "redeemVoucher", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replaceByBuyLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replaceByBuyInstant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replaceBySellLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replaceBySellInstant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rippleDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rippleWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sellInstant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sellLimit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transactionHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "traderFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transferHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedBitcoinDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedBitcoinCashDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedDashDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedEthereumDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedLitecoinDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedRippleDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelAllOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawVirtualCurrency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "virtualCurrencyDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedVirtualCurrencyDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "adaWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "adaDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedAdaDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "solWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "solDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedSolDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bankWireWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -242,10 +428,10 @@ public partial class coinmate : Exchange
     /**
      * @method
      * @name coinmate#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     public async override Task<object> fetchTime(object parameters = null)
     {
@@ -402,7 +588,7 @@ public partial class coinmate : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -417,7 +603,7 @@ public partial class coinmate : Exchange
             { "groupByPriceLimit", "False" },
         };
         object response = await this.publicGetOrderBook(this.extend(request, parameters));
-        object orderbook = getValue(response, "data");
+        object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(orderbook, "timestamp");
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
     }
@@ -589,7 +775,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         object response = await this.privatePostTransferHistory(this.extend(request, parameters));
-        object items = getValue(response, "data");
+        object items = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(items, null, since, limit);
     }
 
@@ -960,7 +1146,8 @@ public partial class coinmate : Exchange
         object extension = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return this.parseOrders(getValue(response, "data"), null, since, limit, extension);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data, null, since, limit, extension);
     }
 
     /**
@@ -995,7 +1182,8 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privatePostOrderHistory(this.extend(request, parameters));
-        return this.parseOrders(getValue(response, "data"), market, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data, market, since, limit);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1129,7 +1317,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        object method = add("privatePost", this.capitalize(((string)side)));
+        object method = add("privatePost", this.capitalize(side));
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "currencyPair", getValue(market, "id") },
@@ -1195,7 +1383,7 @@ public partial class coinmate : Exchange
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

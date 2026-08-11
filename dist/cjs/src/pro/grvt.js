@@ -157,8 +157,8 @@ class grvt extends grvt$1["default"] {
         }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval = undefined;
-        [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', 500);
+        let interval = 500;
+        [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -265,7 +265,7 @@ class grvt extends grvt$1["default"] {
         const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker(data, market);
         this.tickers[symbol] = ticker;
@@ -286,8 +286,8 @@ class grvt extends grvt$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -355,7 +355,7 @@ class grvt extends grvt$1["default"] {
         const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -454,7 +454,7 @@ class grvt extends grvt$1["default"] {
         const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const secondPart = this.safeString(parts, 1, '');
         const timeframeId = secondPart.replace('-TRADE', '');
@@ -484,7 +484,7 @@ class grvt extends grvt$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -502,7 +502,7 @@ class grvt extends grvt$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -518,8 +518,8 @@ class grvt extends grvt$1["default"] {
         if (limit === undefined) {
             [limit, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'limit', 100);
         }
-        let interval = undefined;
-        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', 500);
+        let interval = 500;
+        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols(symbols);
         const extraPart = isSnapshot ? (interval.toString() + '-' + limit.toString()) : interval.toString();
         const rawHashes = [];
@@ -569,7 +569,7 @@ class grvt extends grvt$1["default"] {
         const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct(data, 'event_time', 0.000001);
         if (!(symbol in this.orderbooks)) {

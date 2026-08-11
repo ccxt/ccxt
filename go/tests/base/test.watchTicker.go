@@ -45,7 +45,7 @@ func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 
 			}
 			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				TestTicker(exchange, skippedProperties, method, response, symbol)
 			}

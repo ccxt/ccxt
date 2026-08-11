@@ -146,6 +146,70 @@
                   }
                 ],
                 "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/market\",\"nonce\":\"1716315544734\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"amount\":\"7.1\",\"clientOrderId\":\"ccxt014ab638a4a5883b\"}"
+            },
+            {
+                "description": "Spot limit buy IOC",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/new",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"ioc\":true,\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Spot limit buy postOnly",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/new",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"postOnly\":true,\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Spot limit buy timeInForce PO",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/new",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"postOnly\":true,\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Swap limit buy IOC",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/collateral/limit",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/collateral/limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"ioc\":true,\"price\":\"0.09\"}"
             }
         ],
         "editOrder": [
@@ -563,6 +627,69 @@
                   "BTC/USDT:USDT"
                 ],
                 "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/positions/history\",\"nonce\":\"1741942635403\",\"market\":\"BTC_PERP\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder active order",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/orders",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/orders\",\"nonce\":\"1786350578192\",\"nonceWindow\":false,\"orderId\":\"2560087414918\",\"market\":\"DOGE_PERP\"}"
+            },
+            {
+                "description": "fetchOrder executed order via history",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/trade-account/order/history",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT",
+                    {
+                        "checkActive": false
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/order/history\",\"nonce\":\"1786350664917\",\"nonceWindow\":false,\"orderId\":\"2558095898746\",\"market\":\"DOGE_PERP\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder swap limit",
+                "method": "cancelOrder",
+                "url": "https://whitebit.com/api/v4/order/cancel",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/order/cancel\",\"nonce\":\"1786350578388\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"orderId\":2560087414918}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders swap with limit",
+                "method": "fetchOpenOrders",
+                "url": "https://whitebit.com/api/v4/orders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/orders\",\"nonce\":\"1786454925790\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"limit\":2}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders swap with limit",
+                "method": "fetchClosedOrders",
+                "url": "https://whitebit.com/api/v4/trade-account/order/history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/order/history\",\"nonce\":\"1786454926329\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"limit\":2}"
             }
         ]
     }

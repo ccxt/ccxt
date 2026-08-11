@@ -19,292 +19,640 @@ public class LbankApi extends Exchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetCurrencyPairs (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetCurrencyPairs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetCurrencyPairs (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetCurrencyPairs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetAccuracy (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetAccuracy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetAccuracy (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetAccuracy", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetUsdToCny (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetUsdToCny endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetUsdToCny (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetUsdToCny", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetAssetConfigs (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetAssetConfigs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetAssetConfigs (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetAssetConfigs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetWithdrawConfigs (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetWithdrawConfigs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetWithdrawConfigs (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetWithdrawConfigs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTimestamp (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetTimestamp endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTimestamp (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTimestamp", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTicker24hr (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetTicker24hr endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTicker24hr", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTicker (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetDepth (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetDepth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetDepth (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetDepth", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetIncrDepth (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetIncrDepth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetIncrDepth (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetIncrDepth", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetTrades (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetKline (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetKline endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetKline (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetKline", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetSupplementSystemPing (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetSupplementSystemPing endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSupplementSystemPing (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSupplementSystemPing", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetSupplementIncrDepth (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetSupplementIncrDepth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSupplementIncrDepth (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSupplementIncrDepth", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetSupplementTrades (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetSupplementTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSupplementTrades (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSupplementTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetSupplementTickerPrice (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetSupplementTickerPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSupplementTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSupplementTickerPrice", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicGetSupplementTickerBookTicker (Object... optionalArgs)
+    /**
+     * Calls the spotPublicGetSupplementTickerBookTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicGetSupplementTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicGetSupplementTickerBookTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPublicPostSupplementSystemStatus (Object... optionalArgs)
+    /**
+     * Calls the spotPublicPostSupplementSystemStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPublicPostSupplementSystemStatus (Object... optionalArgs)
     {
         return this.callAsync ("spotPublicPostSupplementSystemStatus", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostUserInfo (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostUserInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostUserInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostUserInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSubscribeGetKey (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSubscribeGetKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubscribeGetKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubscribeGetKey", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSubscribeRefreshKey (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSubscribeRefreshKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubscribeRefreshKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubscribeRefreshKey", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSubscribeDestroyKey (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSubscribeDestroyKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSubscribeDestroyKey (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSubscribeDestroyKey", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostGetDepositAddress (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostGetDepositAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostGetDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostGetDepositAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostDepositHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostDepositHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostDepositHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostCreateOrder (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostCreateOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCreateOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCreateOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostBatchCreateOrder (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostBatchCreateOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostBatchCreateOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostBatchCreateOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostCancelOrder (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCancelOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostCancelClientOrders (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostCancelClientOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostCancelClientOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostCancelClientOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostOrdersInfo (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostOrdersInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrdersInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrdersInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostOrdersInfoHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostOrdersInfoHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrdersInfoHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrdersInfoHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostOrderTransactionDetail (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostOrderTransactionDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrderTransactionDetail (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrderTransactionDetail", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostTransactionHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostTransactionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostTransactionHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostOrdersInfoNoDeal (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostOrdersInfoNoDeal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostOrdersInfoNoDeal (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrdersInfoNoDeal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostWithdraw (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostWithdraw", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostWithdrawCancel (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostWithdrawCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostWithdrawCancel (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostWithdrawCancel", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostWithdraws (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostWithdraws endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostWithdraws (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostWithdraws", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementUserInfo (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementUserInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementUserInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementUserInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementWithdraw (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementWithdraw", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementDepositHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementDepositHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementDepositHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementWithdraws (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementWithdraws endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementWithdraws (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementWithdraws", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementGetDepositAddress (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementGetDepositAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementGetDepositAddress (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementGetDepositAddress", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementAssetDetail (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementAssetDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementAssetDetail (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementAssetDetail", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementCustomerTradeFee (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementCustomerTradeFee endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementCustomerTradeFee (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementCustomerTradeFee", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementApiRestrictions (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementApiRestrictions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementApiRestrictions (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementApiRestrictions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementSystemPing (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementSystemPing endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementSystemPing (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementSystemPing", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementCreateOrderTest (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementCreateOrderTest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementCreateOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementCreateOrderTest", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementCreateOrder (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementCreateOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementCreateOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementCreateOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementCancelOrder (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementCancelOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementCancelOrderBySymbol (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementCancelOrderBySymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementCancelOrderBySymbol (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementCancelOrderBySymbol", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementOrdersInfo (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementOrdersInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementOrdersInfo (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementOrdersInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementOrdersInfoNoDeal (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementOrdersInfoNoDeal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementOrdersInfoNoDeal (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementOrdersInfoNoDeal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementOrdersInfoHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementOrdersInfoHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementOrdersInfoHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementOrdersInfoHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementUserInfoAccount (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementUserInfoAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementUserInfoAccount (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementUserInfoAccount", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSupplementTransactionHistory (Object... optionalArgs)
+    /**
+     * Calls the spotPrivatePostSupplementTransactionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementTransactionHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetCfdOpenApiV1PubGetTime (Object... optionalArgs)
+    /**
+     * Calls the contractPublicGetCfdOpenApiV1PubGetTime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetCfdOpenApiV1PubGetTime (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetCfdOpenApiV1PubGetTime", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetCfdOpenApiV1PubInstrument (Object... optionalArgs)
+    /**
+     * Calls the contractPublicGetCfdOpenApiV1PubInstrument endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetCfdOpenApiV1PubInstrument (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetCfdOpenApiV1PubInstrument", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetCfdOpenApiV1PubMarketData (Object... optionalArgs)
+    /**
+     * Calls the contractPublicGetCfdOpenApiV1PubMarketData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetCfdOpenApiV1PubMarketData (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetCfdOpenApiV1PubMarketData", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  contractPublicGetCfdOpenApiV1PubMarketOrder (Object... optionalArgs)
+    /**
+     * Calls the contractPublicGetCfdOpenApiV1PubMarketOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetCfdOpenApiV1PubMarketOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetCfdOpenApiV1PubMarketOrder", optionalArgs);
     }

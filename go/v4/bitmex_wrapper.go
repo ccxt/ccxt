@@ -82,7 +82,7 @@ func (this *Bitmex) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitmex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -638,7 +638,7 @@ func (this *Bitmex) EditOrder(id string, symbol string, typeVar string, side str
  * @description cancels an open order
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -672,7 +672,7 @@ func (this *Bitmex) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @description cancel multiple orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by bitmex cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -705,7 +705,7 @@ func (this *Bitmex) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @name bitmex#cancelAllOrders
  * @description cancel all open orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1052,7 +1052,7 @@ func (this *Bitmex) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitmex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bitmex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1071,9 +1071,9 @@ func (this *Bitmex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -1202,7 +1202,7 @@ func (this *Bitmex) FetchPositionsADLRank(options ...FetchPositionsADLRankOption
  * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -1231,9 +1231,9 @@ func (this *Bitmex) FetchSettlementHistory(options ...FetchSettlementHistoryOpti
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 // missing typed methods from base
@@ -1379,7 +1379,7 @@ func (this *Bitmex) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Bitmex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDeposits(options...)
 }
-func (this *Bitmex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bitmex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Bitmex) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1484,7 +1484,7 @@ func (this *Bitmex) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Bitmex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitmex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Bitmex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitmex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1499,7 +1499,7 @@ func (this *Bitmex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Bitmex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitmex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Bitmex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Bitmex) FetchTime(params ...any) (int64, error) {
@@ -1619,7 +1619,7 @@ func (this *Bitmex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Bitmex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitmex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Bitmex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitmex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1664,7 +1664,7 @@ func (this *Bitmex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions
 func (this *Bitmex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitmex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Bitmex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Bitmex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

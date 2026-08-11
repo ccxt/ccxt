@@ -111,7 +111,7 @@ public partial class bingx : ccxt.bingx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
@@ -174,7 +174,7 @@ public partial class bingx : ccxt.bingx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
@@ -416,7 +416,7 @@ public partial class bingx : ccxt.bingx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
@@ -436,7 +436,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        object trades = await this.watch(((string)url), messageHash, this.extend(request, parameters), messageHash, subscription);
+        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -602,7 +602,7 @@ public partial class bingx : ccxt.bingx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -623,7 +623,7 @@ public partial class bingx : ccxt.bingx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
@@ -659,7 +659,7 @@ public partial class bingx : ccxt.bingx
                 { "params", parameters },
             };
         }
-        object orderbook = await this.watch(((string)url), messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs);
+        object orderbook = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -782,7 +782,7 @@ public partial class bingx : ccxt.bingx
         {
             // const limit = [ 5, 10, 20, 50, 100 ]
             object subscriptionHash = dataType;
-            object subscription = getValue(((WebSocketClient)client).subscriptions, ((string)subscriptionHash));
+            object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             object limit = this.safeInteger(subscription, "limit", 100);
@@ -933,7 +933,7 @@ public partial class bingx : ccxt.bingx
         if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), rawTimeframe), null)))
         {
             object subscriptionHash = dataType;
-            object subscription = getValue(((WebSocketClient)client).subscriptions, ((string)subscriptionHash));
+            object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -992,7 +992,7 @@ public partial class bingx : ccxt.bingx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
@@ -1118,7 +1118,7 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((string)add(this.id, " watchOrders is not supported for inverse swap markets yet")) ;
             }
-            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
@@ -1196,7 +1196,7 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((string)add(this.id, " watchMyTrades is not supported for inverse swap markets yet")) ;
             }
-            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
@@ -1263,7 +1263,7 @@ public partial class bingx : ccxt.bingx
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
         {
             baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
@@ -1376,7 +1376,7 @@ public partial class bingx : ccxt.bingx
         }
         object subscriptionHash = "swap:private";
         messageHash = add("swap:positions", messageHash);
-        object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
+        object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, type, symbols);
@@ -1924,7 +1924,10 @@ public partial class bingx : ccxt.bingx
             ((IDictionary<string,object>)account)["info"] = balance;
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "lk");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "wb");
-            ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(type, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
@@ -2015,7 +2018,7 @@ public partial class bingx : ccxt.bingx
         //
         object id = this.safeString(message, "id");
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeDict(subscriptionsById, ((string)id), new Dictionary<string, object>() {});
+        object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isUnSubMessage))
         {

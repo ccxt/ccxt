@@ -37,13 +37,13 @@ class bitrue extends bitrue$1["default"] {
                     'v1': {
                         'private': {
                             'post': {
-                                'poseidon/api/v1/listenKey': 1,
+                                'poseidon/api/v1/listenKey': { 'cost': 1 },
                             },
                             'put': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1 },
                             },
                             'delete': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': { 'cost': 1 },
                             },
                         },
                     },
@@ -175,7 +175,9 @@ class bitrue extends bitrue$1["default"] {
                 if (updateUsed) {
                     account['used'] = used;
                 }
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -409,9 +411,13 @@ class bitrue extends bitrue$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
-        const symbols = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            return undefined;
+        }
+        const symbols = Object.keys(markets);
         for (let i = 0; i < symbols.length; i++) {
-            const candidate = this.markets[symbols[i]];
+            const candidate = markets[symbols[i]];
             if (!candidate['swap']) {
                 continue;
             }

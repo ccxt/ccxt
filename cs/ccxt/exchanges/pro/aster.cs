@@ -996,7 +996,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1036,7 +1036,7 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1636,7 +1636,10 @@ public partial class aster : ccxt.aster
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "f");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "l");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, wallet);
-            ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(accountType, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            }
         }
         object timestamp = this.safeInteger(message, "E");
         ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
@@ -1943,7 +1946,7 @@ public partial class aster : ccxt.aster
         }
         object messageHash = "myTrades";
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         await this.authenticate(type, parameters);

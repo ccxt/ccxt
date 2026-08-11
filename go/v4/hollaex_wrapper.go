@@ -63,8 +63,8 @@ func (this *Hollaex) FetchCurrencies(params ...any) (Currencies, error) {
  * @name hollaex#fetchOrderBooks
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @see https://apidocs.hollaex.com/#orderbooks
- * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
- * @param {int} [limit] not used by hollaex fetchOrderBooks ()
+ * @param {string[]|undefined} symbols not used by fetchOrderBooks ()
+ * @param {int} [limit] not used by fetchOrderBooks ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
@@ -105,7 +105,7 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -317,7 +317,7 @@ func (this *Hollaex) FetchBalance(params ...any) (Balances, error) {
  * @description fetch an open order by it's id
  * @see https://apidocs.hollaex.com/#get-order
  * @param {string} id order id
- * @param {string} symbol not used by hollaex fetchOpenOrder ()
+ * @param {string} symbol not used by fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -867,7 +867,7 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -886,9 +886,9 @@ func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 // missing typed methods from base
@@ -1043,7 +1043,7 @@ func (this *Hollaex) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Hollaex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Hollaex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Hollaex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Hollaex) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1163,7 +1163,7 @@ func (this *Hollaex) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Hollaex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Hollaex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Hollaex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Hollaex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1181,7 +1181,7 @@ func (this *Hollaex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Hollaex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hollaex) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Hollaex) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Hollaex) FetchTime(params ...any) (int64, error) {
@@ -1298,7 +1298,7 @@ func (this *Hollaex) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Hollaex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Hollaex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Hollaex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Hollaex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1343,7 +1343,7 @@ func (this *Hollaex) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Hollaex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Hollaex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Hollaex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Hollaex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -24,7 +24,7 @@ public partial class coinbaseinternational : Exchange
                 { "spot", true },
                 { "margin", true },
                 { "swap", true },
-                { "future", true },
+                { "future", false },
                 { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
@@ -58,6 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
@@ -103,6 +104,7 @@ public partial class coinbaseinternational : Exchange
                 { "setMargin", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -126,13 +128,123 @@ public partial class coinbaseinternational : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "assets/{assets}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "assets/{asset}/networks", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "instruments/{instrument}/candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"} },
-                        { "post", new List<object>() {"orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"} },
-                        { "put", new List<object>() {"orders/{id}", "portfolios/{portfolio}"} },
-                        { "delete", new List<object>() {"orders", "orders/{id}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/balances/{asset}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/positions/{instrument}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/{transfer_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/create-counterparty-id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/validate-counterparty-id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/withdraw/counterparty", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -494,8 +606,8 @@ public partial class coinbaseinternational : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        object maxEntriesPerRequest = null;
-        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", 100);
+        object maxEntriesPerRequest = 100;
+        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
         object pageKey = "ccxtPageKey";
@@ -811,6 +923,10 @@ public partial class coinbaseinternational : Exchange
             parameters = ((IList<object>)networkIdparametersVariable)[1];
             ((IDictionary<string,object>)request)["network_arn_id"] = networkId;
         }
+        if (isTrue(isEqual(method, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+        }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         // v1PrivatePostTransfersAddress
@@ -968,7 +1084,8 @@ public partial class coinbaseinternational : Exchange
             { "portfolio", portfolio },
             { "margin_override", amount },
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters));
+        object response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters));
+        return response;
     }
 
     /**
@@ -998,8 +1115,8 @@ public partial class coinbaseinternational : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        object maxEntriesPerRequest = null;
-        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", 100);
+        object maxEntriesPerRequest = 100;
+        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
         object pageKey = "ccxtPageKey";
@@ -1500,7 +1617,11 @@ public partial class coinbaseinternational : Exchange
         }
         object isLinear = ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId));
         object isInverse = ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId));
-        return new Dictionary<string, object>() {
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "lowercaseId", ((string)marketId).ToLower() },
             { "symbol", symbol },
@@ -1552,7 +1673,7 @@ public partial class coinbaseinternational : Exchange
             } },
             { "info", market },
             { "created", null },
-        };
+        });
     }
 
     /**
@@ -1633,9 +1754,14 @@ public partial class coinbaseinternational : Exchange
         symbols = this.marketSymbols(symbols);
         object instruments = await this.v1PublicGetInstruments(parameters);
         object tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(instruments)); postFixIncrement(ref i))
+        object rows = new List<object>() {};
+        if (isTrue(((instruments is IList<object>) || (instruments.GetType().IsGenericType && instruments.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object instrument = getValue(instruments, i);
+            rows = instruments;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object instrument = getValue(rows, i);
             object marketId = this.safeString(instrument, "symbol");
             object symbol = this.safeSymbol(marketId);
             object quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});
@@ -1786,7 +1912,10 @@ public partial class coinbaseinternational : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "hold");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1813,7 +1942,7 @@ public partial class coinbaseinternational : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "ammount", amount },
+            { "amount", amount },
             { "from", fromAccount },
             { "to", toAccount },
         };
@@ -1865,6 +1994,10 @@ public partial class coinbaseinternational : Exchange
         object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "side", ((string)side).ToUpper() },
@@ -2035,7 +2168,7 @@ public partial class coinbaseinternational : Exchange
             { "STOP", "limit" },
             { "STOP_LIMIT", "limit" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -2044,7 +2177,7 @@ public partial class coinbaseinternational : Exchange
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2099,7 +2232,7 @@ public partial class coinbaseinternational : Exchange
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2272,8 +2405,8 @@ public partial class coinbaseinternational : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        object maxEntriesPerRequest = null;
-        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
+        object maxEntriesPerRequest = 100;
+        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
         object pageKey = "ccxtPageKey";
@@ -2369,8 +2502,8 @@ public partial class coinbaseinternational : Exchange
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object pageKey = "ccxtPageKey";
-        object maxEntriesPerRequest = null;
-        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
+        object maxEntriesPerRequest = 100;
+        var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
         if (isTrue(paginate))
@@ -2399,7 +2532,7 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until"});
+        object until = this.safeString(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2500,6 +2633,10 @@ public partial class coinbaseinternational : Exchange
             { "network_arn_id", networkId },
             { "nonce", this.nonce() },
         };
+        if (isTrue(isEqual(method, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+        }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         //    {

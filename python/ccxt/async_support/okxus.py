@@ -37,7 +37,7 @@ class okxus(okx, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
-                'swap': True,
+                'swap': False,
                 'future': False,
                 'option': False,
             },
@@ -45,6 +45,11 @@ class okxus(okx, ImplicitAPI):
                 'future': {
                     'linear': None,
                     'inverse': None,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': ['spot'],  # only spot supported for now
                 },
             },
         })

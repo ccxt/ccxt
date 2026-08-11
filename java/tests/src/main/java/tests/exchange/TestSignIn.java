@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestSignIn extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testSignIn(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testSignIn(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18,7 +19,7 @@ public class TestSignIn extends BaseTest {
         Object method = "signIn";
         if (Helpers.isTrue(Helpers.GetValue(exchange.has, method)))
         {
-            (exchange.signIn()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
         }
         return true;
         });

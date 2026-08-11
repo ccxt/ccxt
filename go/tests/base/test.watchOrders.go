@@ -40,11 +40,17 @@ func TestWatchOrders(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 
 					response = (UnWrapType(<-exchange.WatchOrders(symbol)))
 					PanicOnError(response)
+					if IsTrue(IsEqual(response, nil)) {
+						panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+					}
 					return nil
 				}()
 
 			}
 			if IsTrue(IsEqual(success, true)) {
+				if IsTrue(IsEqual(response, nil)) {
+					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+				}
 				AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 				now = exchange.Milliseconds()
 				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {

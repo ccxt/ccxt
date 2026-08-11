@@ -11,6 +11,9 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchTickers](#fetchtickers)
 * [fetchBidsAsks](#fetchbidsasks)
+* [fetchLastPrices](#fetchlastprices)
+* [fetchMarkPrice](#fetchmarkprice)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -217,13 +220,77 @@ weex.fetchBidsAsks (symbols, params?)
 ```
 
 
+<a name="fetchLastPrices" id="fetchlastprices"></a>
+
+### fetchLastPrices{docsify-ignore}
+fetches the last price for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of lastprice structures
+
+**See**: https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchLastPrices (symbols?, params?)
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the mark price for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.priceType | <code>string</code> | No | "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker |
+
+
+```javascript
+weex.fetchMarkPrice (symbol, params?)
+```
+
+
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches mark prices for multiple markets
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+weex.fetchMarkPrices (symbols?, params?)
+```
+
+
 <a name="fetchOrderBook" id="fetchorderbook"></a>
 
 ### fetchOrderBook{docsify-ignore}
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -380,12 +447,13 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
 - https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+- https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot') |
+| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default) |
 
 
 ```javascript
@@ -431,6 +499,7 @@ Create an order on the exchange
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -487,6 +556,7 @@ helper method for creating contract orders
 
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -499,17 +569,20 @@ helper method for creating contract orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType |
-| params.takeProfit.triggerPrice | <code>float</code> | No | The price at which the take profit order will be triggered |
+| params.takeProfit.triggerPrice | <code>float</code> | No | The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias |
 | params.takeProfit.triggerPriceType | <code>string</code> | No | The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last') |
+| params.takeProfit.price | <code>float</code> | No | not supported, the attached take profit always executes at market price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType |
-| params.stopLoss.triggerPrice | <code>float</code> | No | The price at which the stop loss order will be triggered |
+| params.stopLoss.triggerPrice | <code>float</code> | No | The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias |
 | params.stopLoss.triggerPriceType | <code>string</code> | No | The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last') |
-| params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
+| params.stopLoss.price | <code>float</code> | No | not supported, the attached stop loss always executes at market price |
+| params.stopLossPrice | <code>float</code> | No | price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders |
 | params.stopLossPriceType | <code>string</code> | No | The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last') |
-| params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
+| params.takeProfitPrice | <code>float</code> | No | price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders |
 | params.takeProfitPriceType | <code>string</code> | No | The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last') |
+| params.triggerPrice | <code>float</code> | No | the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice |
 | params.reduceOnly | <code>bool</code> | No | A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true. |
-| params.timeInForce | <code>string</code> | No | GTC, IOC, or FOK (default is GTC for limit orders) |
+| params.timeInForce | <code>string</code> | No | GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders) |
 
 
 ```javascript
@@ -672,6 +745,7 @@ fetches information on multiple closed orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -701,6 +775,7 @@ fetches information on multiple canceled orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -751,7 +826,11 @@ fetches information on multiple closed and canceled orders made by the user
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract  
+**See**
+
+- https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -865,7 +944,11 @@ fetch all open positions
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Account_API/GetAllPositions  
+**See**
+
+- https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+- https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1522,7 +1605,7 @@ weex.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1548,7 +1631,7 @@ weex.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

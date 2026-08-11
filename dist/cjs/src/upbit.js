@@ -109,67 +109,67 @@ class upbit extends upbit$1["default"] {
                 // cost = 1000 / (rateLimit * RPS)
                 'public': {
                     'get': {
-                        'market/all': 2, // RPS: 10
-                        'candles/{timeframe}': 2,
-                        'candles/{timeframe}/{unit}': 2,
-                        'candles/seconds': 2,
-                        'candles/minutes/{unit}': 2,
-                        'candles/minutes/1': 2,
-                        'candles/minutes/3': 2,
-                        'candles/minutes/5': 2,
-                        'candles/minutes/10': 2,
-                        'candles/minutes/15': 2,
-                        'candles/minutes/30': 2,
-                        'candles/minutes/60': 2,
-                        'candles/minutes/240': 2,
-                        'candles/days': 2,
-                        'candles/weeks': 2,
-                        'candles/months': 2,
-                        'candles/years': 2,
-                        'trades/ticks': 2,
-                        'ticker': 2,
-                        'ticker/all': 2,
-                        'orderbook': 2,
-                        'orderbook/instruments': 2,
+                        'market/all': { 'cost': 2 }, // RPS: 10
+                        'candles/{timeframe}': { 'cost': 2 },
+                        'candles/{timeframe}/{unit}': { 'cost': 2 },
+                        'candles/seconds': { 'cost': 2 },
+                        'candles/minutes/{unit}': { 'cost': 2 },
+                        'candles/minutes/1': { 'cost': 2 },
+                        'candles/minutes/3': { 'cost': 2 },
+                        'candles/minutes/5': { 'cost': 2 },
+                        'candles/minutes/10': { 'cost': 2 },
+                        'candles/minutes/15': { 'cost': 2 },
+                        'candles/minutes/30': { 'cost': 2 },
+                        'candles/minutes/60': { 'cost': 2 },
+                        'candles/minutes/240': { 'cost': 2 },
+                        'candles/days': { 'cost': 2 },
+                        'candles/weeks': { 'cost': 2 },
+                        'candles/months': { 'cost': 2 },
+                        'candles/years': { 'cost': 2 },
+                        'trades/ticks': { 'cost': 2 },
+                        'ticker': { 'cost': 2 },
+                        'ticker/all': { 'cost': 2 },
+                        'orderbook': { 'cost': 2 },
+                        'orderbook/instruments': { 'cost': 2 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.67, // RPS: 30
-                        'orders/chance': 0.67,
-                        'order': 0.67,
-                        'orders/closed': 0.67,
-                        'orders/open': 0.67,
-                        'orders/uuids': 0.67,
-                        'withdraws': 0.67,
-                        'withdraw': 0.67,
-                        'withdraws/chance': 0.67,
-                        'withdraws/coin_addresses': 0.67,
-                        'deposits': 0.67,
-                        'deposits/chance/coin': 0.67,
-                        'deposit': 0.67,
-                        'deposits/coin_addresses': 0.67,
-                        'deposits/coin_address': 0.67,
-                        'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67,
-                        'api_keys': 0.67, // Upbit KR only
+                        'accounts': { 'cost': 0.67 }, // RPS: 30
+                        'orders/chance': { 'cost': 0.67 },
+                        'order': { 'cost': 0.67 },
+                        'orders/closed': { 'cost': 0.67 },
+                        'orders/open': { 'cost': 0.67 },
+                        'orders/uuids': { 'cost': 0.67 },
+                        'withdraws': { 'cost': 0.67 },
+                        'withdraw': { 'cost': 0.67 },
+                        'withdraws/chance': { 'cost': 0.67 },
+                        'withdraws/coin_addresses': { 'cost': 0.67 },
+                        'deposits': { 'cost': 0.67 },
+                        'deposits/chance/coin': { 'cost': 0.67 },
+                        'deposit': { 'cost': 0.67 },
+                        'deposits/coin_addresses': { 'cost': 0.67 },
+                        'deposits/coin_address': { 'cost': 0.67 },
+                        'travel_rule/vasps': { 'cost': 0.67 },
+                        'status/wallet': { 'cost': 0.67 },
+                        'api_keys': { 'cost': 0.67 }, // Upbit KR only
                     },
                     'post': {
-                        'orders': 2.5, // RPS: 8
-                        'orders/test': 2.5, // RPS: 8
-                        'orders/cancel_and_new': 2.5, // RPS: 8
-                        'withdraws/coin': 0.67,
-                        'withdraws/krw': 0.67, // Upbit KR only.
-                        'deposits/krw': 0.67, // Upbit KR only.
-                        'deposits/generate_coin_address': 0.67,
-                        'travel_rule/deposit/uuid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
-                        'travel_rule/deposit/txid': 0.67, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'orders': { 'cost': 2.5 }, // RPS: 8
+                        'orders/test': { 'cost': 2.5 }, // RPS: 8
+                        'orders/cancel_and_new': { 'cost': 2.5 }, // RPS: 8
+                        'withdraws/coin': { 'cost': 0.67 },
+                        'withdraws/krw': { 'cost': 0.67 }, // Upbit KR only.
+                        'deposits/krw': { 'cost': 0.67 }, // Upbit KR only.
+                        'deposits/generate_coin_address': { 'cost': 0.67 },
+                        'travel_rule/deposit/uuid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'travel_rule/deposit/txid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
                     },
                     'delete': {
-                        'order': 0.67,
-                        'orders/open': 40, // RPS: 0.5
-                        'orders/uuids': 0.67,
-                        'withdraws/coin': 0.67,
+                        'order': { 'cost': 0.67 },
+                        'orders/open': { 'cost': 40 }, // RPS: 0.5
+                        'orders/uuids': { 'cost': 0.67 },
+                        'withdraws/coin': { 'cost': 0.67 },
                     },
                 },
             },
@@ -520,6 +520,9 @@ class upbit extends upbit$1["default"] {
     }
     parseMarket(market) {
         const id = this.safeString(market, 'market');
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const [quoteId, baseId] = id.split('-');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -588,7 +591,9 @@ class upbit extends upbit$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'balance');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -683,8 +688,9 @@ class upbit extends upbit$1["default"] {
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const orderbook = response[i];
+        const orderbooks = this.toArray(response);
+        for (let i = 0; i < orderbooks.length; i++) {
+            const orderbook = orderbooks[i];
             const marketId = this.safeString(orderbook, 'market');
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const timestamp = this.safeInteger(orderbook, 'timestamp');
@@ -708,7 +714,7 @@ class upbit extends upbit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         const orderbooks = await this.fetchOrderBooks([symbol], limit, params);
@@ -825,6 +831,9 @@ class upbit extends upbit$1["default"] {
         return this.parseTickers(concated, symbols);
     }
     idsQueryStrings(ids, maxQueryLength) {
+        if (ids === undefined) {
+            return [];
+        }
         let idsString = '';
         const queries = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1067,7 +1076,10 @@ class upbit extends upbit$1["default"] {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            response[this.safeString(fetchMarketResponse[i], 'symbol')] = element;
+            const feeSymbol = this.safeString(fetchMarketResponse[i], 'symbol');
+            if (feeSymbol !== undefined) {
+                response[feeSymbol] = element;
+            }
         }
         return response;
     }
@@ -1167,7 +1179,8 @@ class upbit extends upbit$1["default"] {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     calcOrderPrice(symbol, amount, price = undefined, params = {}) {
         let quoteAmount = undefined;
@@ -1190,6 +1203,9 @@ class upbit extends upbit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             quoteAmount = this.costToPrecision(symbol, amount);
+        }
+        if (quoteAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' calcOrderPrice() could not determine quote amount');
         }
         return quoteAmount;
     }
@@ -1336,7 +1352,7 @@ class upbit extends upbit$1["default"] {
      * @see https://global-docs.upbit.com/reference/cancel-order
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by upbit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

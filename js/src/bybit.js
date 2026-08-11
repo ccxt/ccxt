@@ -63,9 +63,9 @@ export default class bybit extends Exchange {
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': 'emulated',
-                'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistory': true,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': true,
@@ -114,7 +114,7 @@ export default class bybit extends Exchange {
                 'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionADLRank': true,
@@ -195,465 +195,466 @@ export default class bybit extends Exchange {
                 'public': {
                     'get': {
                         // spot
-                        'spot/v3/public/symbols': 1,
-                        'spot/v3/public/quote/depth': 1,
-                        'spot/v3/public/quote/depth/merged': 1,
-                        'spot/v3/public/quote/trades': 1,
-                        'spot/v3/public/quote/kline': 1,
-                        'spot/v3/public/quote/ticker/24hr': 1,
-                        'spot/v3/public/quote/ticker/price': 1,
-                        'spot/v3/public/quote/ticker/bookTicker': 1,
-                        'spot/v3/public/server-time': 1,
-                        'spot/v3/public/infos': 1,
-                        'spot/v3/public/margin-product-infos': 1,
-                        'spot/v3/public/margin-ensure-tokens': 1,
+                        'spot/v3/public/symbols': { 'cost': 1 },
+                        'spot/v3/public/quote/depth': { 'cost': 1 },
+                        'spot/v3/public/quote/depth/merged': { 'cost': 1 },
+                        'spot/v3/public/quote/trades': { 'cost': 1 },
+                        'spot/v3/public/quote/kline': { 'cost': 1 },
+                        'spot/v3/public/quote/ticker/24hr': { 'cost': 1 },
+                        'spot/v3/public/quote/ticker/price': { 'cost': 1 },
+                        'spot/v3/public/quote/ticker/bookTicker': { 'cost': 1 },
+                        'spot/v3/public/server-time': { 'cost': 1 },
+                        'spot/v3/public/infos': { 'cost': 1 },
+                        'spot/v3/public/margin-product-infos': { 'cost': 1 },
+                        'spot/v3/public/margin-ensure-tokens': { 'cost': 1 },
                         // data
-                        'v3/public/time': 1,
-                        'contract/v3/public/copytrading/symbol/list': 1,
+                        'v3/public/time': { 'cost': 1 },
+                        'contract/v3/public/copytrading/symbol/list': { 'cost': 1 },
                         // derivative
-                        'derivatives/v3/public/order-book/L2': 1,
-                        'derivatives/v3/public/kline': 1,
-                        'derivatives/v3/public/tickers': 1,
-                        'derivatives/v3/public/instruments-info': 1,
-                        'derivatives/v3/public/mark-price-kline': 1,
-                        'derivatives/v3/public/index-price-kline': 1,
-                        'derivatives/v3/public/funding/history-funding-rate': 1,
-                        'derivatives/v3/public/risk-limit/list': 1,
-                        'derivatives/v3/public/delivery-price': 1,
-                        'derivatives/v3/public/recent-trade': 1,
-                        'derivatives/v3/public/open-interest': 1,
-                        'derivatives/v3/public/insurance': 1,
+                        'derivatives/v3/public/order-book/L2': { 'cost': 1 },
+                        'derivatives/v3/public/kline': { 'cost': 1 },
+                        'derivatives/v3/public/tickers': { 'cost': 1 },
+                        'derivatives/v3/public/instruments-info': { 'cost': 1 },
+                        'derivatives/v3/public/mark-price-kline': { 'cost': 1 },
+                        'derivatives/v3/public/index-price-kline': { 'cost': 1 },
+                        'derivatives/v3/public/funding/history-funding-rate': { 'cost': 1 },
+                        'derivatives/v3/public/risk-limit/list': { 'cost': 1 },
+                        'derivatives/v3/public/delivery-price': { 'cost': 1 },
+                        'derivatives/v3/public/recent-trade': { 'cost': 1 },
+                        'derivatives/v3/public/open-interest': { 'cost': 1 },
+                        'derivatives/v3/public/insurance': { 'cost': 1 },
                         // v5
-                        'v5/announcements/index': 5, // 10/s = 1000 / (20 * 5)
-                        'v5/system/status': 5,
+                        'v5/announcements/index': { 'cost': 5 }, // 10/s = 1000 / (20 * 5)
+                        'v5/system/status': { 'cost': 5 },
                         // market
-                        'v5/market/time': 5,
-                        'v5/market/kline': 5,
-                        'v5/market/mark-price-kline': 5,
-                        'v5/market/index-price-kline': 5,
-                        'v5/market/premium-index-price-kline': 5,
-                        'v5/market/instruments-info': 5,
-                        'v5/market/orderbook': 5,
-                        'v5/market/rpi_orderbook': 5,
-                        'v5/market/full_orderbook': 5,
-                        'v5/market/tickers': 5,
-                        'v5/market/funding/history': 5,
-                        'v5/market/recent-trade': 5,
-                        'v5/market/open-interest': 5,
-                        'v5/market/historical-volatility': 5,
-                        'v5/market/insurance': 5,
-                        'v5/market/risk-limit': 5,
-                        'v5/market/delivery-price': 5,
-                        'v5/market/new-delivery-price': 5,
-                        'v5/market/account-ratio': 5,
-                        'v5/market/index-price-components': 5,
-                        'v5/market/price-limit': 5,
-                        'v5/market/adlAlert': 5,
-                        'v5/market/fee-group-info': 5,
+                        'v5/market/time': { 'cost': 5 },
+                        'v5/market/kline': { 'cost': 5 },
+                        'v5/market/mark-price-kline': { 'cost': 5 },
+                        'v5/market/index-price-kline': { 'cost': 5 },
+                        'v5/market/premium-index-price-kline': { 'cost': 5 },
+                        'v5/market/instruments-info': { 'cost': 5 },
+                        'v5/market/orderbook': { 'cost': 5 },
+                        'v5/market/rpi_orderbook': { 'cost': 5 },
+                        'v5/market/full_orderbook': { 'cost': 5 },
+                        'v5/market/tickers': { 'cost': 5 },
+                        'v5/market/funding/history': { 'cost': 5 },
+                        'v5/market/recent-trade': { 'cost': 5 },
+                        'v5/market/open-interest': { 'cost': 5 },
+                        'v5/market/historical-volatility': { 'cost': 5 },
+                        'v5/market/insurance': { 'cost': 5 },
+                        'v5/market/risk-limit': { 'cost': 5 },
+                        'v5/market/delivery-price': { 'cost': 5 },
+                        'v5/market/new-delivery-price': { 'cost': 5 },
+                        'v5/market/account-ratio': { 'cost': 5 },
+                        'v5/market/index-price-components': { 'cost': 5 },
+                        'v5/market/price-limit': { 'cost': 5 },
+                        'v5/market/adlAlert': { 'cost': 5 },
+                        'v5/market/fee-group-info': { 'cost': 5 },
                         // spot leverage token
-                        'v5/spot-lever-token/info': 5,
-                        'v5/spot-lever-token/reference': 5,
+                        'v5/spot-lever-token/info': { 'cost': 5 },
+                        'v5/spot-lever-token/reference': { 'cost': 5 },
                         // spot margin trade
-                        'v5/spot-margin-trade/data': 5,
-                        'v5/spot-margin-trade/collateral': 5,
-                        'v5/spot-cross-margin-trade/data': 5,
-                        'v5/spot-cross-margin-trade/pledge-token': 5,
-                        'v5/spot-cross-margin-trade/borrow-token': 5,
+                        'v5/spot-margin-trade/data': { 'cost': 5 },
+                        'v5/spot-margin-trade/collateral': { 'cost': 5 },
+                        'v5/spot-cross-margin-trade/data': { 'cost': 5 },
+                        'v5/spot-cross-margin-trade/pledge-token': { 'cost': 5 },
+                        'v5/spot-cross-margin-trade/borrow-token': { 'cost': 5 },
                         // crypto loan
-                        'v5/crypto-loan/collateral-data': 5,
-                        'v5/crypto-loan/loanable-data': 5,
+                        'v5/crypto-loan/collateral-data': { 'cost': 5 },
+                        'v5/crypto-loan/loanable-data': { 'cost': 5 },
                         // crypto loan (new)
-                        'v5/crypto-loan-common/loanable-data': 5,
-                        'v5/crypto-loan-common/collateral-data': 5,
-                        'v5/crypto-loan-fixed/supply-order-quote': 5,
-                        'v5/crypto-loan-fixed/borrow-order-quote': 5,
+                        'v5/crypto-loan-common/loanable-data': { 'cost': 5 },
+                        'v5/crypto-loan-common/collateral-data': { 'cost': 5 },
+                        'v5/crypto-loan-fixed/supply-order-quote': { 'cost': 5 },
+                        'v5/crypto-loan-fixed/borrow-order-quote': { 'cost': 5 },
                         // institutional lending
-                        'v5/ins-loan/product-infos': 5,
-                        'v5/ins-loan/ensure-tokens-convert': 5,
+                        'v5/ins-loan/product-infos': { 'cost': 5 },
+                        'v5/ins-loan/ensure-tokens-convert': { 'cost': 5 },
                         // earn
-                        'v5/earn/product': 5,
+                        'v5/earn/product': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
-                        'v5/market/instruments-info': 5,
+                        'v5/market/instruments-info': { 'cost': 5 },
                         // Legacy inverse swap
-                        'v2/private/wallet/fund/records': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'v2/private/wallet/fund/records': { 'cost': 25 }, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
-                        'spot/v3/private/order': 2.5,
-                        'spot/v3/private/open-orders': 2.5,
-                        'spot/v3/private/history-orders': 2.5,
-                        'spot/v3/private/my-trades': 2.5,
-                        'spot/v3/private/account': 2.5,
-                        'spot/v3/private/reference': 2.5,
-                        'spot/v3/private/record': 2.5,
-                        'spot/v3/private/cross-margin-orders': 10,
-                        'spot/v3/private/cross-margin-account': 10,
-                        'spot/v3/private/cross-margin-loan-info': 10,
-                        'spot/v3/private/cross-margin-repay-history': 10,
-                        'spot/v3/private/margin-loan-infos': 10,
-                        'spot/v3/private/margin-repaid-infos': 10,
-                        'spot/v3/private/margin-ltv': 10,
+                        'spot/v3/private/order': { 'cost': 2.5 },
+                        'spot/v3/private/open-orders': { 'cost': 2.5 },
+                        'spot/v3/private/history-orders': { 'cost': 2.5 },
+                        'spot/v3/private/my-trades': { 'cost': 2.5 },
+                        'spot/v3/private/account': { 'cost': 2.5 },
+                        'spot/v3/private/reference': { 'cost': 2.5 },
+                        'spot/v3/private/record': { 'cost': 2.5 },
+                        'spot/v3/private/cross-margin-orders': { 'cost': 10 },
+                        'spot/v3/private/cross-margin-account': { 'cost': 10 },
+                        'spot/v3/private/cross-margin-loan-info': { 'cost': 10 },
+                        'spot/v3/private/cross-margin-repay-history': { 'cost': 10 },
+                        'spot/v3/private/margin-loan-infos': { 'cost': 10 },
+                        'spot/v3/private/margin-repaid-infos': { 'cost': 10 },
+                        'spot/v3/private/margin-ltv': { 'cost': 10 },
                         // account
-                        'asset/v3/private/transfer/inter-transfer/list/query': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/sub-member/list/query': 50,
-                        'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
-                        'asset/v3/private/transfer/universal-transfer/list/query': 25,
-                        'asset/v3/private/coin-info/query': 25, // 2/s
-                        'asset/v3/private/deposit/address/query': 10,
-                        'contract/v3/private/copytrading/order/list': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
-                        'contract/v3/private/copytrading/position/list': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
-                        'contract/v3/private/copytrading/wallet/balance': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
-                        'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
-                        'contract/v3/private/order/unfilled-orders': 1,
-                        'contract/v3/private/order/list': 1,
-                        'contract/v3/private/position/list': 1,
-                        'contract/v3/private/execution/list': 1,
-                        'contract/v3/private/position/closed-pnl': 1,
-                        'contract/v3/private/account/wallet/balance': 1,
-                        'contract/v3/private/account/fee-rate': 1,
-                        'contract/v3/private/account/wallet/fund-records': 1,
+                        'asset/v3/private/transfer/inter-transfer/list/query': { 'cost': 50 }, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v3/private/transfer/sub-member/list/query': { 'cost': 50 },
+                        'asset/v3/private/transfer/sub-member-transfer/list/query': { 'cost': 50 },
+                        'asset/v3/private/transfer/universal-transfer/list/query': { 'cost': 25 },
+                        'asset/v3/private/coin-info/query': { 'cost': 25 }, // 2/s
+                        'asset/v3/private/deposit/address/query': { 'cost': 10 },
+                        'contract/v3/private/copytrading/order/list': { 'cost': 30 }, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list': { 'cost': 40 }, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance': { 'cost': 25 }, // 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/position/limit-info': { 'cost': 25 }, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders': { 'cost': 1 },
+                        'contract/v3/private/order/list': { 'cost': 1 },
+                        'contract/v3/private/position/list': { 'cost': 1 },
+                        'contract/v3/private/execution/list': { 'cost': 1 },
+                        'contract/v3/private/position/closed-pnl': { 'cost': 1 },
+                        'contract/v3/private/account/wallet/balance': { 'cost': 1 },
+                        'contract/v3/private/account/fee-rate': { 'cost': 1 },
+                        'contract/v3/private/account/wallet/fund-records': { 'cost': 1 },
                         // derivative
-                        'unified/v3/private/order/unfilled-orders': 1,
-                        'unified/v3/private/order/list': 1,
-                        'unified/v3/private/position/list': 1,
-                        'unified/v3/private/execution/list': 1,
-                        'unified/v3/private/delivery-record': 1,
-                        'unified/v3/private/settlement-record': 1,
-                        'unified/v3/private/account/wallet/balance': 1,
-                        'unified/v3/private/account/transaction-log': 1,
-                        'unified/v3/private/account/borrow-history': 1,
-                        'unified/v3/private/account/borrow-rate': 1,
-                        'unified/v3/private/account/info': 1,
-                        'user/v3/private/frozen-sub-member': 10, // 5/s
-                        'user/v3/private/query-sub-members': 5, // 10/s
-                        'user/v3/private/query-api': 5, // 10/s
-                        'user/v3/private/get-member-type': 1,
-                        'asset/v3/private/transfer/transfer-coin/list/query': 50,
-                        'asset/v3/private/transfer/account-coin/balance/query': 50,
-                        'asset/v3/private/transfer/account-coins/balance/query': 25,
-                        'asset/v3/private/transfer/asset-info/query': 50,
-                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
-                        'asset/v3/private/deposit/record/query': 10,
-                        'asset/v3/private/withdraw/record/query': 10,
+                        'unified/v3/private/order/unfilled-orders': { 'cost': 1 },
+                        'unified/v3/private/order/list': { 'cost': 1 },
+                        'unified/v3/private/position/list': { 'cost': 1 },
+                        'unified/v3/private/execution/list': { 'cost': 1 },
+                        'unified/v3/private/delivery-record': { 'cost': 1 },
+                        'unified/v3/private/settlement-record': { 'cost': 1 },
+                        'unified/v3/private/account/wallet/balance': { 'cost': 1 },
+                        'unified/v3/private/account/transaction-log': { 'cost': 1 },
+                        'unified/v3/private/account/borrow-history': { 'cost': 1 },
+                        'unified/v3/private/account/borrow-rate': { 'cost': 1 },
+                        'unified/v3/private/account/info': { 'cost': 1 },
+                        'user/v3/private/frozen-sub-member': { 'cost': 10 }, // 5/s
+                        'user/v3/private/query-sub-members': { 'cost': 5 }, // 10/s
+                        'user/v3/private/query-api': { 'cost': 5 }, // 10/s
+                        'user/v3/private/get-member-type': { 'cost': 1 },
+                        'asset/v3/private/transfer/transfer-coin/list/query': { 'cost': 50 },
+                        'asset/v3/private/transfer/account-coin/balance/query': { 'cost': 50 },
+                        'asset/v3/private/transfer/account-coins/balance/query': { 'cost': 25 },
+                        'asset/v3/private/transfer/asset-info/query': { 'cost': 50 },
+                        'asset/v3/public/deposit/allowed-deposit-list/query': { 'cost': 0.17 }, // 300/s
+                        'asset/v3/private/deposit/record/query': { 'cost': 10 },
+                        'asset/v3/private/withdraw/record/query': { 'cost': 10 },
                         // v5
                         // trade
-                        'v5/order/realtime': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/history': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/spot-borrow-check': 1, // 50/s = 1000 / (20 * 1)
+                        'v5/order/realtime': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/history': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/spot-borrow-check': { 'cost': 1 }, // 50/s = 1000 / (20 * 1)
                         // position
-                        'v5/position/list': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/execution/list': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/closed-pnl': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/get-closed-positions': 5,
-                        'v5/position/move-history': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/symbol-info': 5,
+                        'v5/position/list': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/execution/list': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/closed-pnl': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions': { 'cost': 5 },
+                        'v5/position/move-history': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info': { 'cost': 5 },
                         // pre-upgrade
-                        'v5/pre-upgrade/order/history': 5,
-                        'v5/pre-upgrade/execution/list': 5,
-                        'v5/pre-upgrade/position/closed-pnl': 5,
-                        'v5/pre-upgrade/account/transaction-log': 5,
-                        'v5/pre-upgrade/asset/delivery-record': 5,
-                        'v5/pre-upgrade/asset/settlement-record': 5,
+                        'v5/pre-upgrade/order/history': { 'cost': 5 },
+                        'v5/pre-upgrade/execution/list': { 'cost': 5 },
+                        'v5/pre-upgrade/position/closed-pnl': { 'cost': 5 },
+                        'v5/pre-upgrade/account/transaction-log': { 'cost': 5 },
+                        'v5/pre-upgrade/asset/delivery-record': { 'cost': 5 },
+                        'v5/pre-upgrade/asset/settlement-record': { 'cost': 5 },
                         // account
-                        'v5/account/wallet-balance': 1,
-                        'v5/account/borrow-history': 1,
-                        'v5/account/instruments-info': 1,
-                        'v5/account/collateral-info': 1,
-                        'v5/account/option-asset-info': 1,
-                        'v5/asset/coin-greeks': 1,
-                        'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
-                        'v5/account/info': 5,
-                        'v5/account/transaction-log': 1.66, // 30/s = 50 / 30
-                        'v5/account/contract-transaction-log': 1, // deprecated
-                        'v5/account/query-dcp-info': 5,
-                        'v5/account/user-setting-config': 5,
-                        'v5/account/pay-info': 5,
-                        'v5/account/trade-info-for-analysis': 5,
-                        'v5/account/smp-group': 1,
-                        'v5/account/mmp-state': 5,
-                        'v5/account/withdrawal': 5,
+                        'v5/account/wallet-balance': { 'cost': 1 },
+                        'v5/account/borrow-history': { 'cost': 1 },
+                        'v5/account/instruments-info': { 'cost': 1 },
+                        'v5/account/collateral-info': { 'cost': 1 },
+                        'v5/account/option-asset-info': { 'cost': 1 },
+                        'v5/asset/coin-greeks': { 'cost': 1 },
+                        'v5/account/fee-rate': { 'cost': 10 }, // 5/s = 1000 / (20 * 10)
+                        'v5/account/info': { 'cost': 5 },
+                        'v5/account/transaction-log': { 'cost': 1.66 }, // 30/s = 50 / 30
+                        'v5/account/contract-transaction-log': { 'cost': 1 }, // deprecated
+                        'v5/account/query-dcp-info': { 'cost': 5 },
+                        'v5/account/user-setting-config': { 'cost': 5 },
+                        'v5/account/pay-info': { 'cost': 5 },
+                        'v5/account/trade-info-for-analysis': { 'cost': 5 },
+                        'v5/account/smp-group': { 'cost': 1 },
+                        'v5/account/mmp-state': { 'cost': 5 },
+                        'v5/account/withdrawal': { 'cost': 5 },
                         // asset
-                        'v5/asset/asset-overview': 5,
-                        'v5/asset/exchange/query-coin-list': 0.5, // 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/convert-result-query': 0.5, // 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/query-convert-history': 0.5, // 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/order-record': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/fundinghistory': 5,
-                        'v5/asset/portfolio-margin': 5,
-                        'v5/asset/total-members-assets': 5,
-                        'v5/asset/delivery-record': 5,
-                        'v5/asset/settlement-record': 5,
-                        'v5/asset/transfer/query-asset-info': 50, // deprecated, 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-account-coins-balance': 25, // 2/s => cost = 50 / 2 = 25
-                        'v5/asset/transfer/query-account-coin-balance': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-transfer-coin-list': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-inter-transfer-list': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-sub-member-list': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-universal-transfer-list': 25, // 2/s => cost = 50 / 2 = 25
-                        'v5/asset/deposit/query-allowed-list': 5,
-                        'v5/asset/deposit/query-record': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-sub-member-record': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-internal-record': 5,
-                        'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
-                        'v5/asset/withdraw/query-address': 10,
-                        'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/withdraw/withdrawable-amount': 5,
-                        'v5/asset/withdraw/vasp/list': 5,
-                        'v5/asset/covert/small-balance-list': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/covert/small-balance-history': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/convert/small-balance-list': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/convert/small-balance-history': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/fiat/query-coin-list': 5,
-                        'v5/fiat/reference-price': 5,
-                        'v5/fiat/trade-query': 5,
-                        'v5/fiat/query-trade-history': 5,
-                        'v5/fiat/balance-query': 5,
+                        'v5/asset/asset-overview': { 'cost': 5 },
+                        'v5/asset/exchange/query-coin-list': { 'cost': 0.5 }, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': { 'cost': 0.5 }, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': { 'cost': 0.5 }, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/order-record': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory': { 'cost': 5 },
+                        'v5/asset/portfolio-margin': { 'cost': 5 },
+                        'v5/asset/total-members-assets': { 'cost': 5 },
+                        'v5/asset/delivery-record': { 'cost': 5 },
+                        'v5/asset/settlement-record': { 'cost': 5 },
+                        'v5/asset/transfer/query-asset-info': { 'cost': 50 }, // deprecated, 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-account-coins-balance': { 'cost': 25 }, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/transfer/query-account-coin-balance': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-transfer-coin-list': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-inter-transfer-list': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-sub-member-list': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-universal-transfer-list': { 'cost': 25 }, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/deposit/query-allowed-list': { 'cost': 5 },
+                        'v5/asset/deposit/query-record': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-record': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-internal-record': { 'cost': 5 },
+                        'v5/asset/deposit/query-address': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-address': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/coin/query-info': { 'cost': 28 }, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': { 'cost': 10 },
+                        'v5/asset/withdraw/query-record': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/withdraw/withdrawable-amount': { 'cost': 5 },
+                        'v5/asset/withdraw/vasp/list': { 'cost': 5 },
+                        'v5/asset/covert/small-balance-list': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-list': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/fiat/query-coin-list': { 'cost': 5 },
+                        'v5/fiat/reference-price': { 'cost': 5 },
+                        'v5/fiat/trade-query': { 'cost': 5 },
+                        'v5/fiat/query-trade-history': { 'cost': 5 },
+                        'v5/fiat/balance-query': { 'cost': 5 },
                         // user
-                        'v5/user/query-sub-members': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/user/query-api': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/user/sub-apikeys': 5,
-                        'v5/user/get-member-type': 5,
-                        'v5/user/aff-customer-info': 5,
-                        'v5/user/del-submember': 5,
-                        'v5/user/submembers': 5,
-                        'v5/user/escrow_sub_members': 5,
-                        'v5/user/invitation/referrals': 5,
+                        'v5/user/query-sub-members': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/query-api': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/sub-apikeys': { 'cost': 5 },
+                        'v5/user/get-member-type': { 'cost': 5 },
+                        'v5/user/aff-customer-info': { 'cost': 5 },
+                        'v5/user/del-submember': { 'cost': 5 },
+                        'v5/user/submembers': { 'cost': 5 },
+                        'v5/user/escrow_sub_members': { 'cost': 5 },
+                        'v5/user/invitation/referrals': { 'cost': 5 },
                         // affilate
-                        'v5/affiliate/aff-user-list': 5,
-                        'v5/affiliate/affiliate-sub-list': 5,
+                        'v5/affiliate/aff-user-list': { 'cost': 5 },
+                        'v5/affiliate/affiliate-sub-list': { 'cost': 5 },
                         // spot leverage token
-                        'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-lever-token/order-record': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
-                        'v5/spot-margin-trade/interest-rate-history': 5,
-                        'v5/spot-margin-trade/state': 5,
-                        'v5/spot-margin-trade/max-borrowable': 5,
-                        'v5/spot-margin-trade/position-tiers': 5,
-                        'v5/spot-margin-trade/coinstate': 5,
-                        'v5/spot-margin-trade/currency-data': 5,
-                        'v5/spot-margin-trade/fixedborrow-contract-info': 5,
-                        'v5/spot-margin-trade/fixedborrow-order-info': 5,
-                        'v5/spot-margin-trade/fixedborrow-order-quote': 5,
-                        'v5/spot-margin-trade/liability': 5,
-                        'v5/spot-margin-trade/repayment-available-amount': 5,
-                        'v5/spot-margin-trade/get-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-margin-trade/flexible-available-inventory': { 'cost': 5 },
+                        'v5/spot-margin-trade/interest-rate-history': { 'cost': 5 },
+                        'v5/spot-margin-trade/state': { 'cost': 5 },
+                        'v5/spot-margin-trade/max-borrowable': { 'cost': 5 },
+                        'v5/spot-margin-trade/position-tiers': { 'cost': 5 },
+                        'v5/spot-margin-trade/coinstate': { 'cost': 5 },
+                        'v5/spot-margin-trade/currency-data': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixedborrow-contract-info': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixedborrow-order-info': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixedborrow-order-quote': { 'cost': 5 },
+                        'v5/spot-margin-trade/liability': { 'cost': 5 },
+                        'v5/spot-margin-trade/repayment-available-amount': { 'cost': 5 },
+                        'v5/spot-margin-trade/get-auto-repay-mode': { 'cost': 5 },
+                        'v5/spot-cross-margin-trade/loan-info': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
                         // crypto loan
-                        'v5/crypto-loan/borrowable-collateralisable-number': 5,
-                        'v5/crypto-loan/ongoing-orders': 5,
-                        'v5/crypto-loan/repayment-history': 5,
-                        'v5/crypto-loan/borrow-history': 5,
-                        'v5/crypto-loan/max-collateral-amount': 5,
-                        'v5/crypto-loan/adjustment-history': 5,
+                        'v5/crypto-loan/borrowable-collateralisable-number': { 'cost': 5 },
+                        'v5/crypto-loan/ongoing-orders': { 'cost': 5 },
+                        'v5/crypto-loan/repayment-history': { 'cost': 5 },
+                        'v5/crypto-loan/borrow-history': { 'cost': 5 },
+                        'v5/crypto-loan/max-collateral-amount': { 'cost': 5 },
+                        'v5/crypto-loan/adjustment-history': { 'cost': 5 },
                         // crypto loan (new)
-                        'v5/crypto-loan-common/max-collateral-amount': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-common/adjustment-history': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-common/position': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/ongoing-coin': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/borrow-history': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/borrow-contract-info': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/supply-contract-info': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/borrow-order-info': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/renew-info': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/supply-order-info': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/max-collateral-amount': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/adjustment-history': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/position': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/ongoing-coin': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow-history': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/repayment-history': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-contract-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-contract-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-order-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/renew-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-order-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/repayment-history': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
-                        'v5/ins-loan/product-infos': 5,
-                        'v5/ins-loan/ensure-tokens': 5, // deprecated
-                        'v5/ins-loan/ensure-tokens-convert': 5,
-                        'v5/ins-loan/loan-order': 5,
-                        'v5/ins-loan/repaid-history': 5,
-                        'v5/ins-loan/ltv': 5, // deprecated
-                        'v5/ins-loan/ltv-convert': 5,
-                        'v5/ins-loan/coin-delta-amount': 5,
+                        'v5/ins-loan/product-infos': { 'cost': 5 },
+                        'v5/ins-loan/ensure-tokens': { 'cost': 5 }, // deprecated
+                        'v5/ins-loan/ensure-tokens-convert': { 'cost': 5 },
+                        'v5/ins-loan/loan-order': { 'cost': 5 },
+                        'v5/ins-loan/repaid-history': { 'cost': 5 },
+                        'v5/ins-loan/ltv': { 'cost': 5 }, // deprecated
+                        'v5/ins-loan/ltv-convert': { 'cost': 5 },
+                        'v5/ins-loan/coin-delta-amount': { 'cost': 5 },
                         // c2c lending
-                        'v5/lending/info': 5, // deprecated
-                        'v5/lending/history-order': 5, // deprecated
-                        'v5/lending/account': 5, // deprecated
+                        'v5/lending/info': { 'cost': 5 }, // deprecated
+                        'v5/lending/history-order': { 'cost': 5 }, // deprecated
+                        'v5/lending/account': { 'cost': 5 }, // deprecated
                         // broker
-                        'v5/broker/earning-record': 5, // deprecated
-                        'v5/broker/earnings-info': 5,
-                        'v5/broker/account-info': 5,
-                        'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        'v5/broker/earning-record': { 'cost': 5 }, // deprecated
+                        'v5/broker/earnings-info': { 'cost': 5 },
+                        'v5/broker/account-info': { 'cost': 5 },
+                        'v5/broker/asset/query-sub-member-deposit-record': { 'cost': 10 },
                         // earn
-                        'v5/earn/product': 5,
-                        'v5/earn/order': 5,
-                        'v5/earn/position': 5,
-                        'v5/earn/yield': 5,
-                        'v5/earn/hourly-yield': 5,
+                        'v5/earn/product': { 'cost': 5 },
+                        'v5/earn/order': { 'cost': 5 },
+                        'v5/earn/position': { 'cost': 5 },
+                        'v5/earn/yield': { 'cost': 5 },
+                        'v5/earn/hourly-yield': { 'cost': 5 },
                     },
                     'post': {
                         // spot
-                        'spot/v3/private/order': 2.5,
-                        'spot/v3/private/cancel-order': 2.5,
-                        'spot/v3/private/cancel-orders': 2.5,
-                        'spot/v3/private/cancel-orders-by-ids': 2.5,
-                        'spot/v3/private/purchase': 2.5,
-                        'spot/v3/private/redeem': 2.5,
-                        'spot/v3/private/cross-margin-loan': 10,
-                        'spot/v3/private/cross-margin-repay': 10,
+                        'spot/v3/private/order': { 'cost': 2.5 },
+                        'spot/v3/private/cancel-order': { 'cost': 2.5 },
+                        'spot/v3/private/cancel-orders': { 'cost': 2.5 },
+                        'spot/v3/private/cancel-orders-by-ids': { 'cost': 2.5 },
+                        'spot/v3/private/purchase': { 'cost': 2.5 },
+                        'spot/v3/private/redeem': { 'cost': 2.5 },
+                        'spot/v3/private/cross-margin-loan': { 'cost': 10 },
+                        'spot/v3/private/cross-margin-repay': { 'cost': 10 },
                         // account
-                        'asset/v3/private/transfer/inter-transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/withdraw/create': 300,
-                        'asset/v3/private/withdraw/cancel': 50,
-                        'asset/v3/private/transfer/sub-member-transfer': 150,
-                        'asset/v3/private/transfer/transfer-sub-member-save': 150,
-                        'asset/v3/private/transfer/universal-transfer': 10, // 5/s
-                        'user/v3/private/create-sub-member': 10, // 5/s
-                        'user/v3/private/create-sub-api': 10, // 5/s
-                        'user/v3/private/update-api': 10, // 5/s
-                        'user/v3/private/delete-api': 10, // 5/s
-                        'user/v3/private/update-sub-api': 10, // 5/s
-                        'user/v3/private/delete-sub-api': 10, // 5/s
+                        'asset/v3/private/transfer/inter-transfer': { 'cost': 150 }, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v3/private/withdraw/create': { 'cost': 300 },
+                        'asset/v3/private/withdraw/cancel': { 'cost': 50 },
+                        'asset/v3/private/transfer/sub-member-transfer': { 'cost': 150 },
+                        'asset/v3/private/transfer/transfer-sub-member-save': { 'cost': 150 },
+                        'asset/v3/private/transfer/universal-transfer': { 'cost': 10 }, // 5/s
+                        'user/v3/private/create-sub-member': { 'cost': 10 }, // 5/s
+                        'user/v3/private/create-sub-api': { 'cost': 10 }, // 5/s
+                        'user/v3/private/update-api': { 'cost': 10 }, // 5/s
+                        'user/v3/private/delete-api': { 'cost': 10 }, // 5/s
+                        'user/v3/private/update-sub-api': { 'cost': 10 }, // 5/s
+                        'user/v3/private/delete-sub-api': { 'cost': 10 }, // 5/s
                         // contract
-                        'contract/v3/private/copytrading/order/create': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
-                        'contract/v3/private/copytrading/order/cancel': 30,
-                        'contract/v3/private/copytrading/order/close': 30,
-                        'contract/v3/private/copytrading/position/close': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
-                        'contract/v3/private/copytrading/position/set-leverage': 40,
-                        'contract/v3/private/copytrading/wallet/transfer': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
-                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
-                        'contract/v3/private/order/create': 1,
-                        'contract/v3/private/order/cancel': 1,
-                        'contract/v3/private/order/cancel-all': 1,
-                        'contract/v3/private/order/replace': 1,
-                        'contract/v3/private/position/set-auto-add-margin': 1,
-                        'contract/v3/private/position/switch-isolated': 1,
-                        'contract/v3/private/position/switch-mode': 1,
-                        'contract/v3/private/position/switch-tpsl-mode': 1,
-                        'contract/v3/private/position/set-leverage': 1,
-                        'contract/v3/private/position/trading-stop': 1,
-                        'contract/v3/private/position/set-risk-limit': 1,
-                        'contract/v3/private/account/setMarginMode': 1,
+                        'contract/v3/private/copytrading/order/create': { 'cost': 30 }, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/order/cancel': { 'cost': 30 },
+                        'contract/v3/private/copytrading/order/close': { 'cost': 30 },
+                        'contract/v3/private/copytrading/position/close': { 'cost': 40 }, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/position/set-leverage': { 'cost': 40 },
+                        'contract/v3/private/copytrading/wallet/transfer': { 'cost': 25 }, // 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/copytrading/order/trading-stop': { 'cost': 2.5 },
+                        'contract/v3/private/order/create': { 'cost': 1 },
+                        'contract/v3/private/order/cancel': { 'cost': 1 },
+                        'contract/v3/private/order/cancel-all': { 'cost': 1 },
+                        'contract/v3/private/order/replace': { 'cost': 1 },
+                        'contract/v3/private/position/set-auto-add-margin': { 'cost': 1 },
+                        'contract/v3/private/position/switch-isolated': { 'cost': 1 },
+                        'contract/v3/private/position/switch-mode': { 'cost': 1 },
+                        'contract/v3/private/position/switch-tpsl-mode': { 'cost': 1 },
+                        'contract/v3/private/position/set-leverage': { 'cost': 1 },
+                        'contract/v3/private/position/trading-stop': { 'cost': 1 },
+                        'contract/v3/private/position/set-risk-limit': { 'cost': 1 },
+                        'contract/v3/private/account/setMarginMode': { 'cost': 1 },
                         // derivative
-                        'unified/v3/private/order/create': 30, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
-                        'unified/v3/private/order/replace': 30,
-                        'unified/v3/private/order/cancel': 30,
-                        'unified/v3/private/order/create-batch': 30,
-                        'unified/v3/private/order/replace-batch': 30,
-                        'unified/v3/private/order/cancel-batch': 30,
-                        'unified/v3/private/order/cancel-all': 30,
-                        'unified/v3/private/position/set-leverage': 2.5,
-                        'unified/v3/private/position/tpsl/switch-mode': 2.5,
-                        'unified/v3/private/position/set-risk-limit': 2.5,
-                        'unified/v3/private/position/trading-stop': 2.5,
-                        'unified/v3/private/account/upgrade-unified-account': 2.5,
-                        'unified/v3/private/account/setMarginMode': 2.5,
+                        'unified/v3/private/order/create': { 'cost': 30 }, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
+                        'unified/v3/private/order/replace': { 'cost': 30 },
+                        'unified/v3/private/order/cancel': { 'cost': 30 },
+                        'unified/v3/private/order/create-batch': { 'cost': 30 },
+                        'unified/v3/private/order/replace-batch': { 'cost': 30 },
+                        'unified/v3/private/order/cancel-batch': { 'cost': 30 },
+                        'unified/v3/private/order/cancel-all': { 'cost': 30 },
+                        'unified/v3/private/position/set-leverage': { 'cost': 2.5 },
+                        'unified/v3/private/position/tpsl/switch-mode': { 'cost': 2.5 },
+                        'unified/v3/private/position/set-risk-limit': { 'cost': 2.5 },
+                        'unified/v3/private/position/trading-stop': { 'cost': 2.5 },
+                        'unified/v3/private/account/upgrade-unified-account': { 'cost': 2.5 },
+                        'unified/v3/private/account/setMarginMode': { 'cost': 2.5 },
                         // tax
-                        'fht/compliance/tax/v3/private/registertime': 50,
-                        'fht/compliance/tax/v3/private/create': 50,
-                        'fht/compliance/tax/v3/private/status': 50,
-                        'fht/compliance/tax/v3/private/url': 50,
+                        'fht/compliance/tax/v3/private/registertime': { 'cost': 50 },
+                        'fht/compliance/tax/v3/private/create': { 'cost': 50 },
+                        'fht/compliance/tax/v3/private/status': { 'cost': 50 },
+                        'fht/compliance/tax/v3/private/url': { 'cost': 50 },
                         // v5
                         // trade
-                        'v5/order/create': 2.5, // 20/s = 1000 / (20 * 2.5)
-                        'v5/order/amend': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel': 2.5,
-                        'v5/order/cancel-all': 50, // 1/s = 1000 / (20 * 50)
-                        'v5/order/create-batch': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/amend-batch': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel-batch': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/disconnected-cancel-all': 5,
-                        'v5/order/pre-check': 5,
+                        'v5/order/create': { 'cost': 2.5 }, // 20/s = 1000 / (20 * 2.5)
+                        'v5/order/amend': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel': { 'cost': 2.5 },
+                        'v5/order/cancel-all': { 'cost': 50 }, // 1/s = 1000 / (20 * 50)
+                        'v5/order/create-batch': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/amend-batch': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel-batch': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/disconnected-cancel-all': { 'cost': 5 },
+                        'v5/order/pre-check': { 'cost': 5 },
                         // position
-                        'v5/position/set-leverage': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated': 5, // deprecated
-                        'v5/position/set-tpsl-mode': 5, // deprecated, 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-mode': 5,
-                        'v5/position/set-risk-limit': 5, // deprecated, 10/s => cost = 50 / 10 = 5
-                        'v5/position/trading-stop': 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/set-auto-add-margin': 5,
-                        'v5/position/add-margin': 5,
-                        'v5/position/move-positions': 5,
-                        'v5/position/confirm-pending-mmr': 5,
+                        'v5/position/set-leverage': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated': { 'cost': 5 }, // deprecated
+                        'v5/position/set-tpsl-mode': { 'cost': 5 }, // deprecated, 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-mode': { 'cost': 5 },
+                        'v5/position/set-risk-limit': { 'cost': 5 }, // deprecated, 10/s => cost = 50 / 10 = 5
+                        'v5/position/trading-stop': { 'cost': 5 }, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/set-auto-add-margin': { 'cost': 5 },
+                        'v5/position/add-margin': { 'cost': 5 },
+                        'v5/position/move-positions': { 'cost': 5 },
+                        'v5/position/confirm-pending-mmr': { 'cost': 5 },
                         // account
-                        'v5/account/upgrade-to-uta': 5,
-                        'v5/account/quick-repayment': 5,
-                        'v5/account/set-margin-mode': 5,
-                        'v5/account/set-hedging-mode': 5,
-                        'v5/account/mmp-modify': 5,
-                        'v5/account/mmp-reset': 5,
-                        'v5/account/borrow': 5,
-                        'v5/account/repay': 5,
-                        'v5/account/no-convert-repay': 5,
-                        'v5/account/set-limit-px-action': 5,
-                        'v5/account/set-delta-mode': 5,
+                        'v5/account/upgrade-to-uta': { 'cost': 5 },
+                        'v5/account/quick-repayment': { 'cost': 5 },
+                        'v5/account/set-margin-mode': { 'cost': 5 },
+                        'v5/account/set-hedging-mode': { 'cost': 5 },
+                        'v5/account/mmp-modify': { 'cost': 5 },
+                        'v5/account/mmp-reset': { 'cost': 5 },
+                        'v5/account/borrow': { 'cost': 5 },
+                        'v5/account/repay': { 'cost': 5 },
+                        'v5/account/no-convert-repay': { 'cost': 5 },
+                        'v5/account/set-limit-px-action': { 'cost': 5 },
+                        'v5/account/set-delta-mode': { 'cost': 5 },
                         // asset
-                        'v5/asset/exchange/quote-apply': 1, // 50/s
-                        'v5/asset/exchange/convert-execute': 1, // 50/s
-                        'v5/asset/transfer/inter-transfer': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/save-transfer-sub-member': 150, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
-                        'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/travel-rule/deposit/submit': 5,
-                        'v5/asset/withdraw/create': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/withdraw/cancel': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/asset/covert/get-quote': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/covert/small-balance-execute': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/fiat/quote-apply': 10,
-                        'v5/fiat/trade-execute': 10,
+                        'v5/asset/exchange/quote-apply': { 'cost': 1 }, // 50/s
+                        'v5/asset/exchange/convert-execute': { 'cost': 1 }, // 50/s
+                        'v5/asset/transfer/inter-transfer': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/save-transfer-sub-member': { 'cost': 150 }, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/universal-transfer': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/deposit-to-account': { 'cost': 5 },
+                        'v5/asset/travel-rule/deposit/submit': { 'cost': 5 },
+                        'v5/asset/withdraw/create': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/withdraw/cancel': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/fiat/quote-apply': { 'cost': 10 },
+                        'v5/fiat/trade-execute': { 'cost': 10 },
                         // user
-                        'v5/user/create-sub-member': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/create-sub-api': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/frozen-sub-member': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/update-api': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/update-sub-api': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/delete-api': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/delete-sub-api': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/agreement': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/user/create-demo-member': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-member': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-api': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/frozen-sub-member': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-api': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-sub-api': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-api': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-sub-api': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
-                        'v5/spot-lever-token/purchase': 2.5, // 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-lever-token/redeem': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/purchase': { 'cost': 2.5 }, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/redeem': { 'cost': 2.5 }, // 20/s => cost = 50 / 20 = 2.5
                         // spot margin trade
-                        'v5/spot-margin-trade/switch-mode': 5,
-                        'v5/spot-margin-trade/set-leverage': 5,
-                        'v5/spot-margin-trade/set-auto-repay-mode': 5,
-                        'v5/spot-margin-trade/fixedborrow': 5,
-                        'v5/spot-margin-trade/fixedborrow-renew': 5,
-                        'v5/spot-cross-margin-trade/loan': 2.5, // 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-cross-margin-trade/repay': 2.5, // 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-margin-trade/switch-mode': { 'cost': 5 },
+                        'v5/spot-margin-trade/set-leverage': { 'cost': 5 },
+                        'v5/spot-margin-trade/set-auto-repay-mode': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixedborrow': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixedborrow-renew': { 'cost': 5 },
+                        'v5/spot-cross-margin-trade/loan': { 'cost': 2.5 }, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': { 'cost': 2.5 }, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': { 'cost': 2.5 }, // 20/s => cost = 50 / 20 = 2.5
                         // crypto loan
-                        'v5/crypto-loan/borrow': 5,
-                        'v5/crypto-loan/repay': 5,
-                        'v5/crypto-loan/adjust-ltv': 5,
+                        'v5/crypto-loan/borrow': { 'cost': 5 },
+                        'v5/crypto-loan/repay': { 'cost': 5 },
+                        'v5/crypto-loan/adjust-ltv': { 'cost': 5 },
                         // crypto loan (new)
-                        'v5/crypto-loan-common/adjust-ltv': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-common/max-loan': 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/borrow': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-flexible/repay': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-flexible/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/borrow': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/renew': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/supply': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/borrow-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/supply-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/fully-repay': 50, // 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/adjust-ltv': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay-collateral': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/renew': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow-order-cancel': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply-order-cancel': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/fully-repay': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/repay-collateral': { 'cost': 50 }, // 1/s => cost = 50 / 1 = 50
                         // institutional lending
-                        'v5/ins-loan/association-uid': 5,
-                        'v5/ins-loan/repay-loan': 5,
+                        'v5/ins-loan/association-uid': { 'cost': 5 },
+                        'v5/ins-loan/repay-loan': { 'cost': 5 },
                         // c2c lending
-                        'v5/lending/purchase': 5, // deprecated
-                        'v5/lending/redeem': 5, // deprecated
-                        'v5/lending/redeem-cancel': 5, // deprecated
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
+                        'v5/lending/purchase': { 'cost': 5 }, // deprecated
+                        'v5/lending/redeem': { 'cost': 5 }, // deprecated
+                        'v5/lending/redeem-cancel': { 'cost': 5 }, // deprecated
+                        'v5/account/set-collateral-switch': { 'cost': 5 },
+                        'v5/account/set-collateral-switch-batch': { 'cost': 5 },
                         // demo trading
-                        'v5/account/demo-apply-money': 5,
+                        'v5/account/demo-apply-money': { 'cost': 5 },
                         // broker
-                        'v5/broker/award/info': 5,
-                        'v5/broker/award/distribute-award': 5,
-                        'v5/broker/award/distribution-record': 5,
+                        'v5/broker/award/info': { 'cost': 5 },
+                        'v5/broker/award/distribute-award': { 'cost': 5 },
+                        'v5/broker/award/distribution-record': { 'cost': 5 },
                         // earn
-                        'v5/earn/place-order': 5,
+                        'v5/earn/place-order': { 'cost': 5 },
                     },
                 },
             },
@@ -1128,16 +1129,20 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': false,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': false, // load all possible option markets, adds significant load time
+                    'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                },
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap', // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
@@ -1146,8 +1151,6 @@ export default class bybit extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'loadAllOptions': false, // load all possible option markets, adds signficant load time
-                'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1184,8 +1187,8 @@ export default class bybit extends Exchange {
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'ARBONE': 'ARBI',
-                    'ARBNOVA': 'ARBINOVA',
+                    'ARBITRUM': 'ARBI',
+                    'ARBITRUM_NOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
                     'COSMOS': 'ATOM',
@@ -1249,6 +1252,7 @@ export default class bybit extends Exchange {
                     'BSC': 'BEP20',
                     'OP': 'OP',
                     'MATIC': 'MATIC',
+                    'SPL': 'SOL', // see https://github.com/ccxt/ccxt/issues/23989
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1543,6 +1547,9 @@ export default class bybit extends Exchange {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
             const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
+            if (symbolQuoteAndSettle === undefined) {
+                throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
+            }
             const splitQuote = symbolQuoteAndSettle.split(':');
             const quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
@@ -1591,8 +1598,9 @@ export default class bybit extends Exchange {
             'settleId': settle,
             'active': false,
             'type': 'option',
-            'linear': undefined,
-            'inverse': undefined,
+            'subType': (base === settle) ? 'inverse' : 'linear',
+            'linear': (base !== settle),
+            'inverse': (base === settle),
             'spot': false,
             'swap': false,
             'future': false,
@@ -1627,7 +1635,7 @@ export default class bybit extends Exchange {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -1819,26 +1827,28 @@ export default class bybit extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chain');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
-                'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
+                    'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(chain, 'depositMin'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(chain, 'depositMin'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -1936,7 +1946,7 @@ export default class bybit extends Exchange {
         const request = {
             'category': 'spot',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
@@ -2054,7 +2064,7 @@ export default class bybit extends Exchange {
         params = this.extend(params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [];
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(params);
@@ -2253,7 +2263,7 @@ export default class bybit extends Exchange {
         const request = {
             'category': 'option',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
@@ -2263,7 +2273,8 @@ export default class bybit extends Exchange {
         }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
-        if (this.options['loadAllOptions']) {
+        const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions');
+        if (loadAllOptions) {
             request['limit'] = 1000;
             let paginationCursor = this.safeString(data, 'nextPageCursor');
             if (paginationCursor !== undefined) {
@@ -2336,12 +2347,16 @@ export default class bybit extends Exchange {
             const priceFilter = this.safeDict(market, 'priceFilter', {});
             const status = this.safeString(market, 'status');
             const expiry = this.safeInteger(market, 'deliveryTime');
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' method() missing id');
+            }
             const splitId = id.split('-');
             const strike = this.safeString(splitId, 2);
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
-            if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+            const loadExpiredOptions = this.handleOption('fetchMarkets', 'loadExpiredOptions');
+            if (isActive || loadAllOptions || loadExpiredOptions) {
                 result.push(this.safeMarketStructure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
@@ -2583,7 +2598,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const tickers = this.safeList(result, 'list', []);
-        const rawTicker = this.safeDict(tickers, 0);
+        const rawTicker = this.safeDict(tickers, 0, {});
         return this.parseTicker(rawTicker, market);
     }
     /**
@@ -2608,7 +2623,7 @@ export default class bybit extends Exchange {
             parsedSymbols = [];
             const marketTypeInfo = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
             const defaultType = marketTypeInfo[0]; // don't omit here
-            // we can't use marketSymbols here due to the conflicing ids between markets
+            // we can't use marketSymbols here due to the conflicting ids between markets
             let currentType = undefined;
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -2771,7 +2786,15 @@ export default class bybit extends Exchange {
             limit = 200; // default is 200 when requested with `since`
         }
         if (since !== undefined) {
-            request['start'] = since;
+            // bybit returns the candle that contains `start`, whose timestamp is
+            // before a mid-interval `since` and gets dropped by the client-side
+            // since-filter, emptying a limit=1 request entirely, see issue
+            // https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            // start up to the interval boundary so that the exchange returns
+            // candles from the first bucket at or after `since`
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const rounded = this.parseToInt(since / duration) * duration;
+            request['start'] = (rounded === since) ? since : this.sum(rounded, duration);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
@@ -3404,7 +3427,7 @@ export default class bybit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3617,7 +3640,9 @@ export default class bybit extends Exchange {
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString(coinEntry, 'coin');
                         const code = this.safeCurrencyCode(currencyId);
-                        result[code] = account;
+                        if (code !== undefined) {
+                            result[code] = account;
+                        }
                     }
                 }
                 else {
@@ -3632,7 +3657,9 @@ export default class bybit extends Exchange {
                     account['used'] = this.safeString(entry, 'locked');
                     const currencyId = this.safeStringN(entry, ['tokenId', 'coin', 'currencyCoin']);
                     const code = this.safeCurrencyCode(currencyId);
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -3976,17 +4003,22 @@ export default class bybit extends Exchange {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2(order, 'createdTime', 'createdAt');
-        const marketUnit = this.safeString(order, 'marketUnit', 'baseCoin');
+        const marketUnit = this.safeString(order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
+        // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        // see https://github.com/ccxt/ccxt/issues/27725
         const id = this.safeString(order, 'orderId');
         const type = this.safeStringLower(order, 'orderType');
         const price = this.safeString(order, 'price');
+        const side = this.safeStringLower(order, 'side');
         let amount = undefined;
         let cost = undefined;
-        if (marketUnit === 'baseCoin') {
-            amount = this.safeString(order, 'qty');
+        const qtyIsQuote = market['spot'] && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
+        if (qtyIsQuote) {
+            // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, 'cumExecValue');
         }
         else {
+            amount = this.safeString(order, 'qty');
             cost = this.safeString(order, 'cumExecValue');
         }
         const filled = this.safeString(order, 'cumExecQty');
@@ -3994,7 +4026,6 @@ export default class bybit extends Exchange {
         const lastTradeTimestamp = this.safeInteger2(order, 'updatedTime', 'updatedAt');
         const rawStatus = this.safeString(order, 'orderStatus');
         const status = this.parseOrderStatus(rawStatus);
-        const side = this.safeStringLower(order, 'side');
         let fee = undefined;
         const cumFeeDetail = this.safeDict(order, 'cumFeeDetail', {});
         const feeCoins = Object.keys(cumFeeDetail);
@@ -4199,6 +4230,12 @@ export default class bybit extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}, isUTA = true) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase();
@@ -4603,6 +4640,12 @@ export default class bybit extends Exchange {
         return this.parseOrders(data);
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4980,6 +5023,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        if (timeout === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request = {
             'timeWindow': this.parseToInt(timeout / 1000),
         };
@@ -5095,7 +5141,7 @@ export default class bybit extends Exchange {
      * @name bybit#cancelAllOrders
      * @description cancel all open orders
      * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if trigger order
      * @param {boolean} [params.stop] alias for trigger
@@ -5198,7 +5244,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5297,7 +5343,10 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const innerList = this.safeList(result, 'list', []);
-        if (innerList.length === 0) {
+        // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        // see https://github.com/ccxt/ccxt/pull/29602
+        const innerListLength = innerList.length;
+        if (innerListLength === 0) {
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5369,7 +5418,7 @@ export default class bybit extends Exchange {
             throw new NotSupported(this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -5465,7 +5514,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5501,7 +5550,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5546,7 +5595,7 @@ export default class bybit extends Exchange {
         let type = undefined;
         [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -6004,7 +6053,7 @@ export default class bybit extends Exchange {
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     /**
      * @method
@@ -6966,10 +7015,10 @@ export default class bybit extends Exchange {
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
-        const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
+        const timestamp = this.safeInteger2(position, 'createdTime', 'createdAt');
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
+            lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
@@ -7692,7 +7741,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger(response, 'time');
         const transfer = this.safeDict(response, 'result', {});
-        const statusRaw = this.safeStringN(response, ['retCode', 'retMsg']);
+        const statusRaw = this.safeString2(response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), {
             'timestamp': timestamp,
@@ -7855,7 +7904,7 @@ export default class bybit extends Exchange {
         return {
             'id': undefined,
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeString(info, 'amount'),
+            'amount': this.safeNumber(info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -8078,7 +8127,9 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -8123,10 +8174,12 @@ export default class bybit extends Exchange {
                 const networkId = this.safeString(chain, 'chain');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainsLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -8832,8 +8885,9 @@ export default class bybit extends Exchange {
         //
         const tiers = {};
         const marketIds = this.marketIds(symbols);
-        const filteredResults = this.filterByArray(response, marketIdKey, marketIds, false);
-        const grouped = this.groupBy(filteredResults, marketIdKey);
+        const idKey = (marketIdKey === undefined) ? 'symbol' : marketIdKey;
+        const filteredResults = this.filterByArray(response, idKey, marketIds, false);
+        const grouped = this.groupBy(filteredResults, idKey);
         const keys = Object.keys(grouped);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -9173,7 +9227,7 @@ export default class bybit extends Exchange {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
@@ -9245,7 +9299,11 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result');
         const rawPositions = this.safeList(result, 'list');
-        const positions = this.parsePositions(rawPositions, symbols, params);
+        let rawPositionsList = [];
+        if (rawPositions !== undefined) {
+            rawPositionsList = rawPositions;
+        }
+        const positions = this.parsePositions(rawPositionsList, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
     /**
@@ -9313,34 +9371,36 @@ export default class bybit extends Exchange {
             const disableTo = this.safeBool(entry, 'disableTo');
             const inactive = (disableFrom || disableTo);
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': this.safeString(entry, 'coinType'),
-                'name': this.safeString(entry, 'fullName'),
-                'active': !inactive,
-                'deposit': undefined,
-                'withdraw': this.safeNumber(entry, 'balance'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(entry, 'singleFromMinLimit'),
-                        'max': this.safeNumber(entry, 'singleFromMaxLimit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': this.safeString(entry, 'coinType'),
+                    'name': this.safeString(entry, 'fullName'),
+                    'active': !inactive,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber(entry, 'balance'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(entry, 'singleFromMinLimit'),
+                            'max': this.safeNumber(entry, 'singleFromMaxLimit'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -9454,7 +9514,7 @@ export default class bybit extends Exchange {
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        [accountType, params] = this.handleOptionAndParams(params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request = {
             'quoteTxId': id,
             'accountType': accountType,

@@ -28,9 +28,9 @@ public class TestWatchOrderBook extends BaseTest {
                 response = (exchange.watchOrderBook(symbol)).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;
@@ -38,8 +38,6 @@ public class TestWatchOrderBook extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);
             }

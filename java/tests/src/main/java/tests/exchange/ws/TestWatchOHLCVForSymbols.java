@@ -37,11 +37,15 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             try
             {
                 response = (exchange.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, chosenTimeframeKey)))), since, limit)).join();
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;
@@ -49,6 +53,10 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
                 Object AssertionMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
                 Assert(exchange.isDictionary(response), Helpers.add("Response must be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(response, symbol), Helpers.add("Response should contain the symbol as key. ", AssertionMessage));

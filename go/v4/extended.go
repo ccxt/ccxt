@@ -177,14 +177,173 @@ func (this *ExtendedCore) Describe() any {
 		"api": map[string]any{
 			"v1": map[string]any{
 				"public": map[string]any{
-					"get": []any{"info/markets", "info/assets", "info/assets/{asset}/price", "info/markets/{market}/stats", "info/markets/{market}/orderbook", "info/markets/{market}/trades", "info/candles/{market}/{candleType}", "info/{market}/funding", "info/{market}/open-interests", "info/builder/dashboard"},
+					"get": map[string]any{
+						"info/markets": map[string]any{
+							"cost": 1,
+						},
+						"info/assets": map[string]any{
+							"cost": 1,
+						},
+						"info/assets/{asset}/price": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/stats": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/orderbook": map[string]any{
+							"cost": 1,
+						},
+						"info/markets/{market}/trades": map[string]any{
+							"cost": 1,
+						},
+						"info/candles/{market}/{candleType}": map[string]any{
+							"cost": 1,
+						},
+						"info/{market}/funding": map[string]any{
+							"cost": 1,
+						},
+						"info/{market}/open-interests": map[string]any{
+							"cost": 1,
+						},
+						"info/builder/dashboard": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 				"private": map[string]any{
-					"get":    []any{"user/accounts", "user/account/info", "user/balance", "user/spot/balances", "user/assetOperations", "user/positions", "user/positions/history", "user/orders", "user/orders/history", "user/orders/{id}", "user/orders/external/{externalId}", "user/trades", "user/funding/history", "user/rebates/stats", "user/leverage", "user/fees", "user/bridge/config", "user/bridge/quote", "user/affiliate", "user/referrals/status", "user/referrals/links", "user/referrals/dashboard", "user/rewards/earned", "user/rewards/leaderboard/stats", "portfolio/charts/equities", "portfolio/charts/pnl", "vault/public/performance", "vault/public/summary", "builder/trades"},
-					"post":   []any{"user/order", "user/order/massCancel", "user/deadmanswitch", "user/bridge/quote", "user/withdrawal", "user/transfer", "user/referrals/use", "user/referrals"},
-					"put":    []any{"user/referrals"},
-					"patch":  []any{"user/leverage"},
-					"delete": []any{"user/order/{id}", "user/order"},
+					"get": map[string]any{
+						"user/accounts": map[string]any{
+							"cost": 1,
+						},
+						"user/account/info": map[string]any{
+							"cost": 1,
+						},
+						"user/balance": map[string]any{
+							"cost": 1,
+						},
+						"user/spot/balances": map[string]any{
+							"cost": 1,
+						},
+						"user/assetOperations": map[string]any{
+							"cost": 1,
+						},
+						"user/positions": map[string]any{
+							"cost": 1,
+						},
+						"user/positions/history": map[string]any{
+							"cost": 1,
+						},
+						"user/orders": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/history": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/{id}": map[string]any{
+							"cost": 1,
+						},
+						"user/orders/external/{externalId}": map[string]any{
+							"cost": 1,
+						},
+						"user/trades": map[string]any{
+							"cost": 1,
+						},
+						"user/funding/history": map[string]any{
+							"cost": 1,
+						},
+						"user/rebates/stats": map[string]any{
+							"cost": 1,
+						},
+						"user/leverage": map[string]any{
+							"cost": 1,
+						},
+						"user/fees": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/config": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/quote": map[string]any{
+							"cost": 1,
+						},
+						"user/affiliate": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/status": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/links": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/dashboard": map[string]any{
+							"cost": 1,
+						},
+						"user/rewards/earned": map[string]any{
+							"cost": 1,
+						},
+						"user/rewards/leaderboard/stats": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/charts/equities": map[string]any{
+							"cost": 1,
+						},
+						"portfolio/charts/pnl": map[string]any{
+							"cost": 1,
+						},
+						"vault/public/performance": map[string]any{
+							"cost": 1,
+						},
+						"vault/public/summary": map[string]any{
+							"cost": 1,
+						},
+						"builder/trades": map[string]any{
+							"cost": 1,
+						},
+					},
+					"post": map[string]any{
+						"user/order": map[string]any{
+							"cost": 1,
+						},
+						"user/order/massCancel": map[string]any{
+							"cost": 1,
+						},
+						"user/deadmanswitch": map[string]any{
+							"cost": 1,
+						},
+						"user/bridge/quote": map[string]any{
+							"cost": 1,
+						},
+						"user/withdrawal": map[string]any{
+							"cost": 1,
+						},
+						"user/transfer": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals/use": map[string]any{
+							"cost": 1,
+						},
+						"user/referrals": map[string]any{
+							"cost": 1,
+						},
+					},
+					"put": map[string]any{
+						"user/referrals": map[string]any{
+							"cost": 1,
+						},
+					},
+					"patch": map[string]any{
+						"user/leverage": map[string]any{
+							"cost": 1,
+						},
+					},
+					"delete": map[string]any{
+						"user/order/{id}": map[string]any{
+							"cost": 1,
+						},
+						"user/order": map[string]any{
+							"cost": 1,
+						},
+					},
 				},
 			},
 		},
@@ -892,7 +1051,7 @@ func (this *ExtendedCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ExtendedCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1703,7 +1862,9 @@ func (this *ExtendedCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "availableToWithdraw"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1843,17 +2004,17 @@ func (this *ExtendedCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16128 := (<-this.LoadMarkets())
-		PanicOnError(retRes16128)
+		retRes16148 := (<-this.LoadMarkets())
+		PanicOnError(retRes16148)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes161619 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes161619)
-			ch <- retRes161619
+			retRes161819 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes161819)
+			ch <- retRes161819
 			return nil
 		}
 		var currency any = nil
@@ -1966,17 +2127,17 @@ func (this *ExtendedCore) FetchTransactions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17058 := (<-this.LoadMarkets())
-		PanicOnError(retRes17058)
+		retRes17078 := (<-this.LoadMarkets())
+		PanicOnError(retRes17078)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes170919 := (<-this.FetchPaginatedCallCursor("fetchTransactions", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes170919)
-			ch <- retRes170919
+			retRes171119 := (<-this.FetchPaginatedCallCursor("fetchTransactions", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes171119)
+			ch <- retRes171119
 			return nil
 		}
 		var currency any = nil
@@ -2060,11 +2221,11 @@ func (this *ExtendedCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes177015 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
+		retRes177215 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
 			"type": "DEPOSIT",
 		}, params)))
-		PanicOnError(retRes177015)
-		ch <- retRes177015
+		PanicOnError(retRes177215)
+		ch <- retRes177215
 		return nil
 
 	}()
@@ -2097,11 +2258,11 @@ func (this *ExtendedCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes178615 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
+		retRes178815 := (<-this.FetchTransactions(code, since, limit, this.Extend(map[string]any{
 			"type": "WITHDRAWAL",
 		}, params)))
-		PanicOnError(retRes178615)
-		ch <- retRes178615
+		PanicOnError(retRes178815)
+		ch <- retRes178815
 		return nil
 
 	}()
@@ -2133,8 +2294,8 @@ func (this *ExtendedCore) Withdraw(code any, amount any, address any, optionalAr
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes18058 := (<-this.LoadMarkets())
-		PanicOnError(retRes18058)
+		retRes18078 := (<-this.LoadMarkets())
+		PanicOnError(retRes18078)
 		var currency any = this.Currency(code)
 		var chainId any = this.SafeStringUpper2(params, "chainId", "network", "STRK")
 		if IsTrue(!IsEqual(chainId, "STRK")) {
@@ -2222,17 +2383,17 @@ func (this *ExtendedCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18718 := (<-this.LoadMarkets())
-		PanicOnError(retRes18718)
+		retRes18738 := (<-this.LoadMarkets())
+		PanicOnError(retRes18738)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes187519 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes187519)
-			ch <- retRes187519
+			retRes187719 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes187719)
+			ch <- retRes187719
 			return nil
 		}
 		var currency any = nil
@@ -2294,8 +2455,8 @@ func (this *ExtendedCore) Transfer(code any, amount any, fromAccount any, toAcco
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes19208 := (<-this.LoadMarkets())
-		PanicOnError(retRes19208)
+		retRes19228 := (<-this.LoadMarkets())
+		PanicOnError(retRes19228)
 		var currency any = this.Currency(code)
 
 		account := (<-this.FetchExtendedAccount())
@@ -2503,8 +2664,8 @@ func (this *ExtendedCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21118 := (<-this.LoadMarkets())
-		PanicOnError(retRes21118)
+		retRes21138 := (<-this.LoadMarkets())
+		PanicOnError(retRes21138)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -2553,8 +2714,8 @@ func (this *ExtendedCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes21468 := (<-this.LoadMarkets())
-		PanicOnError(retRes21468)
+		retRes21488 := (<-this.LoadMarkets())
+		PanicOnError(retRes21488)
 
 		response := (<-this.V1PrivateGetUserFees(params))
 		PanicOnError(response)
@@ -2628,8 +2789,8 @@ func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22058 := (<-this.LoadMarkets())
-		PanicOnError(retRes22058)
+		retRes22078 := (<-this.LoadMarkets())
+		PanicOnError(retRes22078)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market": GetValue(market, "id"),
@@ -2650,7 +2811,7 @@ func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		//
 		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- this.ParseLeverage(this.SafeDict(data, 0), market)
+		ch <- this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)
 		return nil
 
 	}()
@@ -2680,8 +2841,8 @@ func (this *ExtendedCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes22408 := (<-this.LoadMarkets())
-		PanicOnError(retRes22408)
+		retRes22428 := (<-this.LoadMarkets())
+		PanicOnError(retRes22428)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":   GetValue(market, "id"),
@@ -2744,8 +2905,8 @@ func (this *ExtendedCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22868 := (<-this.LoadMarkets())
-		PanicOnError(retRes22868)
+		retRes22888 := (<-this.LoadMarkets())
+		PanicOnError(retRes22888)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var marketIds any = this.MarketIds(symbols)
@@ -2846,8 +3007,8 @@ func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes23548 := (<-this.LoadMarkets())
-		PanicOnError(retRes23548)
+		retRes23568 := (<-this.LoadMarkets())
+		PanicOnError(retRes23568)
 		if IsTrue(IsString(symbols)) {
 			symbols = []any{symbols}
 		}
@@ -2857,9 +3018,9 @@ func (this *ExtendedCore) FetchPositionsHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes236119 := (<-this.FetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nil, 10000))
-			PanicOnError(retRes236119)
-			ch <- retRes236119
+			retRes236319 := (<-this.FetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nil, 10000))
+			PanicOnError(retRes236319)
+			ch <- retRes236319
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3139,9 +3300,15 @@ func (this *ExtendedCore) CreateExtendedOrderRequest(symbol any, typeVar any, si
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(typeVar, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+		}
+		if IsTrue(IsEqual(side, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+		}
 
-		retRes26058 := (<-this.LoadMarkets())
-		PanicOnError(retRes26058)
+		retRes26138 := (<-this.LoadMarkets())
+		PanicOnError(retRes26138)
 		var market any = this.Market(symbol)
 		var uppercaseType any = ToUpper(typeVar)
 		var uppercaseSide any = ToUpper(side)
@@ -3544,8 +3711,8 @@ func (this *ExtendedCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29398 := (<-this.LoadMarkets())
-		PanicOnError(retRes29398)
+		retRes29478 := (<-this.LoadMarkets())
+		PanicOnError(retRes29478)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3616,8 +3783,8 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29928 := (<-this.LoadMarkets())
-		PanicOnError(retRes29928)
+		retRes30008 := (<-this.LoadMarkets())
+		PanicOnError(retRes30008)
 		var clientOrderIds any = this.SafeListN(params, []any{"clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids"})
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 		params = this.Omit(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
@@ -3643,8 +3810,8 @@ func (this *ExtendedCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires an ids argument or clientOrderIds parameter")))
 		}
 
-		retRes30178 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
-		PanicOnError(retRes30178)
+		retRes30258 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
+		PanicOnError(retRes30258)
 
 		//
 		//     {
@@ -3678,8 +3845,8 @@ func (this *ExtendedCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30378 := (<-this.LoadMarkets())
-		PanicOnError(retRes30378)
+		retRes30458 := (<-this.LoadMarkets())
+		PanicOnError(retRes30458)
 		var request any = map[string]any{
 			"cancelAll": true,
 		}
@@ -3689,8 +3856,8 @@ func (this *ExtendedCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "markets", []any{GetValue(market, "id")})
 		}
 
-		retRes30468 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
-		PanicOnError(retRes30468)
+		retRes30548 := (<-this.V1PrivatePostUserOrderMassCancel(this.Extend(request, params)))
+		PanicOnError(retRes30548)
 
 		//
 		//     {
@@ -3722,15 +3889,21 @@ func (this *ExtendedCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes30668 := (<-this.LoadMarkets())
-		PanicOnError(retRes30668)
+		retRes30748 := (<-this.LoadMarkets())
+		PanicOnError(retRes30748)
 		var request any = map[string]any{
 			"countdownTime": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
 
-		retRes307015 := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
-		PanicOnError(retRes307015)
-		ch <- retRes307015
+		response := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		// the endpoint answers with an empty string body
+		//
+		ch <- map[string]any{
+			"info": response,
+		}
 		return nil
 
 	}()
@@ -3759,8 +3932,8 @@ func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30868 := (<-this.LoadMarkets())
-		PanicOnError(retRes30868)
+		retRes30988 := (<-this.LoadMarkets())
+		PanicOnError(retRes30988)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3823,8 +3996,8 @@ func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31278 := (<-this.LoadMarkets())
-		PanicOnError(retRes31278)
+		retRes31398 := (<-this.LoadMarkets())
+		PanicOnError(retRes31398)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3897,17 +4070,17 @@ func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31808 := (<-this.LoadMarkets())
-		PanicOnError(retRes31808)
+		retRes31928 := (<-this.LoadMarkets())
+		PanicOnError(retRes31928)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318419 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes318419)
-			ch <- retRes318419
+			retRes319619 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes319619)
+			ch <- retRes319619
 			return nil
 		}
 		var market any = nil

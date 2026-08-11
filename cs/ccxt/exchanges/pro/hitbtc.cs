@@ -221,7 +221,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -384,7 +384,10 @@ public partial class hitbtc : ccxt.hitbtc
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object marketId = this.marketId(getValue(symbols, i));
-                ((IList<object>)marketIds).Add(marketId);
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    ((IList<object>)marketIds).Add(marketId);
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -722,11 +725,11 @@ public partial class hitbtc : ccxt.hitbtc
     public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        trades = this.toArray(trades);
+        object tradesArray = this.toArray(trades);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
-            object trade = this.extend(this.parseWsTrade(getValue(trades, i), market), parameters);
+            object trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -850,7 +853,7 @@ public partial class hitbtc : ccxt.hitbtc
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1013,6 +1016,10 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual void handleOrderHelper(WebSocketClient client, object message, object order)
     {
         object orders = this.orders;
+        if (isTrue(isEqual(orders, null)))
+        {
+            return;
+        }
         object marketId = this.safeStringLower2(order, "instrument", "symbol");
         object method = this.safeString(message, "method", "");
         object splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();

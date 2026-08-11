@@ -32,6 +32,7 @@ class okx extends okx$1["default"] {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -121,6 +122,7 @@ class okx extends okx$1["default"] {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': true,
@@ -195,476 +197,491 @@ class okx extends okx$1["default"] {
                 'public': {
                     'get': {
                         // market
-                        'market/tickers': 1,
-                        'market/ticker': 1,
-                        'market/books': 1 / 2,
-                        'market/books-full': 2,
-                        'market/candles': 1 / 2,
-                        'market/history-candles': 1,
-                        'market/trades': 1 / 5,
-                        'market/history-trades': 2,
-                        'market/option/instrument-family-trades': 1,
-                        'market/platform-24-volume': 10,
-                        'market/call-auction-detail': 1, // deprecated, use call-auction-details
-                        'market/call-auction-details': 1,
-                        'market/books-sbe': 10,
-                        'market/block-tickers': 1,
-                        'market/block-ticker': 1,
-                        'market/sprd-ticker': 1,
-                        'market/sprd-candles': 1 / 2,
-                        'market/sprd-history-candles': 1,
-                        'market/index-tickers': 1,
-                        'market/index-candles': 1,
-                        'market/history-index-candles': 2,
-                        'market/mark-price-candles': 1,
-                        'market/history-mark-price-candles': 1,
-                        'market/exchange-rate': 20,
-                        'market/index-components': 1,
-                        'market/open-oracle': 50, // not documented
-                        'market/books-lite': 5 / 3, // deprecated
+                        'market/tickers': { 'cost': 1 },
+                        'market/ticker': { 'cost': 1 },
+                        'market/books': { 'cost': 1 / 2 },
+                        'market/books-full': { 'cost': 2 },
+                        'market/candles': { 'cost': 1 / 2 },
+                        'market/history-candles': { 'cost': 1 },
+                        'market/trades': { 'cost': 1 / 5 },
+                        'market/history-trades': { 'cost': 2 },
+                        'market/option/instrument-family-trades': { 'cost': 1 },
+                        'market/platform-24-volume': { 'cost': 10 },
+                        'market/call-auction-detail': { 'cost': 1 }, // deprecated, use call-auction-details
+                        'market/call-auction-details': { 'cost': 1 },
+                        'market/books-sbe': { 'cost': 10 },
+                        'market/block-tickers': { 'cost': 1 },
+                        'market/block-ticker': { 'cost': 1 },
+                        'market/sprd-ticker': { 'cost': 1 },
+                        'market/sprd-candles': { 'cost': 1 / 2 },
+                        'market/sprd-history-candles': { 'cost': 1 },
+                        'market/index-tickers': { 'cost': 1 },
+                        'market/index-candles': { 'cost': 1 },
+                        'market/history-index-candles': { 'cost': 2 },
+                        'market/mark-price-candles': { 'cost': 1 },
+                        'market/history-mark-price-candles': { 'cost': 1 },
+                        'market/exchange-rate': { 'cost': 20 },
+                        'market/index-components': { 'cost': 1 },
+                        'market/open-oracle': { 'cost': 50 }, // not documented
+                        'market/books-lite': { 'cost': 5 / 3 }, // deprecated
                         // public
-                        'public/option-trades': 1,
-                        'public/block-trades': 1,
-                        'public/instruments': 1,
-                        'public/estimated-price': 2,
-                        'public/delivery-exercise-history': 1 / 2,
-                        'public/estimated-settlement-info': 2,
-                        'public/settlement-history': 1 / 2,
-                        'public/funding-rate': 2,
-                        'public/funding-rate-history': 2,
-                        'public/open-interest': 1,
-                        'public/price-limit': 1,
-                        'public/opt-summary': 1,
-                        'public/discount-rate-interest-free-quota': 10,
-                        'public/time': 2,
-                        'public/mark-price': 2,
-                        'public/position-tiers': 2,
-                        'public/interest-rate-loan-quota': 10,
-                        'public/underlying': 1,
-                        'public/insurance-fund': 2,
-                        'public/convert-contract-coin': 2,
-                        'public/instrument-tick-bands': 4,
-                        'public/premium-history': 1,
-                        'public/economic-calendar': 50,
-                        'public/market-data-history': 4,
-                        'public/event-contract/events': 1,
-                        'public/event-contract/markets': 1,
-                        'public/event-contract/series': 1,
-                        'public/vip-interest-rate-loan-quota': 10, // not documented
+                        'public/option-trades': { 'cost': 1 },
+                        'public/block-trades': { 'cost': 1 },
+                        'public/instruments': { 'cost': 1 },
+                        'public/estimated-price': { 'cost': 2 },
+                        'public/delivery-exercise-history': { 'cost': 1 / 2 },
+                        'public/estimated-settlement-info': { 'cost': 2 },
+                        'public/settlement-history': { 'cost': 1 / 2 },
+                        'public/funding-rate': { 'cost': 2 },
+                        'public/funding-rate-history': { 'cost': 2 },
+                        'public/open-interest': { 'cost': 1 },
+                        'public/price-limit': { 'cost': 1 },
+                        'public/opt-summary': { 'cost': 1 },
+                        'public/discount-rate-interest-free-quota': { 'cost': 10 },
+                        'public/time': { 'cost': 2 },
+                        'public/mark-price': { 'cost': 2 },
+                        'public/position-tiers': { 'cost': 2 },
+                        'public/interest-rate-loan-quota': { 'cost': 10 },
+                        'public/underlying': { 'cost': 1 },
+                        'public/insurance-fund': { 'cost': 2 },
+                        'public/convert-contract-coin': { 'cost': 2 },
+                        'public/instrument-tick-bands': { 'cost': 4 },
+                        'public/premium-history': { 'cost': 1 },
+                        'public/economic-calendar': { 'cost': 50 },
+                        'public/market-data-history': { 'cost': 4 },
+                        'public/event-contract/events': { 'cost': 1 },
+                        'public/event-contract/markets': { 'cost': 1 },
+                        'public/event-contract/series': { 'cost': 1 },
+                        'public/vip-interest-rate-loan-quota': { 'cost': 10 }, // not documented
                         // rubik
-                        'rubik/stat/trading-data/support-coin': 4,
-                        'rubik/stat/contracts/open-interest-history': 2,
-                        'rubik/stat/taker-volume': 4,
-                        'rubik/stat/taker-volume-contract': 4,
-                        'rubik/stat/margin/loan-ratio': 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': 4,
-                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract': 4,
-                        'rubik/stat/contracts/long-short-account-ratio': 4,
-                        'rubik/stat/contracts/open-interest-volume': 4,
-                        'rubik/stat/option/open-interest-volume': 4,
-                        'rubik/stat/option/open-interest-volume-ratio': 4,
-                        'rubik/stat/option/open-interest-volume-expiry': 4,
-                        'rubik/stat/option/open-interest-volume-strike': 4,
-                        'rubik/stat/option/taker-block-volume': 4,
+                        'rubik/stat/trading-data/support-coin': { 'cost': 4 },
+                        'rubik/stat/contracts/open-interest-history': { 'cost': 2 },
+                        'rubik/stat/taker-volume': { 'cost': 4 },
+                        'rubik/stat/taker-volume-contract': { 'cost': 4 },
+                        'rubik/stat/margin/loan-ratio': { 'cost': 4 },
+                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader': { 'cost': 4 },
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader': { 'cost': 4 },
+                        'rubik/stat/contracts/long-short-account-ratio-contract': { 'cost': 4 },
+                        'rubik/stat/contracts/long-short-account-ratio': { 'cost': 4 },
+                        'rubik/stat/contracts/open-interest-volume': { 'cost': 4 },
+                        'rubik/stat/option/open-interest-volume': { 'cost': 4 },
+                        'rubik/stat/option/open-interest-volume-ratio': { 'cost': 4 },
+                        'rubik/stat/option/open-interest-volume-expiry': { 'cost': 4 },
+                        'rubik/stat/option/open-interest-volume-strike': { 'cost': 4 },
+                        'rubik/stat/option/taker-block-volume': { 'cost': 4 },
                         // system
-                        'system/status': 50,
+                        'system/status': { 'cost': 50 },
                         // sprd
-                        'sprd/spreads': 1,
-                        'sprd/books': 1,
-                        'sprd/public-trades': 1,
-                        'sprd/ticker': 1, // not documented
-                        'tradingBot/grid/ai-param': 1,
-                        'tradingBot/grid/min-investment': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
-                        'tradingBot/grid/grid-quantity': 4,
-                        'asset/exchange-list': 5 / 3,
-                        'finance/staking-defi/eth/apy-history': 5 / 3,
-                        'finance/staking-defi/sol/apy-history': 5 / 3,
-                        'finance/savings/lending-rate-summary': 5 / 3,
-                        'finance/savings/lending-rate-history': 5 / 3,
-                        'finance/fixed-loan/lending-offers': 10 / 3, // not documented
-                        'finance/fixed-loan/lending-apy-history': 10 / 3, // not documented
-                        'finance/fixed-loan/pending-lending-volume': 10 / 3, // not documented
+                        'sprd/spreads': { 'cost': 1 },
+                        'sprd/books': { 'cost': 1 },
+                        'sprd/public-trades': { 'cost': 1 },
+                        'sprd/ticker': { 'cost': 1 }, // not documented
+                        'tradingBot/grid/ai-param': { 'cost': 1 },
+                        'tradingBot/grid/min-investment': { 'cost': 1 },
+                        'tradingBot/public/rsi-back-testing': { 'cost': 1 },
+                        'tradingBot/grid/grid-quantity': { 'cost': 4 },
+                        'asset/exchange-list': { 'cost': 5 / 3 },
+                        'finance/staking-defi/eth/apy-history': { 'cost': 5 / 3 },
+                        'finance/staking-defi/sol/apy-history': { 'cost': 5 / 3 },
+                        'finance/savings/lending-rate-summary': { 'cost': 5 / 3 },
+                        'finance/savings/lending-rate-history': { 'cost': 5 / 3 },
+                        'finance/fixed-loan/lending-offers': { 'cost': 10 / 3 }, // not documented
+                        'finance/fixed-loan/lending-apy-history': { 'cost': 10 / 3 }, // not documented
+                        'finance/fixed-loan/pending-lending-volume': { 'cost': 10 / 3 }, // not documented
                         // public broker
-                        'finance/sfp/dcd/products': 2 / 3, // not documented
+                        'finance/sfp/dcd/products': { 'cost': 2 / 3 }, // not documented
                         // copytrading
-                        'copytrading/public-config': 4,
-                        'copytrading/public-lead-traders': 4,
-                        'copytrading/public-weekly-pnl': 4,
-                        'copytrading/public-pnl': 4,
-                        'copytrading/public-stats': 4,
-                        'copytrading/public-preference-currency': 4,
-                        'copytrading/public-current-subpositions': 4,
-                        'copytrading/public-subpositions-history': 4,
-                        'copytrading/public-copy-traders': 4,
-                        'support/announcements': 4,
-                        'support/announcements-types': 20, // typo, use announcement-types
-                        'support/announcement-types': 20,
+                        'copytrading/public-config': { 'cost': 4 },
+                        'copytrading/public-lead-traders': { 'cost': 4 },
+                        'copytrading/public-weekly-pnl': { 'cost': 4 },
+                        'copytrading/public-pnl': { 'cost': 4 },
+                        'copytrading/public-stats': { 'cost': 4 },
+                        'copytrading/public-preference-currency': { 'cost': 4 },
+                        'copytrading/public-current-subpositions': { 'cost': 4 },
+                        'copytrading/public-subpositions-history': { 'cost': 4 },
+                        'copytrading/public-copy-traders': { 'cost': 4 },
+                        'support/announcements': { 'cost': 4 },
+                        'support/announcements-types': { 'cost': 20 }, // typo, use announcement-types
+                        'support/announcement-types': { 'cost': 20 },
                     },
                     'post': {
-                        'tradingBot/grid/min-investment': 1, // public
+                        'tradingBot/grid/min-investment': { 'cost': 1 }, // public
                     },
                 },
                 'private': {
                     'get': {
                         // rfq
-                        'rfq/counterparties': 4,
-                        'rfq/maker-instrument-settings': 4,
-                        'rfq/mmp-config': 4,
-                        'rfq/rfqs': 10,
-                        'rfq/quotes': 10,
-                        'rfq/trades': 4,
-                        'rfq/public-trades': 4,
+                        'rfq/counterparties': { 'cost': 4 },
+                        'rfq/maker-instrument-settings': { 'cost': 4 },
+                        'rfq/mmp-config': { 'cost': 4 },
+                        'rfq/rfqs': { 'cost': 10 },
+                        'rfq/quotes': { 'cost': 10 },
+                        'rfq/trades': { 'cost': 4 },
+                        'rfq/public-trades': { 'cost': 4 },
                         // sprd
-                        'sprd/order': 1,
-                        'sprd/orders-pending': 2,
-                        'sprd/orders-history': 1,
-                        'sprd/orders-history-archive': 1,
-                        'sprd/trades': 1,
+                        'sprd/order': { 'cost': 1 },
+                        'sprd/orders-pending': { 'cost': 2 },
+                        'sprd/orders-history': { 'cost': 1 },
+                        'sprd/orders-history-archive': { 'cost': 1 },
+                        'sprd/trades': { 'cost': 1 },
                         // trade
-                        'trade/order': 1 / 3,
-                        'trade/orders-pending': 1 / 3,
-                        'trade/orders-history': 1 / 2,
-                        'trade/orders-history-archive': 1,
-                        'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
-                        'trade/fills-archive': 2, // not documented
-                        'trade/order-algo': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-algo-history': 1,
-                        'trade/easy-convert-currency-list': 20,
-                        'trade/easy-convert-history': 20,
-                        'trade/one-click-repay-currency-list': 20,
-                        'trade/one-click-repay-currency-list-v2': 20,
-                        'trade/one-click-repay-history': 20,
-                        'trade/one-click-repay-history-v2': 20,
-                        'trade/account-rate-limit': 1,
+                        'trade/order': { 'cost': 1 / 3 },
+                        'trade/orders-pending': { 'cost': 1 / 3 },
+                        'trade/orders-history': { 'cost': 1 / 2 },
+                        'trade/orders-history-archive': { 'cost': 1 },
+                        'trade/fills': { 'cost': 1 / 3 },
+                        'trade/fills-history': { 'cost': 2 },
+                        'trade/fills-archive': { 'cost': 2 }, // not documented
+                        'trade/order-algo': { 'cost': 1 },
+                        'trade/orders-algo-pending': { 'cost': 1 },
+                        'trade/orders-algo-history': { 'cost': 1 },
+                        'trade/easy-convert-currency-list': { 'cost': 20 },
+                        'trade/easy-convert-history': { 'cost': 20 },
+                        'trade/one-click-repay-currency-list': { 'cost': 20 },
+                        'trade/one-click-repay-currency-list-v2': { 'cost': 20 },
+                        'trade/one-click-repay-history': { 'cost': 20 },
+                        'trade/one-click-repay-history-v2': { 'cost': 20 },
+                        'trade/account-rate-limit': { 'cost': 1 },
                         // asset
-                        'asset/currencies': 5 / 3,
-                        'asset/balances': 5 / 3,
-                        'asset/non-tradable-assets': 5 / 3,
-                        'asset/asset-valuation': 10,
-                        'asset/transfer-state': 1,
-                        'asset/bills': 5 / 3,
-                        'asset/bills-history': 10,
-                        'asset/deposit-lightning': 5, // not documented
-                        'asset/deposit-address': 5 / 3,
-                        'asset/deposit-history': 5 / 3,
-                        'asset/withdrawal-history': 5 / 3,
-                        'asset/deposit-withdraw-status': 20,
-                        'asset/monthly-statement': 2,
-                        'asset/convert/currencies': 5 / 3,
-                        'asset/convert/currency-pair': 5 / 3,
-                        'asset/convert/history': 5 / 3,
+                        'asset/currencies': { 'cost': 5 / 3 },
+                        'asset/balances': { 'cost': 5 / 3 },
+                        'asset/non-tradable-assets': { 'cost': 5 / 3 },
+                        'asset/asset-valuation': { 'cost': 10 },
+                        'asset/transfer-state': { 'cost': 1 },
+                        'asset/bills': { 'cost': 5 / 3 },
+                        'asset/bills-history': { 'cost': 10 },
+                        'asset/deposit-lightning': { 'cost': 5 }, // not documented
+                        'asset/deposit-address': { 'cost': 5 / 3 },
+                        'asset/deposit-history': { 'cost': 5 / 3 },
+                        'asset/withdrawal-history': { 'cost': 5 / 3 },
+                        'asset/deposit-withdraw-status': { 'cost': 20 },
+                        'asset/monthly-statement': { 'cost': 2 },
+                        'asset/convert/currencies': { 'cost': 5 / 3 },
+                        'asset/convert/currency-pair': { 'cost': 5 / 3 },
+                        'asset/convert/history': { 'cost': 5 / 3 },
+                        // fiat
+                        'fiat/deposit-payment-methods': { 'cost': 10 / 3 },
+                        'fiat/withdrawal-payment-methods': { 'cost': 10 / 3 },
+                        'fiat/deposit-order-history': { 'cost': 10 / 3 },
+                        'fiat/deposit': { 'cost': 10 / 3 },
+                        'fiat/withdrawal-order-history': { 'cost': 10 / 3 },
+                        'fiat/withdrawal': { 'cost': 10 / 3 },
+                        'fiat/buy-sell/currencies': { 'cost': 5 / 3 },
+                        'fiat/buy-sell/currency-pair': { 'cost': 5 / 3 },
+                        'fiat/buy-sell/history': { 'cost': 5 / 3 },
                         // account
-                        'account/instruments': 1,
-                        'account/balance': 2,
-                        'account/positions': 2,
-                        'account/positions-history': 2,
-                        'account/account-position-risk': 2,
-                        'account/bills': 2,
-                        'account/bills-archive': 4,
-                        'account/bills-history-archive': 2,
-                        'account/config': 4,
-                        'account/subtypes': 4,
-                        'account/max-size': 1,
-                        'account/max-avail-size': 1,
-                        'account/leverage-info': 1,
-                        'account/adjust-leverage-info': 4,
-                        'account/max-loan': 1,
-                        'account/trade-fee': 4,
-                        'account/interest-accrued': 4,
-                        'account/interest-rate': 4,
-                        'account/max-withdrawal': 1,
-                        'account/risk-state': 2,
-                        'account/interest-limits': 4,
-                        'account/spot-borrow-repay-history': 4,
-                        'account/greeks': 2,
-                        'account/position-tiers': 2,
-                        'account/set-account-switch-precheck': 4,
-                        'account/collateral-assets': 4,
-                        'account/mmp-config': 4,
-                        'account/move-positions-history': 10,
-                        'account/precheck-set-delta-neutral': 20,
-                        'account/quick-margin-borrow-repay-history': 4,
-                        'account/borrow-repay-history': 4,
-                        'account/vip-interest-accrued': 4, // not documented
-                        'account/vip-interest-deducted': 4, // not documented
-                        'account/vip-loan-order-list': 4, // not documented
-                        'account/vip-loan-order-detail': 4, // not documented
-                        'account/fixed-loan/borrowing-limit': 4, // not documented
-                        'account/fixed-loan/borrowing-quote': 5, // not documented
-                        'account/fixed-loan/borrowing-orders-list': 5, // not documented
-                        'account/spot-manual-borrow-repay': 30, // not documented
-                        'account/set-auto-repay': 4, // not documented
+                        'account/instruments': { 'cost': 1 },
+                        'account/balance': { 'cost': 2 },
+                        'account/positions': { 'cost': 2 },
+                        'account/positions-history': { 'cost': 2 },
+                        'account/account-position-risk': { 'cost': 2 },
+                        'account/bills': { 'cost': 2 },
+                        'account/bills-archive': { 'cost': 4 },
+                        'account/bills-history-archive': { 'cost': 2 },
+                        'account/config': { 'cost': 4 },
+                        'account/subtypes': { 'cost': 4 },
+                        'account/max-size': { 'cost': 1 },
+                        'account/max-avail-size': { 'cost': 1 },
+                        'account/leverage-info': { 'cost': 1 },
+                        'account/adjust-leverage-info': { 'cost': 4 },
+                        'account/max-loan': { 'cost': 1 },
+                        'account/trade-fee': { 'cost': 4 },
+                        'account/interest-accrued': { 'cost': 4 },
+                        'account/interest-rate': { 'cost': 4 },
+                        'account/max-withdrawal': { 'cost': 1 },
+                        'account/risk-state': { 'cost': 2 },
+                        'account/interest-limits': { 'cost': 4 },
+                        'account/spot-borrow-repay-history': { 'cost': 4 },
+                        'account/greeks': { 'cost': 2 },
+                        'account/position-tiers': { 'cost': 2 },
+                        'account/set-account-switch-precheck': { 'cost': 4 },
+                        'account/collateral-assets': { 'cost': 4 },
+                        'account/mmp-config': { 'cost': 4 },
+                        'account/move-positions-history': { 'cost': 10 },
+                        'account/precheck-set-delta-neutral': { 'cost': 20 },
+                        'account/quick-margin-borrow-repay-history': { 'cost': 4 },
+                        'account/borrow-repay-history': { 'cost': 4 },
+                        'account/vip-interest-accrued': { 'cost': 4 }, // not documented
+                        'account/vip-interest-deducted': { 'cost': 4 }, // not documented
+                        'account/vip-loan-order-list': { 'cost': 4 }, // not documented
+                        'account/vip-loan-order-detail': { 'cost': 4 }, // not documented
+                        'account/fixed-loan/borrowing-limit': { 'cost': 4 }, // not documented
+                        'account/fixed-loan/borrowing-quote': { 'cost': 5 }, // not documented
+                        'account/fixed-loan/borrowing-orders-list': { 'cost': 5 }, // not documented
+                        'account/spot-manual-borrow-repay': { 'cost': 30 }, // not documented
+                        'account/set-auto-repay': { 'cost': 4 }, // not documented
                         // subaccount
-                        'users/subaccount/list': 10,
-                        'account/subaccount/balances': 10 / 3,
-                        'asset/subaccount/balances': 10 / 3,
-                        'account/subaccount/max-withdrawal': 1,
-                        'asset/subaccount/bills': 5 / 3,
-                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
-                        'users/entrust-subaccount-list': 10,
-                        'account/subaccount/interest-limits': 4,
-                        'users/subaccount/apikey': 10,
+                        'users/subaccount/list': { 'cost': 10 },
+                        'account/subaccount/balances': { 'cost': 10 / 3 },
+                        'asset/subaccount/balances': { 'cost': 10 / 3 },
+                        'account/subaccount/max-withdrawal': { 'cost': 1 },
+                        'asset/subaccount/bills': { 'cost': 5 / 3 },
+                        'asset/subaccount/managed-subaccount-bills': { 'cost': 5 / 3 },
+                        'users/entrust-subaccount-list': { 'cost': 10 },
+                        'account/subaccount/interest-limits': { 'cost': 4 },
+                        'users/subaccount/apikey': { 'cost': 10 },
                         // grid trading
-                        'tradingBot/grid/orders-algo-pending': 1,
-                        'tradingBot/grid/orders-algo-history': 1,
-                        'tradingBot/grid/orders-algo-details': 1,
-                        'tradingBot/grid/sub-orders': 1,
-                        'tradingBot/grid/positions': 1,
-                        'tradingBot/grid/ai-param': 1,
-                        'tradingBot/signal/signals': 1,
-                        'tradingBot/signal/orders-algo-details': 1,
-                        'tradingBot/signal/orders-algo-pending': 1,
-                        'tradingBot/signal/orders-algo-history': 1,
-                        'tradingBot/signal/positions': 1,
-                        'tradingBot/signal/positions-history': 2,
-                        'tradingBot/signal/sub-orders': 1,
-                        'tradingBot/signal/event-history': 1,
-                        'tradingBot/recurring/orders-algo-pending': 1,
-                        'tradingBot/recurring/orders-algo-history': 1,
-                        'tradingBot/recurring/orders-algo-details': 1,
-                        'tradingBot/recurring/sub-orders': 1,
-                        'tradingBot/dca/ongoing-list': 1,
-                        'tradingBot/dca/history-list': 1,
-                        'tradingBot/dca/orders': 1,
-                        'tradingBot/dca/position-details': 1,
-                        'tradingBot/dca/cycle-list': 1,
+                        'tradingBot/grid/orders-algo-pending': { 'cost': 1 },
+                        'tradingBot/grid/orders-algo-history': { 'cost': 1 },
+                        'tradingBot/grid/orders-algo-details': { 'cost': 1 },
+                        'tradingBot/grid/sub-orders': { 'cost': 1 },
+                        'tradingBot/grid/positions': { 'cost': 1 },
+                        'tradingBot/grid/ai-param': { 'cost': 1 },
+                        'tradingBot/signal/signals': { 'cost': 1 },
+                        'tradingBot/signal/orders-algo-details': { 'cost': 1 },
+                        'tradingBot/signal/orders-algo-pending': { 'cost': 1 },
+                        'tradingBot/signal/orders-algo-history': { 'cost': 1 },
+                        'tradingBot/signal/positions': { 'cost': 1 },
+                        'tradingBot/signal/positions-history': { 'cost': 2 },
+                        'tradingBot/signal/sub-orders': { 'cost': 1 },
+                        'tradingBot/signal/event-history': { 'cost': 1 },
+                        'tradingBot/recurring/orders-algo-pending': { 'cost': 1 },
+                        'tradingBot/recurring/orders-algo-history': { 'cost': 1 },
+                        'tradingBot/recurring/orders-algo-details': { 'cost': 1 },
+                        'tradingBot/recurring/sub-orders': { 'cost': 1 },
+                        'tradingBot/dca/ongoing-list': { 'cost': 1 },
+                        'tradingBot/dca/history-list': { 'cost': 1 },
+                        'tradingBot/dca/orders': { 'cost': 1 },
+                        'tradingBot/dca/position-details': { 'cost': 1 },
+                        'tradingBot/dca/cycle-list': { 'cost': 1 },
                         // earn
-                        'finance/savings/balance': 5 / 3,
-                        'finance/savings/lending-history': 5 / 3,
-                        'finance/staking-defi/offers': 10 / 3,
-                        'finance/staking-defi/orders-active': 10 / 3,
-                        'finance/staking-defi/orders-history': 10 / 3,
+                        'finance/savings/balance': { 'cost': 5 / 3 },
+                        'finance/savings/lending-history': { 'cost': 5 / 3 },
+                        'finance/staking-defi/offers': { 'cost': 10 / 3 },
+                        'finance/staking-defi/orders-active': { 'cost': 10 / 3 },
+                        'finance/staking-defi/orders-history': { 'cost': 10 / 3 },
                         // eth staking
-                        'finance/staking-defi/eth/product-info': 10 / 3,
-                        'finance/staking-defi/eth/balance': 5 / 3,
-                        'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
-                        'finance/staking-defi/sol/product-info': 10 / 3,
-                        'finance/staking-defi/sol/balance': 5 / 3,
-                        'finance/staking-defi/sol/purchase-redeem-history': 5 / 3,
-                        'finance/flexible-loan/borrow-currencies': 4,
-                        'finance/flexible-loan/collateral-assets': 4,
-                        'finance/flexible-loan/max-collateral-redeem-amount': 4,
-                        'finance/flexible-loan/loan-info': 4,
-                        'finance/flexible-loan/loan-history': 4,
-                        'finance/flexible-loan/interest-accrued': 4,
+                        'finance/staking-defi/eth/product-info': { 'cost': 10 / 3 },
+                        'finance/staking-defi/eth/balance': { 'cost': 5 / 3 },
+                        'finance/staking-defi/eth/purchase-redeem-history': { 'cost': 5 / 3 },
+                        'finance/staking-defi/sol/product-info': { 'cost': 10 / 3 },
+                        'finance/staking-defi/sol/balance': { 'cost': 5 / 3 },
+                        'finance/staking-defi/sol/purchase-redeem-history': { 'cost': 5 / 3 },
+                        'finance/flexible-loan/borrow-currencies': { 'cost': 4 },
+                        'finance/flexible-loan/collateral-assets': { 'cost': 4 },
+                        'finance/flexible-loan/max-collateral-redeem-amount': { 'cost': 4 },
+                        'finance/flexible-loan/loan-info': { 'cost': 4 },
+                        'finance/flexible-loan/loan-history': { 'cost': 4 },
+                        'finance/flexible-loan/interest-accrued': { 'cost': 4 },
                         // copytrading
-                        'copytrading/current-subpositions': 1,
-                        'copytrading/subpositions-history': 1,
-                        'copytrading/instruments': 4,
-                        'copytrading/profit-sharing-details': 4,
-                        'copytrading/total-profit-sharing': 4,
-                        'copytrading/unrealized-profit-sharing-details': 4,
-                        'copytrading/total-unrealized-profit-sharing': 4,
-                        'copytrading/config': 4,
-                        'copytrading/copy-settings': 4,
-                        'copytrading/current-lead-traders': 4,
-                        'copytrading/batch-leverage-info': 4, // not documented
-                        'copytrading/lead-traders-history': 4, // not documented
+                        'copytrading/current-subpositions': { 'cost': 1 },
+                        'copytrading/subpositions-history': { 'cost': 1 },
+                        'copytrading/instruments': { 'cost': 4 },
+                        'copytrading/profit-sharing-details': { 'cost': 4 },
+                        'copytrading/total-profit-sharing': { 'cost': 4 },
+                        'copytrading/unrealized-profit-sharing-details': { 'cost': 4 },
+                        'copytrading/total-unrealized-profit-sharing': { 'cost': 4 },
+                        'copytrading/config': { 'cost': 4 },
+                        'copytrading/copy-settings': { 'cost': 4 },
+                        'copytrading/current-lead-traders': { 'cost': 4 },
+                        'copytrading/batch-leverage-info': { 'cost': 4 }, // not documented
+                        'copytrading/lead-traders-history': { 'cost': 4 }, // not documented
                         // broker
-                        'broker/dma/subaccount-info': 2,
-                        'broker/dma/subaccount-trade-fee': 10,
-                        'broker/dma/subaccount/apikey': 10,
-                        'broker/dma/rebate-per-orders': 300,
-                        'broker/fd/rebate-per-orders': 300,
-                        'broker/fd/if-rebate': 5,
-                        'broker/nd/info': 10, // not documented
-                        'broker/nd/subaccount-info': 10, // not documented
-                        'broker/nd/subaccount/apikey': 10, // not documented
-                        'asset/broker/nd/subaccount-deposit-address': 5 / 3, // not documented
-                        'asset/broker/nd/subaccount-deposit-history': 4, // not documented
-                        'asset/broker/nd/subaccount-withdrawal-history': 4, // not documented
-                        'broker/nd/rebate-daily': 100, // not documented
-                        'broker/nd/rebate-per-orders': 300, // not documented
-                        'finance/sfp/dcd/order': 2, // not documented
-                        'finance/sfp/dcd/orders': 2, // not documented
-                        'finance/sfp/dcd/currency-pair': 2,
-                        'finance/sfp/dcd/order-status': 2,
-                        'finance/sfp/dcd/order-history': 2,
+                        'broker/dma/subaccount-info': { 'cost': 2 },
+                        'broker/dma/subaccount-trade-fee': { 'cost': 10 },
+                        'broker/dma/subaccount/apikey': { 'cost': 10 },
+                        'broker/dma/rebate-per-orders': { 'cost': 300 },
+                        'broker/fd/rebate-per-orders': { 'cost': 300 },
+                        'broker/fd/if-rebate': { 'cost': 5 },
+                        'broker/nd/info': { 'cost': 10 }, // not documented
+                        'broker/nd/subaccount-info': { 'cost': 10 }, // not documented
+                        'broker/nd/subaccount/apikey': { 'cost': 10 }, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': { 'cost': 5 / 3 }, // not documented
+                        'asset/broker/nd/subaccount-deposit-history': { 'cost': 4 }, // not documented
+                        'asset/broker/nd/subaccount-withdrawal-history': { 'cost': 4 }, // not documented
+                        'broker/nd/rebate-daily': { 'cost': 100 }, // not documented
+                        'broker/nd/rebate-per-orders': { 'cost': 300 }, // not documented
+                        'finance/sfp/dcd/order': { 'cost': 2 }, // not documented
+                        'finance/sfp/dcd/orders': { 'cost': 2 }, // not documented
+                        'finance/sfp/dcd/currency-pair': { 'cost': 2 },
+                        'finance/sfp/dcd/order-status': { 'cost': 2 },
+                        'finance/sfp/dcd/order-history': { 'cost': 2 },
                         // affiliate
-                        'affiliate/invitee/detail': 1,
-                        'users/partner/if-rebate': 1, // not documented
-                        'support/announcements': 4,
+                        'affiliate/invitee/detail': { 'cost': 1 },
+                        'users/partner/if-rebate': { 'cost': 1 }, // not documented
+                        'support/announcements': { 'cost': 4 },
                     },
                     'post': {
                         // rfq
-                        'rfq/create-rfq': 4,
-                        'rfq/cancel-rfq': 4,
-                        'rfq/cancel-batch-rfqs': 10,
-                        'rfq/cancel-all-rfqs': 10,
-                        'rfq/execute-quote': 15,
-                        'rfq/maker-instrument-settings': 4,
-                        'rfq/mmp-reset': 4,
-                        'rfq/mmp-config': 100,
-                        'rfq/create-quote': 0.4,
-                        'rfq/cancel-quote': 0.4,
-                        'rfq/cancel-batch-quotes': 10,
-                        'rfq/cancel-all-quotes': 10,
-                        'rfq/cancel-all-after': 10,
+                        'rfq/create-rfq': { 'cost': 4 },
+                        'rfq/cancel-rfq': { 'cost': 4 },
+                        'rfq/cancel-batch-rfqs': { 'cost': 10 },
+                        'rfq/cancel-all-rfqs': { 'cost': 10 },
+                        'rfq/execute-quote': { 'cost': 15 },
+                        'rfq/maker-instrument-settings': { 'cost': 4 },
+                        'rfq/mmp-reset': { 'cost': 4 },
+                        'rfq/mmp-config': { 'cost': 100 },
+                        'rfq/create-quote': { 'cost': 0.4 },
+                        'rfq/cancel-quote': { 'cost': 0.4 },
+                        'rfq/cancel-batch-quotes': { 'cost': 10 },
+                        'rfq/cancel-all-quotes': { 'cost': 10 },
+                        'rfq/cancel-all-after': { 'cost': 10 },
                         // sprd
-                        'sprd/order': 1,
-                        'sprd/cancel-order': 1,
-                        'sprd/mass-cancel': 1,
-                        'sprd/amend-order': 1,
-                        'sprd/cancel-all-after': 10,
+                        'sprd/order': { 'cost': 1 },
+                        'sprd/cancel-order': { 'cost': 1 },
+                        'sprd/mass-cancel': { 'cost': 1 },
+                        'sprd/amend-order': { 'cost': 1 },
+                        'sprd/cancel-all-after': { 'cost': 10 },
                         // trade
-                        'trade/order': 1 / 3,
-                        'trade/batch-orders': 1 / 15,
-                        'trade/cancel-order': 1 / 3,
-                        'trade/cancel-batch-orders': 1 / 15,
-                        'trade/amend-order': 1 / 3,
-                        'trade/amend-batch-orders': 1 / 150,
-                        'trade/close-position': 1,
-                        'trade/fills-archive': 172800, // not documented
-                        'trade/cancel-advance-algos': 1, // not documented
-                        'trade/easy-convert': 20,
-                        'trade/one-click-repay': 20,
-                        'trade/one-click-repay-v2': 20,
-                        'trade/mass-cancel': 4,
-                        'trade/cancel-all-after': 10,
-                        'trade/order-precheck': 4,
-                        'trade/order-algo': 1,
-                        'trade/cancel-algos': 1,
-                        'trade/amend-algos': 1,
+                        'trade/order': { 'cost': 1 / 3 },
+                        'trade/batch-orders': { 'cost': 1 / 15 },
+                        'trade/cancel-order': { 'cost': 1 / 3 },
+                        'trade/cancel-batch-orders': { 'cost': 1 / 15 },
+                        'trade/amend-order': { 'cost': 1 / 3 },
+                        'trade/amend-batch-orders': { 'cost': 1 / 150 },
+                        'trade/close-position': { 'cost': 1 },
+                        'trade/fills-archive': { 'cost': 172800 }, // not documented
+                        'trade/cancel-advance-algos': { 'cost': 1 }, // not documented
+                        'trade/easy-convert': { 'cost': 20 },
+                        'trade/one-click-repay': { 'cost': 20 },
+                        'trade/one-click-repay-v2': { 'cost': 20 },
+                        'trade/mass-cancel': { 'cost': 4 },
+                        'trade/cancel-all-after': { 'cost': 10 },
+                        'trade/order-precheck': { 'cost': 4 },
+                        'trade/order-algo': { 'cost': 1 },
+                        'trade/cancel-algos': { 'cost': 1 },
+                        'trade/amend-algos': { 'cost': 1 },
                         // asset
-                        'asset/transfer': 5,
-                        'asset/withdrawal': 5 / 3,
-                        'asset/withdrawal-lightning': 5, // not documented
-                        'asset/cancel-withdrawal': 5 / 3,
-                        'asset/convert-dust-assets': 10,
-                        'asset/monthly-statement': 1296000, // 20 req/month, 10/20*30*24*60*60 = 1296000
-                        'asset/convert/estimate-quote': 50,
-                        'asset/convert/trade': 1,
+                        'asset/transfer': { 'cost': 5 },
+                        'asset/withdrawal': { 'cost': 5 / 3 },
+                        'asset/withdrawal-lightning': { 'cost': 5 }, // not documented
+                        'asset/cancel-withdrawal': { 'cost': 5 / 3 },
+                        'asset/convert-dust-assets': { 'cost': 10 },
+                        'asset/monthly-statement': { 'cost': 1296000 }, // 20 req/month, 10/20*30*24*60*60 = 1296000
+                        'asset/convert/estimate-quote': { 'cost': 50 },
+                        'asset/convert/trade': { 'cost': 1 },
+                        // fiat
+                        'fiat/create-withdrawal': { 'cost': 10 / 3 },
+                        'fiat/cancel-withdrawal': { 'cost': 10 / 3 },
+                        'fiat/buy-sell/quote': { 'cost': 50 },
+                        'fiat/buy-sell/trade': { 'cost': 50 },
                         // account
-                        'account/bills-history-archive': 72000, // 12 req/day
-                        'account/set-position-mode': 4,
-                        'account/set-leverage': 1,
-                        'account/position/margin-balance': 1,
-                        'account/set-fee-type': 4,
-                        'account/set-greeks': 4,
-                        'account/set-isolated-mode': 4,
-                        'account/spot-manual-borrow-repay': 30,
-                        'account/set-auto-repay': 4,
-                        'account/quick-margin-borrow-repay': 4, // not documented
-                        'account/borrow-repay': 5 / 3, // not documented
-                        'account/simulated_margin': 10, // not documented
-                        'account/position-builder': 10,
-                        'account/position-builder-graph': 50,
-                        'account/set-riskOffset-type': 2,
-                        'account/set-riskOffset-amt': 2,
-                        'account/activate-option': 4,
-                        'account/set-auto-loan': 4,
-                        'account/account-level-switch-preset': 4,
-                        'account/set-account-level': 4,
-                        'account/set-collateral-assets': 4,
-                        'account/mmp-reset': 4,
-                        'account/mmp-config': 50,
-                        'account/fixed-loan/borrowing-order': 5, // not documented
-                        'account/fixed-loan/amend-borrowing-order': 5, // not documented
-                        'account/fixed-loan/manual-reborrow': 5, // not documented
-                        'account/fixed-loan/repay-borrowing-order': 5, // not documented
-                        'account/move-positions': 10,
-                        'account/set-auto-earn': 10,
-                        'account/set-settle-currency': 1,
-                        'account/set-trading-config': 20,
-                        'account/demo-adjust-balance': 20, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
+                        'account/bills-history-archive': { 'cost': 72000 }, // 12 req/day
+                        'account/set-position-mode': { 'cost': 4 },
+                        'account/set-leverage': { 'cost': 1 },
+                        'account/position/margin-balance': { 'cost': 1 },
+                        'account/set-fee-type': { 'cost': 4 },
+                        'account/set-greeks': { 'cost': 4 },
+                        'account/set-isolated-mode': { 'cost': 4 },
+                        'account/spot-manual-borrow-repay': { 'cost': 30 },
+                        'account/set-auto-repay': { 'cost': 4 },
+                        'account/quick-margin-borrow-repay': { 'cost': 4 }, // not documented
+                        'account/borrow-repay': { 'cost': 5 / 3 }, // not documented
+                        'account/simulated_margin': { 'cost': 10 }, // not documented
+                        'account/position-builder': { 'cost': 10 },
+                        'account/position-builder-graph': { 'cost': 50 },
+                        'account/set-riskOffset-type': { 'cost': 2 },
+                        'account/set-riskOffset-amt': { 'cost': 2 },
+                        'account/activate-option': { 'cost': 4 },
+                        'account/set-auto-loan': { 'cost': 4 },
+                        'account/account-level-switch-preset': { 'cost': 4 },
+                        'account/set-account-level': { 'cost': 4 },
+                        'account/set-collateral-assets': { 'cost': 4 },
+                        'account/mmp-reset': { 'cost': 4 },
+                        'account/mmp-config': { 'cost': 50 },
+                        'account/fixed-loan/borrowing-order': { 'cost': 5 }, // not documented
+                        'account/fixed-loan/amend-borrowing-order': { 'cost': 5 }, // not documented
+                        'account/fixed-loan/manual-reborrow': { 'cost': 5 }, // not documented
+                        'account/fixed-loan/repay-borrowing-order': { 'cost': 5 }, // not documented
+                        'account/move-positions': { 'cost': 10 },
+                        'account/set-auto-earn': { 'cost': 10 },
+                        'account/set-settle-currency': { 'cost': 1 },
+                        'account/set-trading-config': { 'cost': 20 },
+                        'account/demo-adjust-balance': { 'cost': 20 }, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         // subaccount
-                        'asset/subaccount/transfer': 10,
-                        'account/subaccount/set-loan-allocation': 4, // not documented
-                        'users/subaccount/create-subaccount': 10,
-                        'users/subaccount/apikey': 10,
-                        'users/subaccount/modify-apikey': 10,
-                        'users/subaccount/subaccount-apikey': 10, // not documented
-                        'users/subaccount/delete-apikey': 10,
-                        'users/subaccount/set-transfer-out': 10,
+                        'asset/subaccount/transfer': { 'cost': 10 },
+                        'account/subaccount/set-loan-allocation': { 'cost': 4 }, // not documented
+                        'users/subaccount/create-subaccount': { 'cost': 10 },
+                        'users/subaccount/apikey': { 'cost': 10 },
+                        'users/subaccount/modify-apikey': { 'cost': 10 },
+                        'users/subaccount/subaccount-apikey': { 'cost': 10 }, // not documented
+                        'users/subaccount/delete-apikey': { 'cost': 10 },
+                        'users/subaccount/set-transfer-out': { 'cost': 10 },
                         // grid trading
-                        'tradingBot/grid/order-algo': 1,
-                        'tradingBot/grid/copy-order-algo': 1,
-                        'tradingBot/grid/amend-algo-basic-param': 1,
-                        'tradingBot/grid/amend-order-algo': 1,
-                        'tradingBot/grid/stop-order-algo': 1,
-                        'tradingBot/grid/close-position': 1,
-                        'tradingBot/grid/cancel-close-order': 1,
-                        'tradingBot/grid/order-instant-trigger': 1,
-                        'tradingBot/grid/withdraw-income': 1,
-                        'tradingBot/grid/compute-margin-balance': 1,
-                        'tradingBot/grid/margin-balance': 1,
-                        'tradingBot/grid/min-investment': 1, // public
-                        'tradingBot/grid/adjust-investment': 1,
-                        'tradingBot/signal/create-signal': 1,
-                        'tradingBot/signal/order-algo': 1,
-                        'tradingBot/signal/stop-order-algo': 1,
-                        'tradingBot/signal/margin-balance': 1,
-                        'tradingBot/signal/amendTPSL': 1,
-                        'tradingBot/signal/set-instruments': 1,
-                        'tradingBot/signal/close-position': 1,
-                        'tradingBot/signal/sub-order': 1,
-                        'tradingBot/signal/cancel-sub-order': 1,
-                        'tradingBot/recurring/order-algo': 1,
-                        'tradingBot/recurring/amend-order-algo': 1,
-                        'tradingBot/recurring/stop-order-algo': 1,
-                        'tradingBot/dca/create': 1,
-                        'tradingBot/dca/amend-order-algo': 1,
-                        'tradingBot/dca/stop': 1,
-                        'tradingBot/dca/orders/manual-buy': 1,
-                        'tradingBot/dca/settings/reinvestment': 1,
-                        'tradingBot/dca/settings/take-profit': 1,
-                        'tradingBot/dca/margin/add': 1,
-                        'tradingBot/dca/margin/reduce': 1,
-                        'tradingBot/recurring/add-investment': 1,
-                        'tradingBot/recurring/amend-price-range': 1,
-                        'tradingBot/recurring/amend-recurring-amount': 1,
-                        'tradingBot/recurring/amend-recurring-time': 1,
-                        'tradingBot/recurring/pause': 1,
-                        'tradingBot/recurring/restart': 1,
+                        'tradingBot/grid/order-algo': { 'cost': 1 },
+                        'tradingBot/grid/copy-order-algo': { 'cost': 1 },
+                        'tradingBot/grid/amend-algo-basic-param': { 'cost': 1 },
+                        'tradingBot/grid/amend-order-algo': { 'cost': 1 },
+                        'tradingBot/grid/stop-order-algo': { 'cost': 1 },
+                        'tradingBot/grid/close-position': { 'cost': 1 },
+                        'tradingBot/grid/cancel-close-order': { 'cost': 1 },
+                        'tradingBot/grid/order-instant-trigger': { 'cost': 1 },
+                        'tradingBot/grid/withdraw-income': { 'cost': 1 },
+                        'tradingBot/grid/compute-margin-balance': { 'cost': 1 },
+                        'tradingBot/grid/margin-balance': { 'cost': 1 },
+                        'tradingBot/grid/min-investment': { 'cost': 1 }, // public
+                        'tradingBot/grid/adjust-investment': { 'cost': 1 },
+                        'tradingBot/signal/create-signal': { 'cost': 1 },
+                        'tradingBot/signal/order-algo': { 'cost': 1 },
+                        'tradingBot/signal/stop-order-algo': { 'cost': 1 },
+                        'tradingBot/signal/margin-balance': { 'cost': 1 },
+                        'tradingBot/signal/amendTPSL': { 'cost': 1 },
+                        'tradingBot/signal/set-instruments': { 'cost': 1 },
+                        'tradingBot/signal/close-position': { 'cost': 1 },
+                        'tradingBot/signal/sub-order': { 'cost': 1 },
+                        'tradingBot/signal/cancel-sub-order': { 'cost': 1 },
+                        'tradingBot/recurring/order-algo': { 'cost': 1 },
+                        'tradingBot/recurring/amend-order-algo': { 'cost': 1 },
+                        'tradingBot/recurring/stop-order-algo': { 'cost': 1 },
+                        'tradingBot/dca/create': { 'cost': 1 },
+                        'tradingBot/dca/amend-order-algo': { 'cost': 1 },
+                        'tradingBot/dca/stop': { 'cost': 1 },
+                        'tradingBot/dca/orders/manual-buy': { 'cost': 1 },
+                        'tradingBot/dca/settings/reinvestment': { 'cost': 1 },
+                        'tradingBot/dca/settings/take-profit': { 'cost': 1 },
+                        'tradingBot/dca/margin/add': { 'cost': 1 },
+                        'tradingBot/dca/margin/reduce': { 'cost': 1 },
+                        'tradingBot/recurring/add-investment': { 'cost': 1 },
+                        'tradingBot/recurring/amend-price-range': { 'cost': 1 },
+                        'tradingBot/recurring/amend-recurring-amount': { 'cost': 1 },
+                        'tradingBot/recurring/amend-recurring-time': { 'cost': 1 },
+                        'tradingBot/recurring/pause': { 'cost': 1 },
+                        'tradingBot/recurring/restart': { 'cost': 1 },
                         // earn
-                        'finance/savings/purchase-redempt': 5 / 3,
-                        'finance/savings/set-lending-rate': 5 / 3,
-                        'finance/staking-defi/purchase': 5,
-                        'finance/staking-defi/redeem': 5,
-                        'finance/staking-defi/cancel': 5,
+                        'finance/savings/purchase-redempt': { 'cost': 5 / 3 },
+                        'finance/savings/set-lending-rate': { 'cost': 5 / 3 },
+                        'finance/staking-defi/purchase': { 'cost': 5 },
+                        'finance/staking-defi/redeem': { 'cost': 5 },
+                        'finance/staking-defi/cancel': { 'cost': 5 },
                         // eth staking
-                        'finance/staking-defi/eth/purchase': 5,
-                        'finance/staking-defi/eth/redeem': 5,
-                        'finance/staking-defi/eth/cancel-redeem': 5,
-                        'finance/staking-defi/sol/purchase': 5,
-                        'finance/staking-defi/sol/redeem': 5,
-                        'finance/staking-defi/sol/cancel-redeem': 5,
-                        'finance/flexible-loan/max-loan': 4,
-                        'finance/flexible-loan/adjust-collateral': 4,
+                        'finance/staking-defi/eth/purchase': { 'cost': 5 },
+                        'finance/staking-defi/eth/redeem': { 'cost': 5 },
+                        'finance/staking-defi/eth/cancel-redeem': { 'cost': 5 },
+                        'finance/staking-defi/sol/purchase': { 'cost': 5 },
+                        'finance/staking-defi/sol/redeem': { 'cost': 5 },
+                        'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 },
+                        'finance/flexible-loan/max-loan': { 'cost': 4 },
+                        'finance/flexible-loan/adjust-collateral': { 'cost': 4 },
                         // copytrading
-                        'copytrading/algo-order': 1,
-                        'copytrading/close-subposition': 1,
-                        'copytrading/set-instruments': 4,
-                        'copytrading/amend-profit-sharing-ratio': 4,
-                        'copytrading/first-copy-settings': 4,
-                        'copytrading/amend-copy-settings': 4,
-                        'copytrading/stop-copy-trading': 4,
-                        'copytrading/batch-set-leverage': 4, // not documented
+                        'copytrading/algo-order': { 'cost': 1 },
+                        'copytrading/close-subposition': { 'cost': 1 },
+                        'copytrading/set-instruments': { 'cost': 4 },
+                        'copytrading/amend-profit-sharing-ratio': { 'cost': 4 },
+                        'copytrading/first-copy-settings': { 'cost': 4 },
+                        'copytrading/amend-copy-settings': { 'cost': 4 },
+                        'copytrading/stop-copy-trading': { 'cost': 4 },
+                        'copytrading/batch-set-leverage': { 'cost': 4 }, // not documented
                         // broker
-                        'broker/nd/create-subaccount': 0.25, // not documented
-                        'broker/nd/delete-subaccount': 1, // not documented
-                        'broker/nd/subaccount/apikey': 0.25, // not documented
-                        'broker/nd/subaccount/modify-apikey': 1, // not documented
-                        'broker/nd/subaccount/delete-apikey': 1, // not documented
-                        'broker/nd/set-subaccount-level': 4, // not documented
-                        'broker/nd/set-subaccount-fee-rate': 4, // not documented
-                        'broker/nd/set-subaccount-assets': 0.25, // not documented
-                        'asset/broker/nd/subaccount-deposit-address': 1, // not documented
-                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3, // not documented
-                        'broker/nd/rebate-per-orders': 36000, // not documented
-                        'finance/sfp/dcd/quote': 10, // not documented
-                        'finance/sfp/dcd/order': 10, // not documented
-                        'finance/sfp/dcd/trade': 10,
-                        'finance/sfp/dcd/redeem-quote': 10,
-                        'finance/sfp/dcd/redeem': 10,
-                        'broker/nd/report-subaccount-ip': 0.25, // not documented
-                        'broker/dma/subaccount/apikey': 1 / 4,
-                        'broker/dma/trades': 36000,
-                        'broker/fd/rebate-per-orders': 36000,
+                        'broker/nd/create-subaccount': { 'cost': 0.25 }, // not documented
+                        'broker/nd/delete-subaccount': { 'cost': 1 }, // not documented
+                        'broker/nd/subaccount/apikey': { 'cost': 0.25 }, // not documented
+                        'broker/nd/subaccount/modify-apikey': { 'cost': 1 }, // not documented
+                        'broker/nd/subaccount/delete-apikey': { 'cost': 1 }, // not documented
+                        'broker/nd/set-subaccount-level': { 'cost': 4 }, // not documented
+                        'broker/nd/set-subaccount-fee-rate': { 'cost': 4 }, // not documented
+                        'broker/nd/set-subaccount-assets': { 'cost': 0.25 }, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': { 'cost': 1 }, // not documented
+                        'asset/broker/nd/modify-subaccount-deposit-address': { 'cost': 5 / 3 }, // not documented
+                        'broker/nd/rebate-per-orders': { 'cost': 36000 }, // not documented
+                        'finance/sfp/dcd/quote': { 'cost': 10 }, // not documented
+                        'finance/sfp/dcd/order': { 'cost': 10 }, // not documented
+                        'finance/sfp/dcd/trade': { 'cost': 10 },
+                        'finance/sfp/dcd/redeem-quote': { 'cost': 10 },
+                        'finance/sfp/dcd/redeem': { 'cost': 10 },
+                        'broker/nd/report-subaccount-ip': { 'cost': 0.25 }, // not documented
+                        'broker/dma/subaccount/apikey': { 'cost': 1 / 4 },
+                        'broker/dma/trades': { 'cost': 36000 },
+                        'broker/fd/rebate-per-orders': { 'cost': 36000 },
                     },
                 },
             },
@@ -912,6 +929,18 @@ class okx extends okx$1["default"] {
                     '51734': errors.AuthenticationError, // User KYC Country is not supported
                     '51735': errors.ExchangeError, // Sub-account is not supported
                     '51736': errors.InsufficientFunds, // Insufficient {ccy} balance
+                    '51763': errors.AccountNotEnabled, // Your account does not meet the VIP tier requirement for this product
+                    '51764': errors.InsufficientFunds, // Insufficient balance
+                    '51765': errors.BadRequest, // Exceed your remaining daily quota of {x} USDT
+                    '51766': errors.ExchangeError, // Platform daily subscription limit reached
+                    '51767': errors.OnMaintenance, // System maintenance, please retry
+                    '51768': errors.BadRequest, // Exceed your remaining fast redemption quota of {x} OKUSD
+                    '51769': errors.ExchangeError, // Platform fast redemption limit reached
+                    '51770': errors.BadRequest, // Exceed your remaining standard redemption quota of {x} OKUSD
+                    '51771': errors.ExchangeError, // Platform standard redemption limit reached
+                    '51772': errors.InsufficientFunds, // Instant redemption pool insufficient
+                    '51773': errors.PermissionDenied, // Feature not available in your region
+                    '51774': errors.OnMaintenance, // OKUSD API is under maintenance
                     // Data class
                     '52000': errors.ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -923,6 +952,7 @@ class okx extends okx$1["default"] {
                     '54072': errors.ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': errors.BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': errors.ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
+                    '54094': errors.InvalidOrder, // Order rejected. The cool-off period is active for the current instId.
                     // Trading bot Error Code from 55100 to 55999
                     '55100': errors.InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': errors.InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -997,6 +1027,7 @@ class okx extends okx$1["default"] {
                     '59107': errors.ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': errors.InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
                     '59109': errors.ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59113': errors.AuthenticationError, // KYC level 2 or above is required for placing orders
                     '59128': errors.InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': errors.InsufficientFunds, // Insufficient account balance
                     '59201': errors.InsufficientFunds, // Negative account balance
@@ -1069,6 +1100,8 @@ class okx extends okx$1["default"] {
                     '64001': errors.BadRequest, // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64002': errors.BadRequest, // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003': errors.AccountNotEnabled, // Your trading fee tier doesnt meet the requirement to access this channel
+                    '64004': errors.BadRequest, // Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
+                    '64008': errors.NetworkError, // The connection will soon be closed for a service upgrade. Please reconnect.
                     '70010': errors.BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': errors.BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': errors.BadRequest, // Please specify your instrument settings for at least one instType.
@@ -1123,7 +1156,7 @@ class okx extends okx$1["default"] {
                     'APT': 'Aptos',
                     'SONIC': 'Sonic',
                     'SCROLL': 'Scroll',
-                    'ARBONE': 'Arbitrum One',
+                    'ARBITRUM': 'Arbitrum One',
                     'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'BASE': 'Base',
@@ -1270,9 +1303,11 @@ class okx extends okx$1["default"] {
                 },
                 'fetchCanceledOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'withdraw': {
                     // a funding password credential is required by the exchange for the
@@ -1519,7 +1554,7 @@ class okx extends okx$1["default"] {
             // on the missing expiry.
             isOption = (partsLength > 3) && (marketId.endsWith('-C') || marketId.endsWith('-P'));
         }
-        if (isOption && (marketId !== undefined) && !(marketId in this.markets_by_id)) {
+        if (isOption && (marketId !== undefined) && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -1867,7 +1902,7 @@ class okx extends okx$1["default"] {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSz'),
-                    'max': undefined,
+                    'max': this.safeNumber(market, 'maxLmtSz'),
                 },
                 'price': {
                     'min': undefined,
@@ -2046,22 +2081,24 @@ class okx extends okx$1["default"] {
             const parts = this.arraySlice(idParts, 1);
             const chainPart = parts.join('-');
             const networkCode = this.networkIdToCode(chainPart, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'canDep'),
-                'withdraw': this.safeBool(chain, 'canWd'),
-                'fee': this.safeNumber(chain, 'fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'minWd'),
-                        'max': this.safeNumber(chain, 'maxWd'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'canDep'),
+                    'withdraw': this.safeBool(chain, 'canWd'),
+                    'fee': this.safeNumber(chain, 'fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'minWd'),
+                            'max': this.safeNumber(chain, 'maxWd'),
+                        },
                     },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': chains,
@@ -2088,11 +2125,12 @@ class okx extends okx$1["default"] {
      * @name okx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2146,18 +2184,11 @@ class okx extends okx$1["default"] {
     }
     parseTicker(ticker, market = undefined) {
         //
-        //      {
-        //          "instType":"SWAP",
-        //          "instId":"BTC-USDT-SWAP",
-        //          "markPx":"200",
-        //          "ts":"1597026383085"
-        //      }
-        //
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "ETH-BTC",
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
         //         "last": "0.07319",
-        //         "lastSz": "0.044378",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
         //         "askPx": "0.07322",
         //         "askSz": "4.2",
         //         "bidPx": "0.0732",
@@ -2165,12 +2196,13 @@ class okx extends okx$1["default"] {
         //         "open24h": "0.07801",
         //         "high24h": "0.07975",
         //         "low24h": "0.06019",
-        //         "volCcy24h": "11788.887619",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
         //         "vol24h": "167493.829229",
         //         "ts": "1621440583784",
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //
         //     {
         //          instId: 'LTC-USDT',
         //          idxPx: '65.74',
@@ -2382,7 +2414,7 @@ class okx extends okx$1["default"] {
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMarkPrices', market, params, 'swap');
         const request = {
             'instType': this.convertToInstrumentType(marketType),
         };
@@ -2498,6 +2530,7 @@ class okx extends okx$1["default"] {
      * @name okx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2826,7 +2859,9 @@ class okx extends okx$1["default"] {
             else {
                 account['free'] = availEq;
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
@@ -2844,7 +2879,9 @@ class okx extends okx$1["default"] {
             account['total'] = this.safeString(balance, 'bal');
             account['free'] = this.safeString(balance, 'availBal');
             account['used'] = this.safeString(balance, 'frozenBal');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3102,6 +3139,12 @@ class okx extends okx$1["default"] {
         return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
         const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
@@ -3160,7 +3203,7 @@ class okx extends okx$1["default"] {
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = this.safeValue(params, 'reduceOnly', false) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
+        let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         let margin = false;
         if ((marginMode !== undefined) && (marginMode !== 'cash')) {
             margin = true;
@@ -4483,7 +4526,7 @@ class okx extends okx$1["default"] {
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @param {string} [params.ordType] market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -5486,7 +5529,8 @@ class okx extends okx$1["default"] {
         params = this.omit(params, 'network');
         code = this.safeCurrencyCode(code);
         const network = this.networkIdToCode(rawNetwork, code);
-        const response = await this.fetchDepositAddressesByNetwork(code, params);
+        const responseRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const response = responseRaw;
         if (network !== undefined) {
             const result = this.safeDict(response, network);
             if (result === undefined) {
@@ -5495,7 +5539,7 @@ class okx extends okx$1["default"] {
             return result;
         }
         const codeNetwork = this.networkIdToCode(code, code);
-        if (codeNetwork in response) {
+        if ((codeNetwork !== undefined) && (codeNetwork in response)) {
             return response[codeNetwork];
         }
         // if the network is not specified, return the first address
@@ -5542,7 +5586,8 @@ class okx extends okx$1["default"] {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies();
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network, currency['code']), {});
+            const networkCodeResolved = this.networkIdToCode(network, currency['code']);
+            const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict(currency['networks'], networkCodeResolved, {});
             fee = this.safeString(targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -6104,7 +6149,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new errors.NullResponse(this.id + ' fetchPosition() could not find a position for ' + symbol);
         }
         return this.parsePosition(position, market);
     }
@@ -6349,7 +6394,8 @@ class okx extends okx$1["default"] {
         }
         else if (initialMarginString === undefined) {
             if (market['linear']) {
-                initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+                const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
             }
             else {
                 initialMarginString = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
@@ -6542,6 +6588,16 @@ class okx extends okx$1["default"] {
         }
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name okx#fetchTransfer
+     * @description fetch a transfer
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     async fetchTransfer(id, code = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -6801,8 +6857,11 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
+        const marketInfo = this.safeDict(market, 'info', {});
+        const ruleType = this.safeString(marketInfo, 'ruleType');
+        const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if (!market['swap'] && !isExtendedPerpetual) {
+            throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request = {
             'instId': market['id'],
@@ -6841,7 +6900,18 @@ class okx extends okx$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, 'swap', true);
+        symbols = this.marketSymbols(symbols, undefined, true);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                const marketInfo = this.safeDict(market, 'info', {});
+                const ruleType = this.safeString(marketInfo, 'ruleType');
+                const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if (!market['swap'] && !isExtendedPerpetual) {
+                    throw new errors.BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not');
+                }
+            }
+        }
         const request = { 'instId': 'ANY' };
         const response = await this.publicGetPublicFundingRate(this.extend(request, params));
         //
@@ -7244,9 +7314,14 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const rates = [];
+        // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
+        const rates = {};
         for (let i = 0; i < data.length; i++) {
-            rates.push(this.parseBorrowRate(data[i]));
+            const rate = this.parseBorrowRate(data[i]);
+            const code = this.safeString(rate, 'currency');
+            if (code !== undefined) {
+                rates[code] = rate;
+            }
         }
         return rates;
     }
@@ -7299,7 +7374,7 @@ class okx extends okx$1["default"] {
         return {
             'currency': this.safeCurrencyCode(ccy),
             'rate': this.safeNumber2(info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -7321,11 +7396,13 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode(this.safeString(item, 'ccy'));
-            if (codes === undefined || this.inArray(code, codes)) {
+            if ((code !== undefined) && (codes === undefined || this.inArray(code, codes))) {
                 if (!(code in borrowRateHistories)) {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000;
                 const borrrowRateCode = borrowRateHistories[code];
                 borrrowRateCode.push(borrowRateStructure);
             }
@@ -7513,6 +7590,7 @@ class okx extends okx$1["default"] {
         //
         const amountRaw = this.safeString2(data, 'amt', 'posBalChg');
         const typeRaw = this.safeString(data, 'type');
+        // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
         let type = undefined;
         if (typeRaw === '6') {
             type = Precise["default"].stringGt(amountRaw, '0') ? 'add' : 'reduce';
@@ -7528,6 +7606,7 @@ class okx extends okx$1["default"] {
         return {
             'info': data,
             'symbol': responseMarket['symbol'],
+            // unified values are 'add'|'reduce'|'set'; ledger '6' is mapped above; pass through otherwise
             'type': type,
             'marginMode': 'isolated',
             'amount': this.parseNumber(amount),
@@ -7990,7 +8069,7 @@ class okx extends okx$1["default"] {
         // handle unified currency code or symbol
         let currencyId = undefined;
         let market = undefined;
-        if ((symbol in this.markets) || (symbol in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (symbol in this.markets)) || ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id))) {
             market = this.market(symbol);
             currencyId = market['baseId'];
         }
@@ -8195,7 +8274,7 @@ class okx extends okx$1["default"] {
             const feeInfo = response[i];
             const currencyId = this.safeString(feeInfo, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -8219,10 +8298,12 @@ class okx extends okx$1["default"] {
                     'percentage': undefined,
                 };
                 const networkCode = this.networkIdToCode(networkId, code);
-                depositWithdrawFees[code]['networks'][networkCode] = {
-                    'withdraw': withdrawResult,
-                    'deposit': depositResult,
-                };
+                if (networkCode !== undefined) {
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                }
             }
         }
         const depositWithdrawCodes = Object.keys(depositWithdrawFees);
@@ -8435,7 +8516,7 @@ class okx extends okx$1["default"] {
                 return this.parseGreeks(entry, market);
             }
         }
-        return undefined;
+        throw new errors.NullResponse(this.id + ' fetchGreeks() could not find greeks for ' + symbol);
     }
     /**
      * @method
@@ -8572,7 +8653,7 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -9090,34 +9171,36 @@ class okx extends okx$1["default"] {
             const entry = data[i];
             const id = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(entry, 'min'),
-                        'max': this.safeNumber(entry, 'max'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(entry, 'min'),
+                            'max': this.safeNumber(entry, 'max'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -9171,7 +9254,7 @@ class okx extends okx$1["default"] {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
      * @param {int} [limit] the maximum number of entries to retrieve
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -9275,7 +9358,7 @@ class okx extends okx$1["default"] {
      * @param {string} [symbols] unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] "cross" or "isolated"
      *
      * EXCHANGE SPECIFIC PARAMETERS

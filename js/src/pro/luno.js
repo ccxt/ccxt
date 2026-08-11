@@ -117,12 +117,13 @@ export default class luno extends lunoRest {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.safeTrade({
             'info': trade,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
@@ -138,11 +139,12 @@ export default class luno extends lunoRest {
      * @method
      * @name luno#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.checkRequiredCredentials();

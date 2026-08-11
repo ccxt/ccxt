@@ -38,10 +38,8 @@ ansicolor.nice
             log(('fee' as any).green, 'BTC/USD', singleFee)
             let tradingFees = await exchange.fetchTradingFees()
             log(('tradingFees' as any).green, tradingFees)
-            // @ts-expect-error
             let fundingFees = await exchange.fetchFundingFees()
             log(('fundingFees' as any).green, fundingFees)
-            // @ts-expect-error
             let fees = await exchange.fetchFees()
             log(('fees' as any).green, fees)
 

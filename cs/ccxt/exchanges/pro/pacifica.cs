@@ -16,7 +16,7 @@ public partial class pacifica : ccxt.pacifica
                 { "cancelOrdersWs", true },
                 { "cancelAllOrdersWs", true },
                 { "createOrderWs", true },
-                { "createOrdersWs", true },
+                { "createOrdersWs", false },
                 { "editOrderWs", true },
                 { "watchBalance", false },
                 { "watchMyTrades", true },
@@ -74,7 +74,7 @@ public partial class pacifica : ccxt.pacifica
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = key;
         } else
         {
-            if (isTrue(!isEqual(this.handleOption("setupApiKeyHeaders", "apiKey", null), null)))
+            if (isTrue(!isEqual(this.handleOption("setupApiKeyHeaders", "apiKey"), null)))
             {
                 ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
             }
@@ -318,7 +318,7 @@ public partial class pacifica : ccxt.pacifica
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object marketId = this.safeString(order, "symbol");
             object market = this.safeMarket(marketId);
@@ -470,7 +470,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -482,7 +482,7 @@ public partial class pacifica : ccxt.pacifica
         }
         object market = this.market(symbol);
         object aggLevel = null;
-        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         object messageHash = add("orderbook:", symbol);
@@ -521,7 +521,7 @@ public partial class pacifica : ccxt.pacifica
         }
         object market = this.market(symbol);
         object aggLevel = null;
-        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         object subMessageHash = add("orderbook:", symbol);
@@ -862,7 +862,10 @@ public partial class pacifica : ccxt.pacifica
             object rawTrade = getValue(data, i);
             object parsed = this.parseWsTrade(rawTrade);
             object symbol = getValue(parsed, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            }
             callDynamically(trades, "append", new object[] {parsed});
         }
         object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -983,7 +986,7 @@ public partial class pacifica : ccxt.pacifica
         object trades = getValue(this.trades, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(entry)); postFixIncrement(ref i))
         {
-            object data = this.safeDict(entry, i);
+            object data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             object trade = this.parseWsTrade(data);
             callDynamically(trades, "append", new object[] {trade});
         }
@@ -1186,17 +1189,22 @@ public partial class pacifica : ccxt.pacifica
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object timeframe = this.safeString(data, "i");
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        if (isTrue(isEqual(ohlcv, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            ohlcv = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)symbolOhlcvs)[(string)timeframe] = ohlcv;
         }
-        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         object parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
@@ -1342,7 +1350,10 @@ public partial class pacifica : ccxt.pacifica
             object order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
             object symbol = this.safeString(order, "symbol");
-            ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
+            }
         }
         object keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -1426,12 +1437,16 @@ public partial class pacifica : ccxt.pacifica
         object symbol = getValue(market, "symbol");
         object interval = this.safeString(subscription, "interval");
         object timeframe = this.findTimeframe(interval);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
-        if (isTrue(inOp(this.ohlcvs, symbol)))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
         {
-            if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+            if (isTrue(isTrue((!isEqual(timeframe, null))) && isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe)))))
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
@@ -1528,7 +1543,7 @@ public partial class pacifica : ccxt.pacifica
         {
             return;
         }
-        object postType = this.safeString(message, "type", null);
+        object postType = this.safeString(message, "type");
         object topic = this.safeString(message, "channel", "");
         object methods = new Dictionary<string, object>() {
             { "pong", this.handlePong },

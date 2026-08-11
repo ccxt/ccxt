@@ -1,5 +1,5 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Bool } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
@@ -42,7 +42,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK
      * @param {string} [params.clientOrderId] Maximum 64-character length.*
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -62,11 +62,11 @@ export default class poloniex extends poloniexRest {
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name poloniex#cancelOrdersWs
@@ -74,7 +74,7 @@ export default class poloniex extends poloniexRest {
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -85,7 +85,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
@@ -155,7 +155,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -191,14 +191,14 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: any): any;
     handleTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     parseStatus(status: any): string;
-    parseWsOrderTrade(trade: any, market?: any): Trade;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleOrder(client: Client, message: any): any;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleTicker(client: Client, message: any): any;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;

@@ -138,64 +138,64 @@ class latoken extends latoken$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'book/{currency}/{quote}': 1,
-                        'chart/week': 1,
-                        'chart/week/{currency}/{quote}': 1,
-                        'currency': 1,
-                        'currency/available': 1,
-                        'currency/quotes': 1,
-                        'currency/{currency}': 1,
-                        'pair': 1,
-                        'pair/available': 1,
-                        'ticker': 1,
-                        'ticker/{base}/{quote}': 1,
-                        'time': 1,
-                        'trade/history/{currency}/{quote}': 1,
-                        'trade/fee/{currency}/{quote}': 1,
-                        'trade/feeLevels': 1,
-                        'transaction/bindings': 1,
+                        'book/{currency}/{quote}': { 'cost': 1 },
+                        'chart/week': { 'cost': 1 },
+                        'chart/week/{currency}/{quote}': { 'cost': 1 },
+                        'currency': { 'cost': 1 },
+                        'currency/available': { 'cost': 1 },
+                        'currency/quotes': { 'cost': 1 },
+                        'currency/{currency}': { 'cost': 1 },
+                        'pair': { 'cost': 1 },
+                        'pair/available': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'ticker/{base}/{quote}': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'trade/history/{currency}/{quote}': { 'cost': 1 },
+                        'trade/fee/{currency}/{quote}': { 'cost': 1 },
+                        'trade/feeLevels': { 'cost': 1 },
+                        'transaction/bindings': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'auth/account': 1,
-                        'auth/account/currency/{currency}/{type}': 1,
-                        'auth/order': 1,
-                        'auth/order/getOrder/{id}': 1,
-                        'auth/order/pair/{currency}/{quote}': 1,
-                        'auth/order/pair/{currency}/{quote}/active': 1,
-                        'auth/stopOrder': 1,
-                        'auth/stopOrder/getOrder/{id}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active': 1,
-                        'auth/trade': 1,
-                        'auth/trade/pair/{currency}/{quote}': 1,
-                        'auth/trade/fee/{currency}/{quote}': 1,
-                        'auth/transaction': 1,
-                        'auth/transaction/bindings': 1,
-                        'auth/transaction/bindings/{currency}': 1,
-                        'auth/transaction/{id}': 1,
-                        'auth/transfer': 1,
+                        'auth/account': { 'cost': 1 },
+                        'auth/account/currency/{currency}/{type}': { 'cost': 1 },
+                        'auth/order': { 'cost': 1 },
+                        'auth/order/getOrder/{id}': { 'cost': 1 },
+                        'auth/order/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 },
+                        'auth/stopOrder': { 'cost': 1 },
+                        'auth/stopOrder/getOrder/{id}': { 'cost': 1 },
+                        'auth/stopOrder/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/stopOrder/pair/{currency}/{quote}/active': { 'cost': 1 },
+                        'auth/trade': { 'cost': 1 },
+                        'auth/trade/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/trade/fee/{currency}/{quote}': { 'cost': 1 },
+                        'auth/transaction': { 'cost': 1 },
+                        'auth/transaction/bindings': { 'cost': 1 },
+                        'auth/transaction/bindings/{currency}': { 'cost': 1 },
+                        'auth/transaction/{id}': { 'cost': 1 },
+                        'auth/transfer': { 'cost': 1 },
                     },
                     'post': {
-                        'auth/order/cancel': 1,
-                        'auth/order/cancelAll': 1,
-                        'auth/order/cancelAll/{currency}/{quote}': 1,
-                        'auth/order/place': 1,
-                        'auth/spot/deposit': 1,
-                        'auth/spot/withdraw': 1,
-                        'auth/stopOrder/cancel': 1,
-                        'auth/stopOrder/cancelAll': 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}': 1,
-                        'auth/stopOrder/place': 1,
-                        'auth/transaction/depositAddress': 1,
-                        'auth/transaction/withdraw': 1,
-                        'auth/transaction/withdraw/cancel': 1,
-                        'auth/transaction/withdraw/confirm': 1,
-                        'auth/transaction/withdraw/resendCode': 1,
-                        'auth/transfer/email': 1,
-                        'auth/transfer/id': 1,
-                        'auth/transfer/phone': 1,
+                        'auth/order/cancel': { 'cost': 1 },
+                        'auth/order/cancelAll': { 'cost': 1 },
+                        'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/place': { 'cost': 1 },
+                        'auth/spot/deposit': { 'cost': 1 },
+                        'auth/spot/withdraw': { 'cost': 1 },
+                        'auth/stopOrder/cancel': { 'cost': 1 },
+                        'auth/stopOrder/cancelAll': { 'cost': 1 },
+                        'auth/stopOrder/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/stopOrder/place': { 'cost': 1 },
+                        'auth/transaction/depositAddress': { 'cost': 1 },
+                        'auth/transaction/withdraw': { 'cost': 1 },
+                        'auth/transaction/withdraw/cancel': { 'cost': 1 },
+                        'auth/transaction/withdraw/confirm': { 'cost': 1 },
+                        'auth/transaction/withdraw/resendCode': { 'cost': 1 },
+                        'auth/transfer/email': { 'cost': 1 },
+                        'auth/transfer/id': { 'cost': 1 },
+                        'auth/transfer/phone': { 'cost': 1 },
                     },
                 },
             },
@@ -406,8 +406,9 @@ class latoken extends latoken$1["default"] {
         const currencies = this.safeDict(this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray(response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
@@ -419,6 +420,9 @@ class latoken extends latoken$1["default"] {
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, 'tag'));
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const lowercaseQuote = quote.toLowerCase();
                 const capitalizedQuote = this.capitalize(lowercaseQuote);
                 const status = this.safeString(market, 'status');
@@ -611,7 +615,9 @@ class latoken extends latoken$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'blocked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601(maxTimestamp);
@@ -625,7 +631,7 @@ class latoken extends latoken$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -842,7 +848,7 @@ class latoken extends latoken$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
+        if ((this.markets !== undefined) && (symbol in this.markets)) {
             market = this.market(symbol);
         }
         const id = this.safeString(trade, 'id');
@@ -1011,7 +1017,7 @@ class latoken extends latoken$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response;
+        let response = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1117,7 +1123,7 @@ class latoken extends latoken$1["default"] {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (symbol in this.markets) {
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
                 market = this.market(symbol);
             }
         }
@@ -1378,6 +1384,9 @@ class latoken extends latoken$1["default"] {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1424,7 +1433,7 @@ class latoken extends latoken$1["default"] {
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
      * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
      * @param {string} id order id
-     * @param {string} symbol not used by latoken cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1462,7 +1471,7 @@ class latoken extends latoken$1["default"] {
      * @description cancel all open orders in a market
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

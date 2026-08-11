@@ -19,6 +19,7 @@ type OrderBookInterface interface {
 	GetNonce() any
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
+	Copy() OrderBookInterface
 }
 
 type WsOrderBook struct {
@@ -29,6 +30,10 @@ type WsOrderBook struct {
 	Datetime  any            `json:"datetime"`
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
+	// prediction-market identity (nil for crypto exchanges)
+	Outcome   any `json:"outcome"`
+	OutcomeId any `json:"outcomeId"`
+	Market    any `json:"market"`
 }
 
 func strOrNil(s string) any {
@@ -54,7 +59,7 @@ func createOb(Obtype string) OrderBookInterface {
 }
 
 func (this *WsOrderBook) ToMap() map[string]any {
-	return map[string]any{
+	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": this.Timestamp,
@@ -62,6 +67,13 @@ func (this *WsOrderBook) ToMap() map[string]any {
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
 	}
+	// prediction-market identity — only present on prediction books
+	if this.Outcome != nil {
+		result["outcome"] = this.Outcome
+		result["outcomeId"] = this.OutcomeId
+		result["market"] = this.Market
+	}
+	return result
 }
 
 func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
@@ -80,6 +92,12 @@ func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
 		return this.Datetime
 	case "symbol":
 		return this.Symbol
+	case "outcome":
+		return this.Outcome
+	case "outcomeId":
+		return this.OutcomeId
+	case "market":
+		return this.Market
 	default:
 		return defaultValue
 	}
@@ -166,6 +184,9 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	this.Timestamp = SafeInt64(snapshotMap, "timestamp", 0).(int64)
 	this.Datetime = Iso8601(this.Timestamp)
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
+	this.Outcome = SafeString(snapshotMap, "outcome", nil)
+	this.OutcomeId = SafeString(snapshotMap, "outcomeId", nil)
+	this.Market = SafeString(snapshotMap, "market", nil)
 
 	return this
 }
@@ -472,6 +493,51 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 // func (this *IncrementalIndexedOrderBook) SetCache(cache any) {
 // 	this.WsOrderBook.SetCache(cache)
 // }
+
+func (this *WsOrderBook) Copy() OrderBookInterface {
+	snapshot := make(map[string]any)
+	if this.Outcome != nil {
+		snapshot["outcome"] = this.Outcome
+		snapshot["outcomeId"] = this.OutcomeId
+		snapshot["market"] = this.Market
+	} else {
+		snapshot["symbol"] = this.Symbol
+	}
+
+	// Determine the concrete order-book variant from the side types, because
+	// this method's receiver is *WsOrderBook; a *WsOrderBook is never a
+	// *CountedOrderBook or *IndexedOrderBook, so interface{}(this).(*X) can
+	// never succeed.
+	var copy OrderBookInterface
+	switch this.Asks.(type) {
+	case *CountedOrderBookSide:
+		copy = NewCountedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	case *IndexedOrderBookSide:
+		copy = NewIndexedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	default:
+		copy = NewWsOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	}
+
+	var ob *WsOrderBook
+	switch typed := copy.(type) {
+	case *CountedOrderBook:
+		ob = typed.WsOrderBook
+	case *IndexedOrderBook:
+		ob = typed.WsOrderBook
+	case *WsOrderBook:
+		ob = typed
+	}
+
+	// CopySide acquires each side's read lock internally for the whole
+	// duration of the copy, so no concurrent StoreArray/Limit write (which
+	// takes the write lock) can race with the map/slice reads here.
+	ob.Asks = this.Asks.CopySide()
+	ob.Bids = this.Bids.CopySide()
+	ob.Nonce = this.Nonce
+	ob.Timestamp = this.Timestamp
+	ob.Datetime = this.Datetime
+	return copy
+}
 
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce

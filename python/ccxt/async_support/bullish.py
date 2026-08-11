@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -44,8 +44,8 @@ class bullish(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
-                'option': False,
+                'future': True,
+                'option': True,
                 'addMargin': False,
                 'borrowMargin': False,
                 'cancelAllOrders': True,
@@ -172,70 +172,70 @@ class bullish(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/history/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
-                        'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
-                        'v1/expiry-prices/{symbol}': 1,
-                        'v1/option-ladder': 1,
-                        'v1/option-ladder/{symbol}': 1,
+                        'v1/nonce': {'cost': 1},
+                        'v1/time': {'cost': 1},
+                        'v1/assets': {'cost': 1},
+                        'v1/assets/{symbol}': {'cost': 1},
+                        'v1/markets': {'cost': 1},
+                        'v1/markets/{symbol}': {'cost': 1},
+                        'v1/history/markets/{symbol}': {'cost': 1},
+                        'v1/markets/{symbol}/orderbook/hybrid': {'cost': 1},
+                        'v1/markets/{symbol}/trades': {'cost': 1},
+                        'v1/markets/{symbol}/tick': {'cost': 1},
+                        'v1/markets/{symbol}/candle': {'cost': 1},
+                        'v1/history/markets/{symbol}/trades': {'cost': 1},
+                        'v1/history/markets/{symbol}/funding-rate': {'cost': 1},
+                        'v1/index-prices': {'cost': 1},
+                        'v1/index-prices/{assetSymbol}': {'cost': 1},
+                        'v1/expiry-prices/{symbol}': {'cost': 1},
+                        'v1/option-ladder': {'cost': 1},
+                        'v1/option-ladder/{symbol}': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
-                        'v2/history/orders': 1,
-                        'v2/orders/{orderId}': 1,
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/self-hosted/verification-attempts': 1,
-                        'v1/trades': 5,
-                        'v1/history/trades': 5,
-                        'v1/trades/{tradeId}': 5,
-                        'v1/trades/client-order-id/{clientOrderId}': 1,
-                        'v1/accounts/asset': 1,
-                        'v1/accounts/asset/{symbol}': 1,
-                        'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
-                        'v1/history/transfer': 1,
-                        'v1/history/borrow-interest': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-trades/{otcTradeId}': 1,
-                        'v2/otc-trades/unconfirmed-trade': 1,
+                        'v2/orders': {'cost': 1},
+                        'v2/history/orders': {'cost': 1},
+                        'v2/orders/{orderId}': {'cost': 1},
+                        'v2/amm-instructions': {'cost': 1},
+                        'v2/amm-instructions/{instructionId}': {'cost': 1},
+                        'v1/wallets/transactions': {'cost': 1},
+                        'v1/wallets/limits/{symbol}': {'cost': 1},
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': {'cost': 1},
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': {'cost': 1},
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': {'cost': 1},
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': {'cost': 1},
+                        'v1/wallets/self-hosted/verification-attempts': {'cost': 1},
+                        'v1/trades': {'cost': 5},
+                        'v1/history/trades': {'cost': 5},
+                        'v1/trades/{tradeId}': {'cost': 5},
+                        'v1/trades/client-order-id/{clientOrderId}': {'cost': 1},
+                        'v1/accounts/asset': {'cost': 1},
+                        'v1/accounts/asset/{symbol}': {'cost': 1},
+                        'v1/users/logout': {'cost': 1},
+                        'v1/users/hmac/login': {'cost': 1},
+                        'v1/accounts/trading-accounts': {'cost': 1},
+                        'v1/accounts/trading-accounts/{tradingAccountId}': {'cost': 1},
+                        'v1/derivatives-positions': {'cost': 1},
+                        'v1/history/derivatives-settlement': {'cost': 1},
+                        'v1/history/transfer': {'cost': 1},
+                        'v1/history/borrow-interest': {'cost': 1},
+                        'v2/mmp-configuration': {'cost': 1},
+                        'v2/otc-trades': {'cost': 1},
+                        'v2/otc-trades/{otcTradeId}': {'cost': 1},
+                        'v2/otc-trades/unconfirmed-trade': {'cost': 1},
                     },
                     'post': {
-                        'v2/orders': 5,
-                        'v2/command': 5,
-                        'v2/amm-instructions': 1,
-                        'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
-                        'v1/simulate-portfolio-margin': 1,
-                        'v1/wallets/self-hosted/initiate': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-command': 1,
+                        'v2/orders': {'cost': 5},
+                        'v2/command': {'cost': 5},
+                        'v2/amm-instructions': {'cost': 1},
+                        'v1/wallets/withdrawal': {'cost': 1},
+                        'v2/users/login': {'cost': 1},
+                        'v1/simulate-portfolio-margin': {'cost': 1},
+                        'v1/wallets/self-hosted/initiate': {'cost': 1},
+                        'v2/mmp-configuration': {'cost': 1},
+                        'v2/otc-trades': {'cost': 1},
+                        'v2/otc-command': {'cost': 1},
                     },
                 },
             },
@@ -251,7 +251,7 @@ class bullish(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
@@ -532,7 +532,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(rawCurrency, 'name')
@@ -914,7 +914,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -964,7 +964,7 @@ class bullish(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             params = self.handle_pagination_params('fetchTrades', since, params)
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
@@ -1363,9 +1363,10 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'createdAtTimestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1583,7 +1584,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1602,7 +1603,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1676,7 +1677,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2142,7 +2143,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2160,11 +2161,12 @@ class bullish(Exchange, ImplicitAPI):
 
     async def load_account(self, params={}):
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_and_params(params, 'fetchMyTrades', 'tradingAccountId')
+        tradingAccountId, params = self.handle_option_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
             response = await self.privateGetV1AccountsTradingAccounts(params)
-            for i in range(0, len(response)):
-                account = response[i]
+            accounts = self.to_array(response)
+            for i in range(0, len(accounts)):
+                account = accounts[i]
                 name = self.safe_string(account, 'tradingAccountName')
                 if name == 'Primary Account':
                     tradingAccountId = self.safe_string(account, 'tradingAccountId')
@@ -2324,7 +2326,7 @@ class bullish(Exchange, ImplicitAPI):
                     data = {}  # return an empty structure if the user-defined network was not found
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(id, currency)
@@ -2379,7 +2381,7 @@ class bullish(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
 
-    def parse_balance_for_single_currency(self, response, code: Str) -> Balances:
+    def parse_balance_for_single_currency(self, response: Any, code: Str) -> Balances:
         result = {'info': response}
         account = self.account()
         account['free'] = self.safe_string(response, 'availableQuantity')
@@ -2387,7 +2389,7 @@ class bullish(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2398,7 +2400,8 @@ class bullish(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'availableQuantity')
             account['used'] = self.safe_string(balance, 'lockedQuantity')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2601,7 +2604,7 @@ class bullish(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: Any, currency: Currency = None):
         #
         # fetchTransfers
         #     {
@@ -2640,7 +2643,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str):
         statuses = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2696,7 +2699,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_borrow_rate_history(response, code, since, limit)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "assetId": "1",
@@ -2778,7 +2781,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2829,7 +2832,7 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2909,7 +2912,7 @@ class bullish(Exchange, ImplicitAPI):
         else:
             return self.token
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -138,16 +138,83 @@ func (this *MercadoCore) Describe() any {
 		},
 		"api": map[string]any{
 			"public": map[string]any{
-				"get": []any{"coins", "{coin}/orderbook/", "{coin}/ticker/", "{coin}/trades/", "{coin}/trades/{from}/", "{coin}/trades/{from}/{to}", "{coin}/day-summary/{year}/{month}/{day}/"},
+				"get": map[string]any{
+					"coins": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/orderbook/": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/ticker/": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/trades/": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/trades/{from}/": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/trades/{from}/{to}": map[string]any{
+						"cost": 1,
+					},
+					"{coin}/day-summary/{year}/{month}/{day}/": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"private": map[string]any{
-				"post": []any{"cancel_order", "get_account_info", "get_order", "get_withdrawal", "list_system_messages", "list_orders", "list_orderbook", "place_buy_order", "place_sell_order", "place_market_buy_order", "place_market_sell_order", "withdraw_coin"},
+				"post": map[string]any{
+					"cancel_order": map[string]any{
+						"cost": 1,
+					},
+					"get_account_info": map[string]any{
+						"cost": 1,
+					},
+					"get_order": map[string]any{
+						"cost": 1,
+					},
+					"get_withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"list_system_messages": map[string]any{
+						"cost": 1,
+					},
+					"list_orders": map[string]any{
+						"cost": 1,
+					},
+					"list_orderbook": map[string]any{
+						"cost": 1,
+					},
+					"place_buy_order": map[string]any{
+						"cost": 1,
+					},
+					"place_sell_order": map[string]any{
+						"cost": 1,
+					},
+					"place_market_buy_order": map[string]any{
+						"cost": 1,
+					},
+					"place_market_sell_order": map[string]any{
+						"cost": 1,
+					},
+					"withdraw_coin": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v4Public": map[string]any{
-				"get": []any{"{coin}/candle/"},
+				"get": map[string]any{
+					"{coin}/candle/": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 			"v4PublicNet": map[string]any{
-				"get": []any{"candles"},
+				"get": map[string]any{
+					"candles": map[string]any{
+						"cost": 1,
+					},
+				},
 			},
 		},
 		"fees": map[string]any{
@@ -278,12 +345,16 @@ func (this *MercadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//
 		var result any = []any{}
 		var amountLimits any = this.SafeValue(this.Options, "limits", map[string]any{})
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var coin any = GetValue(response, i)
+		var coins any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
+			var coin any = GetValue(coins, i)
 			var baseId any = coin
 			var quoteId any = "BRL"
 			var base any = this.SafeCurrencyCode(baseId)
 			var quote any = this.SafeCurrencyCode(quoteId)
+			if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
+				continue
+			}
 			var id any = Add(quote, base)
 			AppendToArray(&result, map[string]any{
 				"id":             id,
@@ -350,7 +421,7 @@ func (this *MercadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *MercadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -363,8 +434,8 @@ func (this *MercadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes37312 := (<-this.LoadMarkets())
-			PanicOnError(retRes37312)
+			retRes37712 := (<-this.LoadMarkets())
+			PanicOnError(retRes37712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -439,8 +510,8 @@ func (this *MercadoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes43312 := (<-this.LoadMarkets())
-			PanicOnError(retRes43312)
+			retRes43712 := (<-this.LoadMarkets())
+			PanicOnError(retRes43712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -529,8 +600,8 @@ func (this *MercadoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50312 := (<-this.LoadMarkets())
-			PanicOnError(retRes50312)
+			retRes50712 := (<-this.LoadMarkets())
+			PanicOnError(retRes50712)
 		}
 		var market any = this.Market(symbol)
 		var method any = "publicGetCoinTrades"
@@ -570,7 +641,9 @@ func (this *MercadoCore) ParseBalance(response any) any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available"))
 			AddElementToObject(account, "total", this.SafeString(balance, "total"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -592,8 +665,8 @@ func (this *MercadoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55012 := (<-this.LoadMarkets())
-			PanicOnError(retRes55012)
+			retRes55612 := (<-this.LoadMarkets())
+			PanicOnError(retRes55612)
 		}
 
 		response := (<-this.PrivatePostGetAccountInfo(params))
@@ -629,8 +702,8 @@ func (this *MercadoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes57012 := (<-this.LoadMarkets())
-			PanicOnError(retRes57012)
+			retRes57612 := (<-this.LoadMarkets())
+			PanicOnError(retRes57612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -693,8 +766,8 @@ func (this *MercadoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes61712 := (<-this.LoadMarkets())
-			PanicOnError(retRes61712)
+			retRes62312 := (<-this.LoadMarkets())
+			PanicOnError(retRes62312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -842,8 +915,8 @@ func (this *MercadoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes74912 := (<-this.LoadMarkets())
-			PanicOnError(retRes74912)
+			retRes75512 := (<-this.LoadMarkets())
+			PanicOnError(retRes75512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -889,8 +962,8 @@ func (this *MercadoCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes77712 := (<-this.LoadMarkets())
-			PanicOnError(retRes77712)
+			retRes78312 := (<-this.LoadMarkets())
+			PanicOnError(retRes78312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1021,8 +1094,8 @@ func (this *MercadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89312 := (<-this.LoadMarkets())
-			PanicOnError(retRes89312)
+			retRes89912 := (<-this.LoadMarkets())
+			PanicOnError(retRes89912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1042,9 +1115,10 @@ func (this *MercadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 
 		response := (<-this.V4PublicNetGetCandles(this.Extend(request, params)))
 		PanicOnError(response)
-		var candles any = this.ConvertTradingViewToOHLCV(response, "t", "o", "h", "l", "c", "v")
 
-		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
+		// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+		// then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
+		ch <- this.ParseTradingViewOHLCV(response, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1079,8 +1153,8 @@ func (this *MercadoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93012 := (<-this.LoadMarkets())
-			PanicOnError(retRes93012)
+			retRes93712 := (<-this.LoadMarkets())
+			PanicOnError(retRes93712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1127,8 +1201,8 @@ func (this *MercadoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95712 := (<-this.LoadMarkets())
-			PanicOnError(retRes95712)
+			retRes96412 := (<-this.LoadMarkets())
+			PanicOnError(retRes96412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1176,8 +1250,8 @@ func (this *MercadoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes98512 := (<-this.LoadMarkets())
-			PanicOnError(retRes98512)
+			retRes99212 := (<-this.LoadMarkets())
+			PanicOnError(retRes99212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{

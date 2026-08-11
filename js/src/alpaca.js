@@ -9,7 +9,7 @@ import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-//  ---------------------------------------------------------------------------xs
+//  ---------------------------------------------------------------------------
 /**
  * @class alpaca
  * @augments Exchange
@@ -60,6 +60,7 @@ export default class alpaca extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,
@@ -159,96 +160,96 @@ export default class alpaca extends Exchange {
                 'broker': {},
                 'trader': {
                     'private': {
-                        'get': [
-                            'v2/account',
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/account/portfolio/history',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/account/configurations',
-                            'v2/account/activities',
-                            'v2/account/activities/{activity_type}',
-                            'v2/calendar',
-                            'v2/clock',
-                            'v2/assets',
-                            'v2/assets/{symbol_or_asset_id}',
-                            'v2/corporate_actions/announcements/{id}',
-                            'v2/corporate_actions/announcements',
-                            'v2/wallets',
-                            'v2/wallets/transfers',
-                        ],
-                        'post': [
-                            'v2/orders',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/wallets/transfers',
-                        ],
-                        'put': [
-                            'v2/orders/{order_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                        ],
-                        'patch': [
-                            'v2/orders/{order_id}',
-                            'v2/account/configurations',
-                        ],
-                        'delete': [
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/watchlists/{watchlist_id}/{symbol}',
-                        ],
+                        'get': {
+                            'v2/account': { 'cost': 1 },
+                            'v2/orders': { 'cost': 1 },
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/positions': { 'cost': 1 },
+                            'v2/positions/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/account/portfolio/history': { 'cost': 1 },
+                            'v2/watchlists': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/account/configurations': { 'cost': 1 },
+                            'v2/account/activities': { 'cost': 1 },
+                            'v2/account/activities/{activity_type}': { 'cost': 1 },
+                            'v2/calendar': { 'cost': 1 },
+                            'v2/clock': { 'cost': 1 },
+                            'v2/assets': { 'cost': 1 },
+                            'v2/assets/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/corporate_actions/announcements/{id}': { 'cost': 1 },
+                            'v2/corporate_actions/announcements': { 'cost': 1 },
+                            'v2/wallets': { 'cost': 1 },
+                            'v2/wallets/transfers': { 'cost': 1 },
+                        },
+                        'post': {
+                            'v2/orders': { 'cost': 1 },
+                            'v2/watchlists': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/wallets/transfers': { 'cost': 1 },
+                        },
+                        'put': {
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/account/configurations': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'v2/orders': { 'cost': 1 },
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/positions': { 'cost': 1 },
+                            'v2/positions/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}/{symbol}': { 'cost': 1 },
+                        },
                     },
                 },
                 'market': {
                     'public': {
-                        'get': [
-                            'v1beta3/crypto/{loc}/bars',
-                            'v1beta3/crypto/{loc}/latest/bars',
-                            'v1beta3/crypto/{loc}/latest/orderbooks',
-                            'v1beta3/crypto/{loc}/latest/quotes',
-                            'v1beta3/crypto/{loc}/latest/trades',
-                            'v1beta3/crypto/{loc}/quotes',
-                            'v1beta3/crypto/{loc}/snapshots',
-                            'v1beta3/crypto/{loc}/trades',
-                        ],
+                        'get': {
+                            'v1beta3/crypto/{loc}/bars': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/bars': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/orderbooks': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/quotes': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/trades': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/quotes': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/snapshots': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/trades': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'v1beta1/corporate-actions',
-                            'v1beta1/forex/latest/rates',
-                            'v1beta1/forex/rates',
-                            'v1beta1/logos/{symbol}',
-                            'v1beta1/news',
-                            'v1beta1/screener/stocks/most-actives',
-                            'v1beta1/screener/{market_type}/movers',
-                            'v2/stocks/auctions',
-                            'v2/stocks/bars',
-                            'v2/stocks/bars/latest',
-                            'v2/stocks/meta/conditions/{ticktype}',
-                            'v2/stocks/meta/exchanges',
-                            'v2/stocks/quotes',
-                            'v2/stocks/quotes/latest',
-                            'v2/stocks/snapshots',
-                            'v2/stocks/trades',
-                            'v2/stocks/trades/latest',
-                            'v2/stocks/{symbol}/auctions',
-                            'v2/stocks/{symbol}/bars',
-                            'v2/stocks/{symbol}/bars/latest',
-                            'v2/stocks/{symbol}/quotes',
-                            'v2/stocks/{symbol}/quotes/latest',
-                            'v2/stocks/{symbol}/snapshot',
-                            'v2/stocks/{symbol}/trades',
-                            'v2/stocks/{symbol}/trades/latest',
-                        ],
+                        'get': {
+                            'v1beta1/corporate-actions': { 'cost': 1 },
+                            'v1beta1/forex/latest/rates': { 'cost': 1 },
+                            'v1beta1/forex/rates': { 'cost': 1 },
+                            'v1beta1/logos/{symbol}': { 'cost': 1 },
+                            'v1beta1/news': { 'cost': 1 },
+                            'v1beta1/screener/stocks/most-actives': { 'cost': 1 },
+                            'v1beta1/screener/{market_type}/movers': { 'cost': 1 },
+                            'v2/stocks/auctions': { 'cost': 1 },
+                            'v2/stocks/bars': { 'cost': 1 },
+                            'v2/stocks/bars/latest': { 'cost': 1 },
+                            'v2/stocks/meta/conditions/{ticktype}': { 'cost': 1 },
+                            'v2/stocks/meta/exchanges': { 'cost': 1 },
+                            'v2/stocks/quotes': { 'cost': 1 },
+                            'v2/stocks/quotes/latest': { 'cost': 1 },
+                            'v2/stocks/snapshots': { 'cost': 1 },
+                            'v2/stocks/trades': { 'cost': 1 },
+                            'v2/stocks/trades/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/auctions': { 'cost': 1 },
+                            'v2/stocks/{symbol}/bars': { 'cost': 1 },
+                            'v2/stocks/{symbol}/bars/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/quotes': { 'cost': 1 },
+                            'v2/stocks/{symbol}/quotes/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/snapshot': { 'cost': 1 },
+                            'v2/stocks/{symbol}/trades': { 'cost': 1 },
+                            'v2/stocks/{symbol}/trades/latest': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -315,7 +316,9 @@ export default class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -437,9 +440,21 @@ export default class alpaca extends Exchange {
         //     }
         //
         const timestamp = this.safeString(response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice(0, 23);
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
@@ -449,7 +464,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -504,6 +519,9 @@ export default class alpaca extends Exchange {
         //     }
         //
         const marketId = this.safeString(asset, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('/');
         const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
@@ -521,7 +539,7 @@ export default class alpaca extends Exchange {
         const minAmount = this.safeNumber(asset, 'min_order_size');
         const amount = this.safeNumber(asset, 'min_trade_increment');
         const price = this.safeNumber(asset, 'price_increment');
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -569,7 +587,7 @@ export default class alpaca extends Exchange {
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
     /**
      * @method
@@ -642,13 +660,17 @@ export default class alpaca extends Exchange {
             //    }
             //
             const trades = this.safeDict(response, 'trades', {});
-            symbolTrades = this.safeDict(trades, marketId, {});
-            symbolTrades = [symbolTrades];
+            const symbolTrade = this.safeDict(trades, marketId, {});
+            symbolTrades = [symbolTrade];
         }
         else {
             throw new NotSupported(this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades(symbolTrades, market, since, limit);
+        let symbolTradesList = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
     /**
      * @method
@@ -659,7 +681,7 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -725,7 +747,7 @@ export default class alpaca extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -804,8 +826,8 @@ export default class alpaca extends Exchange {
             //     }
             //
             const bars = this.safeDict(response, 'bars', {});
-            ohlcvs = this.safeDict(bars, marketId, {});
-            ohlcvs = [ohlcvs];
+            const bar = this.safeDict(bars, marketId, {});
+            ohlcvs = [bar];
         }
         else {
             throw new NotSupported(this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
@@ -1063,7 +1085,7 @@ export default class alpaca extends Exchange {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType;
             if (type.indexOf('limit') >= 0) {
@@ -1086,8 +1108,9 @@ export default class alpaca extends Exchange {
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        request['time_in_force'] = defaultTIF;
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
         request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
@@ -1158,7 +1181,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1345,7 +1368,7 @@ export default class alpaca extends Exchange {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, 'triggerPrice');
@@ -1354,7 +1377,7 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
         let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
@@ -1678,6 +1701,10 @@ export default class alpaca extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
+    }
     async fetchTransactionsHelper(type, code, since, limit, params) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1685,6 +1712,43 @@ export default class alpaca extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
+        }
+        const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode) {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            const request = {
+                'activity_types': 'CSD,CSW,TRANS',
+            };
+            const activities = await this.traderPrivateGetV2AccountActivities(this.extend(request, params));
+            //
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
+            //
+            const filtered = [];
+            let ledger = [];
+            if (Array.isArray(activities)) {
+                ledger = activities;
+            }
+            for (let i = 0; i < ledger.length; i++) {
+                const entry = ledger[i];
+                const activityType = this.safeString(entry, 'activity_type');
+                const amount = this.safeString(entry, 'net_amount');
+                const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt(amount, '0'));
+                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                if ((type === 'BOTH') || (entryDirection === type)) {
+                    filtered.push(entry);
+                }
+            }
+            return this.parseTransactions(filtered, currency, since, limit, params);
         }
         const response = await this.traderPrivateGetV2WalletsTransfers(params);
         //
@@ -1705,8 +1769,12 @@ export default class alpaca extends Exchange {
         //     }
         //
         const results = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let transfers = [];
+        if (Array.isArray(response)) {
+            transfers = response;
+        }
+        for (let i = 0; i < transfers.length; i++) {
+            const entry = transfers[i];
             const direction = this.safeString(entry, 'direction');
             if (direction === type) {
                 results.push(entry);
@@ -1761,6 +1829,18 @@ export default class alpaca extends Exchange {
     }
     parseTransaction(transaction, currency = undefined) {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash": null,
@@ -1777,44 +1857,99 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const datetime = this.safeString(transaction, 'created_at');
-        const currencyId = this.safeString(transaction, 'asset');
-        const code = this.safeCurrencyCode(currencyId, currency);
-        const fees = this.safeString(transaction, 'fees');
-        const networkFee = this.safeString(transaction, 'network_fee');
-        const totalFee = Precise.stringAdd(fees, networkFee);
-        const fee = {
-            'cost': this.parseNumber(totalFee),
-            'currency': code,
-        };
+        const activityType = this.safeString(transaction, 'activity_type');
+        let txid = undefined;
+        let timestamp = undefined;
+        let datetime = undefined;
+        let network = undefined;
+        let address = undefined;
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        let type = undefined;
+        let amount = undefined;
+        let code = undefined;
+        let status = undefined;
+        let comment = undefined;
+        let internal = undefined;
+        let fee = undefined;
+        if (activityType !== undefined) {
+            const netAmount = this.safeString(transaction, 'net_amount');
+            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt(netAmount, '0'));
+            timestamp = this.parse8601(this.safeString(transaction, 'date') + 'T00:00:00Z');
+            datetime = this.iso8601(timestamp);
+            type = isIncoming ? 'deposit' : 'withdrawal';
+            amount = this.parseNumber(Precise.stringAbs(netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            const activityCurrencyId = this.safeString2(transaction, 'symbol', 'asset');
+            if (activityCurrencyId !== undefined) {
+                code = this.safeCurrencyCode(activityCurrencyId);
+            }
+            else if ((activityType === 'CSD') || (activityType === 'CSW')) {
+                code = 'USD';
+            }
+            else {
+                code = this.safeCurrencyCode(undefined, currency);
+            }
+            status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+            comment = activityType;
+            internal = (activityType !== 'TRANS');
+        }
+        else {
+            txid = this.safeString(transaction, 'tx_hash');
+            datetime = this.safeString(transaction, 'created_at');
+            timestamp = this.parse8601(datetime);
+            network = this.safeString(transaction, 'chain');
+            address = this.safeString(transaction, 'to_address');
+            addressTo = this.safeString(transaction, 'to_address');
+            addressFrom = this.safeString(transaction, 'from_address');
+            type = this.parseTransactionType(this.safeString(transaction, 'direction'));
+            amount = this.safeNumber(transaction, 'amount');
+            const currencyId = this.safeString(transaction, 'asset');
+            code = this.safeCurrencyCode(currencyId, currency);
+            status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+            const fees = this.safeString(transaction, 'fees');
+            const networkFee = this.safeString(transaction, 'network_fee');
+            const totalFee = Precise.stringAdd(fees, networkFee);
+            fee = {
+                'cost': this.parseNumber(totalFee),
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
-            'txid': this.safeString(transaction, 'tx_hash'),
-            'timestamp': this.parse8601(datetime),
+            'txid': txid,
+            'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'chain'),
-            'address': this.safeString(transaction, 'to_address'),
-            'addressTo': this.safeString(transaction, 'to_address'),
-            'addressFrom': this.safeString(transaction, 'from_address'),
+            'network': network,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.parseTransactionType(this.safeString(transaction, 'direction')),
-            'amount': this.safeNumber(transaction, 'amount'),
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': status,
             'updated': undefined,
+            'comment': comment,
+            'internal': internal,
             'fee': fee,
-            'comment': undefined,
-            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {
         const statuses = {
+            // crypto wallets api
             'PROCESSING': 'pending',
             'FAILED': 'failed',
             'COMPLETE': 'ok',
+            // account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed': 'ok',
+            'canceled': 'canceled',
+            'pending': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1895,7 +2030,9 @@ export default class alpaca extends Exchange {
         const code = this.safeCurrencyCode(currencyId);
         account['free'] = this.safeString(response, 'cash');
         account['total'] = this.safeString(response, 'equity');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

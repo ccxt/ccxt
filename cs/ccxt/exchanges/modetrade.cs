@@ -37,6 +37,7 @@ public partial class modetrade : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -47,6 +48,7 @@ public partial class modetrade : Exchange
                 { "createTrailingAmountOrder", false },
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", false },
@@ -134,133 +136,363 @@ public partial class modetrade : Exchange
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/volume/stats", 1 },
-                            { "public/broker/name", 1 },
-                            { "public/chain_info/{broker_id}", 1 },
-                            { "public/system_info", 1 },
-                            { "public/vault_balance", 1 },
-                            { "public/insurancefund", 1 },
-                            { "public/chain_info", 1 },
-                            { "faucet/usdc", 1 },
-                            { "public/account", 1 },
-                            { "get_account", 1 },
-                            { "registration_nonce", 1 },
-                            { "get_orderly_key", 1 },
-                            { "public/liquidation", 1 },
-                            { "public/liquidated_positions", 1 },
-                            { "public/config", 1 },
-                            { "public/campaign/ranking", 10 },
-                            { "public/campaign/stats", 10 },
-                            { "public/campaign/user", 10 },
-                            { "public/campaign/stats/details", 10 },
-                            { "public/campaigns", 10 },
-                            { "public/points/leaderboard", 1 },
-                            { "client/points", 1 },
-                            { "public/points/epoch", 1 },
-                            { "public/points/epoch_dates", 1 },
-                            { "public/referral/check_ref_code", 1 },
-                            { "public/referral/verify_ref_code", 1 },
-                            { "referral/admin_info", 1 },
-                            { "referral/info", 1 },
-                            { "referral/referee_info", 1 },
-                            { "referral/referee_rebate_summary", 1 },
-                            { "referral/referee_history", 1 },
-                            { "referral/referral_history", 1 },
-                            { "referral/rebate_summary", 1 },
-                            { "client/distribution_history", 1 },
-                            { "tv/config", 1 },
-                            { "tv/history", 1 },
-                            { "tv/symbol_info", 1 },
-                            { "public/funding_rate_history", 1 },
-                            { "public/funding_rate/{symbol}", 0.33 },
-                            { "public/funding_rates", 1 },
-                            { "public/info", 1 },
-                            { "public/info/{symbol}", 1 },
-                            { "public/market_trades", 1 },
-                            { "public/token", 1 },
-                            { "public/futures", 1 },
-                            { "public/futures/{symbol}", 1 },
+                            { "public/volume/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/broker/name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info/{broker_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/system_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/vault_balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/insurancefund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "faucet/usdc", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "registration_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidated_positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/campaign/ranking", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/user", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats/details", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaigns", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/points/leaderboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/points", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch_dates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/check_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/verify_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/admin_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referral_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/distribution_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/symbol_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 0.33 },
+                            } },
+                            { "public/funding_rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/market_trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "register_account", 1 },
+                            { "register_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "client/key_info", 6 },
-                            { "client/orderly_key_ip_restriction", 6 },
-                            { "order/{oid}", 1 },
-                            { "client/order/{client_order_id}", 1 },
-                            { "algo/order/{oid}", 1 },
-                            { "algo/client/order/{client_order_id}", 1 },
-                            { "orders", 1 },
-                            { "algo/orders", 1 },
-                            { "trade/{tid}", 1 },
-                            { "trades", 1 },
-                            { "order/{oid}/trades", 1 },
-                            { "client/liquidator_liquidations", 1 },
-                            { "liquidations", 1 },
-                            { "asset/history", 60 },
-                            { "client/holding", 1 },
-                            { "withdraw_nonce", 1 },
-                            { "settle_nonce", 1 },
-                            { "pnl_settlement/history", 1 },
-                            { "volume/user/daily", 60 },
-                            { "volume/user/stats", 60 },
-                            { "client/statistics", 60 },
-                            { "client/info", 60 },
-                            { "client/statistics/daily", 60 },
-                            { "positions", 3.33 },
-                            { "position/{symbol}", 3.33 },
-                            { "funding_fee/history", 30 },
-                            { "notification/inbox/notifications", 60 },
-                            { "notification/inbox/unread", 60 },
-                            { "volume/broker/daily", 60 },
-                            { "broker/fee_rate/default", 10 },
-                            { "broker/user_info", 10 },
-                            { "orderbook/{symbol}", 1 },
-                            { "kline", 1 },
+                            { "client/key_info", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/{tid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/{oid}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/liquidator_liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "asset/history", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/holding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "pnl_settlement/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "volume/user/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/user/stats", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/info", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "positions", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "position/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "funding_fee/history", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
+                            { "notification/inbox/notifications", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/unread", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/broker/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/user_info", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "orderbook/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "orderly_key", 1 },
-                            { "client/set_orderly_key_ip_restriction", 6 },
-                            { "client/reset_orderly_key_ip_restriction", 6 },
-                            { "order", 1 },
-                            { "batch-order", 10 },
-                            { "algo/order", 1 },
-                            { "liquidation", 1 },
-                            { "claim_insurance_fund", 1 },
-                            { "withdraw_request", 1 },
-                            { "settle_pnl", 1 },
-                            { "notification/inbox/mark_read", 60 },
-                            { "notification/inbox/mark_read_all", 60 },
-                            { "client/leverage", 120 },
-                            { "client/maintenance_config", 60 },
-                            { "delegate_signer", 10 },
-                            { "delegate_orderly_key", 10 },
-                            { "delegate_settle_pnl", 10 },
-                            { "delegate_withdraw_request", 10 },
-                            { "broker/fee_rate/set", 10 },
-                            { "broker/fee_rate/set_default", 10 },
-                            { "broker/fee_rate/default", 10 },
-                            { "referral/create", 10 },
-                            { "referral/update", 10 },
-                            { "referral/bind", 10 },
-                            { "referral/edit_split", 10 },
+                            { "orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/set_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/reset_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "claim_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "notification/inbox/mark_read", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/mark_read_all", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/leverage", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/maintenance_config", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "delegate_signer", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/create", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/bind", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/edit_split", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
-                            { "client/order", 1 },
-                            { "algo/client/order", 1 },
-                            { "algo/orders", 1 },
-                            { "orders", 1 },
-                            { "batch-order", 1 },
-                            { "client/batch-order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -518,7 +750,7 @@ public partial class modetrade : Exchange
         object settleId = this.safeString(parts, 2);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -566,7 +798,7 @@ public partial class modetrade : Exchange
             } },
             { "created", this.safeInteger(market, "created_time") },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -1272,7 +1504,7 @@ public partial class modetrade : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1547,20 +1779,28 @@ public partial class modetrade : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name modetrade#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name modetrade#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
@@ -1657,7 +1897,7 @@ public partial class modetrade : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)outterOrder).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }
@@ -2030,7 +2270,7 @@ public partial class modetrade : Exchange
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2479,7 +2719,10 @@ public partial class modetrade : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2612,7 +2855,7 @@ public partial class modetrade : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**

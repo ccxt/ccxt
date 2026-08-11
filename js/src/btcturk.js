@@ -10,6 +10,7 @@ import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+;
 //  ---------------------------------------------------------------------------
 /**
  * @class btcturk
@@ -138,34 +139,34 @@ export default class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1, // ?last=COUNT (max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': { 'cost': 1 },
+                        'ticker': { 'cost': 0.1 },
+                        'trades': { 'cost': 1 }, // ?last=COUNT (max 50)
+                        'ohlc': { 'cost': 1 },
+                        'server/exchangeinfo': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': { 'cost': 1 },
+                        'openOrders': { 'cost': 1 },
+                        'allOrders': { 'cost': 1 },
+                        'users/transactions/trade': { 'cost': 1 },
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'users/transactions/crypto': { 'cost': 1 },
+                        'users/transactions/fiat': { 'cost': 1 },
+                        'order': { 'cost': 1 },
+                        'cancelOrder': { 'cost': 1 },
                     },
                     'delete': {
-                        'order': 1,
+                        'order': { 'cost': 1 },
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
-                        'klines/history': 1,
+                        'ohlcs': { 'cost': 1 },
+                        'klines/history': { 'cost': 1 },
                     },
                 },
             },
@@ -330,7 +331,7 @@ export default class btcturk extends Exchange {
             }
         }
         const status = this.safeString(entry, 'status');
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -378,7 +379,7 @@ export default class btcturk extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
     parseBalance(response) {
         const data = this.safeList(response, 'data', []);
@@ -395,7 +396,9 @@ export default class btcturk extends Exchange {
             account['total'] = this.safeString(entry, 'balance');
             account['free'] = this.safeString(entry, 'free');
             account['used'] = this.safeString(entry, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -438,7 +441,7 @@ export default class btcturk extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -650,7 +653,11 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTrades(data, market, since, limit);
+        let dataList = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -811,7 +818,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid();
         }
         const response = await this.privatePostOrder(this.extend(request, params));
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     /**
@@ -820,7 +827,7 @@ export default class btcturk extends Exchange {
      * @description cancels an open order
      * @see https://docs.btcturk.com/private-endpoints/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by btcturk cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1034,7 +1041,11 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTrades(data, market, since, limit);
+        let dataList = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
     nonce() {
         return this.milliseconds();

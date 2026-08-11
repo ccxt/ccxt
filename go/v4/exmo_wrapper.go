@@ -100,7 +100,7 @@ func (this *Exmo) FetchTransactionFees(options ...FetchTransactionFeesOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/?id=fees-structure}
  */
-func (this *Exmo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -119,9 +119,9 @@ func (this *Exmo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOp
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -230,7 +230,7 @@ func (this *Exmo) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Exmo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -584,7 +584,7 @@ func (this *Exmo) CreateOrder(symbol string, typeVar string, side string, amount
  * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
  * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
  * @param {string} id order id
- * @param {string} symbol not used by exmo cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true to cancel a trigger order
  * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
@@ -1250,7 +1250,7 @@ func (this *Exmo) FetchDepositAddresses(options ...FetchDepositAddressesOptions)
 func (this *Exmo) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Exmo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Exmo) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1370,7 +1370,7 @@ func (this *Exmo) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Exmo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Exmo) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Exmo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1388,7 +1388,7 @@ func (this *Exmo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Exmo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Exmo) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Exmo) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Exmo) FetchTime(params ...any) (int64, error) {
@@ -1502,7 +1502,7 @@ func (this *Exmo) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Exmo) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Exmo) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Exmo) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1547,7 +1547,7 @@ func (this *Exmo) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) 
 func (this *Exmo) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Exmo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Exmo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Exmo) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

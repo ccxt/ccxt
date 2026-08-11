@@ -1,6 +1,6 @@
 export declare const TypedDataRevision: {
-    readonly Active: "1";
-    readonly Legacy: "0";
+    readonly Active: '1';
+    readonly Legacy: '0';
 };
 export type TypedDataRevision = (typeof TypedDataRevision)[keyof typeof TypedDataRevision];
 export type StarknetEnumType = {

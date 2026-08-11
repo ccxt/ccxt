@@ -99,7 +99,7 @@ def helper_test_init_market():
             'BTC/USD': sample_market,
         },
     })
-    assert exchange2.markets['BTC/USD'] is not None
+    assert (exchange2.markets is not None) and (exchange2.markets['BTC/USD'] is not None)
 
 
 def helper_test_properties():
@@ -307,7 +307,7 @@ def helper_test_properties():
     # common props
     #
     assert exchange.markets is None, 'markets should be undefined'
-    assert exchange.symbols is None, 'symbols should be undefined'
+    assert len(exchange.symbols) == 0, 'symbols should be an empty array'
     assert exchange.markets_by_id is None, 'markets_by_id should be undefined'
     assert exchange.ids is None, 'ids should be undefined'
     test_shared_methods.assert_deep_equal(exchange, {}, 'currencies', exchange.currencies, {})

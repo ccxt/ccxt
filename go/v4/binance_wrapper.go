@@ -66,12 +66,13 @@ func (this *Binance) FetchCurrencies(params ...any) (Currencies, error) {
  * @method
  * @name binance#fetchMarkets
  * @description retrieves data on all markets for binance
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   // tokenized stocks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -124,7 +125,7 @@ func (this *Binance) FetchBalance(params ...any) (Balances, error) {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -158,12 +159,12 @@ func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Binance) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binance) FetchStatus(params ...any) (Status, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Status{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewStatus(res), nil
 }
 
 /**
@@ -175,6 +176,7 @@ func (this *Binance) FetchStatus(params ...any) (map[string]any, error) {
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
  * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
@@ -206,6 +208,7 @@ func (this *Binance) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -315,6 +318,7 @@ func (this *Binance) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @description fetches mark price for the market
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -345,6 +349,7 @@ func (this *Binance) FetchMarkPrice(symbol string, options ...FetchMarkPriceOpti
  * @description fetches mark prices for multiple markets
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -693,6 +698,7 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
  * @param {string} side 'buy' or 'sell'
@@ -715,6 +721,7 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
  * @param {string} [params.clientOrderId] the clientOrderId of the order
+ * @param {string} [params.tradingSession] *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -841,12 +848,14 @@ func (this *Binance) CreateMarketSellOrderWithCost(symbol string, cost float64, 
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-detail
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch a trigger or conditional order
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -887,6 +896,7 @@ func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -896,6 +906,7 @@ func (this *Binance) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -946,13 +957,15 @@ func (this *Binance) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
- * @param {string} symbol unified market symbol
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#current-open-orders
+ * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1044,13 +1057,15 @@ func (this *Binance) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -1100,13 +1115,15 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
- * @param {string} symbol unified market symbol of the market the orders were made in
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+ * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
@@ -1156,13 +1173,15 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
- * @param {string} symbol unified market symbol of the market the orders were made in
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+ * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1214,11 +1233,13 @@ func (this *Binance) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-equity-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
+ * @param {boolean} [params.stock] set to true if you would like to cancel a tokenized stock order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -1260,11 +1281,13 @@ func (this *Binance) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-all-equity-orders
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
  * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Binance) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -1391,13 +1414,15 @@ func (this *Binance) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
- * @param {string} symbol unified market symbol
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
+ * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
@@ -1439,7 +1464,7 @@ func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @name binance#fetchMyDustTrades
  * @description fetch all dust trades made by the user
  * @see https://developers.binance.com/docs/wallet/asset/dust-log
- * @param {string} symbol not used by binance fetchMyDustTrades ()
+ * @param {string} symbol not used by fetchMyDustTrades ()
  * @param {int} [since] the earliest time in ms to fetch my dust trades for
  * @param {int} [limit] the maximum number of dust trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1694,7 +1719,7 @@ func (this *Binance) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+ * @param {string[]|undefined} codes not used by fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -1727,11 +1752,11 @@ func (this *Binance) FetchTransactionFees(options ...FetchTransactionFeesOptions
  * @name binance#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+ * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Binance) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1750,9 +1775,9 @@ func (this *Binance) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -2313,7 +2338,7 @@ func (this *Binance) SetMarginMode(marginMode string, options ...SetMarginModeOp
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by binance setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
@@ -2392,7 +2417,7 @@ func (this *Binance) FetchLeverages(options ...FetchLeveragesOptions) (Leverages
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
+func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -2421,9 +2446,9 @@ func (this *Binance) FetchSettlementHistory(options ...FetchSettlementHistoryOpt
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -2987,7 +3012,7 @@ func (this *Binance) FetchTradingLimits(options ...FetchTradingLimitsOptions) (m
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -3006,9 +3031,9 @@ func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (map
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return PositionModeInfo{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewPositionModeInfo(res), nil
 }
 
 /**
@@ -3115,7 +3140,7 @@ func (this *Binance) FetchOption(symbol string, options ...FetchOptionOptions) (
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
@@ -3580,7 +3605,7 @@ func (this *Binance) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Binance) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Binance) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Binance) FetchFreeBalance(params ...any) (Balance, error) {
@@ -3727,7 +3752,7 @@ func (this *Binance) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Binance) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Binance) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binance) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -3772,7 +3797,7 @@ func (this *Binance) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Binance) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binance) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binance) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Binance) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
