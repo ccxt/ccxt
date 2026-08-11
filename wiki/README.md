@@ -16,6 +16,7 @@ Welcome to the ccxt wiki!
   - [C#](https://github.com/ccxt/ccxt/wiki/Install#netc)
   - [Go](https://github.com/ccxt/ccxt/wiki/Install#go)
   - [Java](https://github.com/ccxt/ccxt/wiki/Install#java)
+  - [Julia](https://github.com/ccxt/ccxt/wiki/Install#julia)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
   - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
