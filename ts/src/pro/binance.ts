@@ -1159,11 +1159,13 @@ export default class binance extends binanceRest {
         //     }
         //
         const marketId = this.safeString (message, 's');
-        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
-        const marketById = this.safeValue (marketsByIdList, 0);
+        // the client url is the authoritative source for the market type — an
+        // ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        // market, and picking the first match drops the message under the wrong
+        // symbol and stalls the orderbook future (delivery/option ids are
+        // unique, so the swap hint resolves those correctly too)
         const isSpot = this.isSpotUrl (client);
-        const fallbackType = isSpot ? 'spot' : 'swap';
-        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
+        const marketType = isSpot ? 'spot' : 'swap';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1638,11 +1640,9 @@ export default class binance extends binanceRest {
             }
         }
         const marketId = this.safeString (trade, 's');
-        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
-        const marketById = this.safeValue (marketsByIdList, 0);
         const fallbackType = ('ps' in trade) ? 'contract' : 'spot';
-        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
-        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        const marketType = (market !== undefined) ? market['type'] : fallbackType;
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
         const orderId = this.safeString (trade, 'i');
@@ -1684,11 +1684,10 @@ export default class binance extends binanceRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
-        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
-        const marketById = this.safeValue (marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
-        const fallbackType = isSpot ? 'spot' : 'contract';
-        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
+        const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -1997,11 +1996,10 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
-        const marketById = this.safeValue (marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
-        const fallbackType = isSpot ? 'spot' : 'contract';
-        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
+        const marketType = isSpot ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -4527,10 +4525,8 @@ export default class binance extends binanceRest {
         }
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
-        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
-        const marketById = this.safeValue (marketsByIdList, 0);
-        const fallbackType = ('ps' in order) ? 'contract' : 'spot';
-        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
+        // futures user-data events carry the position side field, spot ones do not
+        const marketType = ('ps' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
