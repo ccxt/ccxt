@@ -317,7 +317,7 @@ func (this *WhitebitCore) V4PrivatePostTradeAccountBalance(args ...any) <-chan a
 	return this.callEndpointAsync("v4PrivatePostTradeAccountBalance", args...)
 }
 
-// V4PrivatePostTradeAccountExecutedHistory returns a channel that yields a JSON object.
+// V4PrivatePostTradeAccountExecutedHistory returns a channel that yields a JSON object or a JSON array.
 func (this *WhitebitCore) V4PrivatePostTradeAccountExecutedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostTradeAccountExecutedHistory", args...)
 }
