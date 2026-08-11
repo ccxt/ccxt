@@ -1020,6 +1020,7 @@ public class LighterCore extends LighterApi
         if (Helpers.isTrue(postOnly))
         {
             timeInForceNum = 2;
+            orderExpiry = Helpers.opNeg(1);
         } else
         {
             if (!Helpers.isTrue(isMarketOrder))
