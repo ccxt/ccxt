@@ -336,4 +336,81 @@ func TestWsOrderBook() {
 	resetBook.Reset(orderBookInput)
 	resetBook.Limit()
 	Assert(Equals(resetBook, orderBookTarget))
+
+	// --------------------------------------------------------------------------------------------------------------------
+
+	// regression for the php phantom index desync under limit, the corruption
+	// sequence was a reset with a snapshot, a depth trim via limit, then
+	// deltas landing on and beyond the trimmed tail, which produced rows
+	// holding only an amount and stale levels in php before the fix, see
+	// https://github.com/ccxt/ccxt/pull/29603 and
+	// https://github.com/ccxt/ccxt/issues/26967
+	desyncBook := NewOrderBook(map[string]any{}, 3)
+	desyncBook.Reset(orderBookInput)
+	desyncBook.Limit()
+	desyncBids := desyncBook.Bids
+	desyncAsks := desyncBook.Asks
+	// a delta beyond the trimmed tail must reinsert cleanly
+	desyncBids.StoreArray([]any{6.4, 14})
+	// a delta on a surviving level must update that level in place
+	desyncAsks.StoreArray([]any{11.1, 7})
+	// a delete on a surviving level must remove exactly that level
+	desyncBids.StoreArray([]any{9.1, 0})
+	desyncBook.Limit()
+	var desyncTarget any = map[string]any{
+		"bids":      []any{[]any{10, 10}, []any{8.2, 12}, []any{6.4, 14}},
+		"asks":      []any{[]any{11.1, 7}, []any{12.2, 14}, []any{13.3, 13}},
+		"timestamp": 1574827239000,
+		"datetime":  "2019-11-27T04:00:39.000Z",
+		"nonce":     69,
+		"symbol":    nil,
+	}
+	Assert(Equals(desyncBook, desyncTarget))
+	// every row must be a well formed price and amount pair, the php
+	// corruption produced rows holding only an amount
+	var desyncSides any = []any{GetValue(desyncBook, "bids"), GetValue(desyncBook, "asks")}
+	for i := 0; IsLessThan(i, GetArrayLength(desyncSides)); i++ {
+		var side any = GetValue(desyncSides, i)
+		for k := 0; IsLessThan(k, GetArrayLength(side)); k++ {
+			var row any = GetValue(side, k)
+			Assert(IsGreaterThanOrEqual(GetArrayLength(row), 2))
+			Assert(!IsEqual(GetValue(row, 0), nil))
+		}
+	}
+
+	// --------------------------------------------------------------------------------------------------------------------
+
+	// indexed sides must clean their hashmap when limit trims rows away: a
+	// delta arriving later for a trimmed id previously threw in js and looped
+	// in php while python handled it, an update of a trimmed id must reinsert
+	// cleanly and a delete of a trimmed id must be a no op
+	var trimIndexedInput any = map[string]any{
+		"bids":      []any{[]any{10, 1, "x"}, []any{9, 1, "y"}, []any{8, 1, "z"}, []any{7, 1, "w"}, []any{6, 1, "v"}},
+		"asks":      []any{[]any{11, 1, "a"}, []any{12, 1, "b"}, []any{13, 1, "c"}, []any{14, 1, "d"}, []any{15, 1, "e"}},
+		"timestamp": 1574827239000,
+		"nonce":     70,
+		"symbol":    nil,
+	}
+	var trimIndexedTarget any = map[string]any{
+		"bids":      []any{[]any{10, 1, "x"}, []any{9, 1, "y"}, []any{8, 1, "z"}},
+		"asks":      []any{[]any{11, 1, "a"}, []any{12, 1, "b"}, []any{13, 1, "c"}},
+		"timestamp": 1574827239000,
+		"datetime":  "2019-11-27T04:00:39.000Z",
+		"nonce":     70,
+		"symbol":    nil,
+	}
+	trimIndexedBook := NewIndexedOrderBook(trimIndexedInput, 3)
+	trimIndexedBook.Limit()
+	trimAsks := trimIndexedBook.Asks
+	trimBids := trimIndexedBook.Bids
+	// update of a trimmed id reinserts cleanly
+	trimAsks.StoreArray([]any{15, 2, "e"})
+	trimBids.StoreArray([]any{7, 2, "w"})
+	// delete of a trimmed id is a no op, on both sides via ids that were
+	// trimmed and never reinserted (d on asks, v on bids); the final limit
+	// below also re-trims the reinserted w, exercising the cleanup twice
+	trimAsks.StoreArray([]any{14, 0, "d"})
+	trimBids.StoreArray([]any{6, 0, "v"})
+	trimIndexedBook.Limit()
+	Assert(Equals(trimIndexedBook, trimIndexedTarget))
 }
