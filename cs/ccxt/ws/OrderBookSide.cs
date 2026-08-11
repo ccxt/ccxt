@@ -357,7 +357,7 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
 public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 {
-    public IDictionary<string, object> hasmap = new CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> hashmap = new CustomConcurrentDictionary<string, object>();
     public IndexedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
 
@@ -384,6 +384,47 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
         }
     }
 
+    // ids arrive as freshly boxed references on every parsed ws message, so the
+    // former reference-inequality walks (row[2] != order_id) never matched an
+    // existing row and ran off the end of the list with an
+    // ArgumentOutOfRangeException on every update or delete of a known id; the
+    // hashmap already keys by ToString(), the row walks must match it, and the
+    // walk must stop at Count so a stale hashmap entry degrades gracefully
+    // instead of throwing, see https://github.com/ccxt/ccxt/pull/29745
+    private int findRowById(int start, string orderId)
+    {
+        var index = start;
+        while (index < this.Count)
+        {
+            var row = (IList<object>)this[index];
+            if (row.Count > 2 && row[2]?.ToString() == orderId)
+            {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
+    // the inherited limit() trims rows but left their ids behind in the
+    // hashmap, and every later touch of a trimmed id then walked off the list;
+    // mirror the python remove_index hook, which existed here but had no
+    // caller, see https://github.com/ccxt/ccxt/pull/29745
+    public new void limit()
+    {
+        lock (_syncRoot)
+        {
+            var different = this.Count - this._depth;
+            for (var i = 0; i < different; i++)
+            {
+                var length = this.Count;
+                this.remove_index(this[length - 1]);
+                this.RemoveAt(length - 1);
+                this._index.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
+            }
+        }
+    }
+
     public void storeArray(object delta2)
     {
         lock (_syncRoot)
@@ -406,9 +447,9 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             if (size != 0)
             {
                 var stringId = order_id.ToString();
-                if (this.hasmap.ContainsKey(stringId))
+                if (this.hashmap.ContainsKey(stringId))
                 {
-                    var old_price = Convert.ToDecimal(this.hasmap[stringId]);
+                    var old_price = Convert.ToDecimal(this.hashmap[stringId]);
                     if (index_price != null)
                     {
                         index_price = Convert.ToDecimal(index_price);
@@ -421,28 +462,30 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
                     if (index_price == old_price)
                     {
-                        var index2 = bisectLeft(this._index, Convert.ToDecimal(index_price));
-                        while (((IList<object>)this[index2])[2] != order_id)
+                        var index2 = this.findRowById(bisectLeft(this._index, Convert.ToDecimal(index_price)), stringId);
+                        if (index2 >= 0)
                         {
-                            index2++;
+                            this._index[index2] = index_price.Value;
+                            this[index2] = delta;
+                            return;
                         }
-                        this._index[index2] = index_price.Value;
-                        this[index2] = delta;
-                        return;
+                        // stale hashmap entry, the row is gone (e.g. trimmed by
+                        // limit before this fix): fall through and insert as new,
+                        // see https://github.com/ccxt/ccxt/pull/29745
                     }
                     else
                     {
-                        var old_index = bisectLeft(this._index, old_price);
-                        while (((IList<object>)this[old_index])[2] != order_id)
+                        var old_index = this.findRowById(bisectLeft(this._index, old_price), stringId);
+                        if (old_index >= 0)
                         {
-                            old_index++;
+                            this._index.RemoveAt(old_index);
+                            this.RemoveAt(old_index);
                         }
-                        this._index.RemoveAt(old_index);
-                        this.RemoveAt(old_index);
+                        // stale entry: nothing to move, fall through and insert as new
                     }
                 }
                 // insert new price Level
-                this.hasmap[stringId] = index_price;
+                this.hashmap[stringId] = index_price;
                 var indexPriceValue = new decimal(-1);
                 if (index_price != null)
                 {
@@ -458,17 +501,19 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 this._index.Insert(index, indexPriceValue);
                 this.Insert(index, delta);
             }
-            else if (this.hasmap.ContainsKey(order_id.ToString()))
+            else if (this.hashmap.ContainsKey(order_id.ToString()))
             {
-                var old_price2 = Convert.ToDecimal(this.hasmap[order_id.ToString()]);
-                var index3 = bisectLeft(this._index, old_price2);
-                while (((IList<object>)this[index3])[2] != order_id)
+                var stringId2 = order_id.ToString();
+                var old_price2 = Convert.ToDecimal(this.hashmap[stringId2]);
+                var index3 = this.findRowById(bisectLeft(this._index, old_price2), stringId2);
+                if (index3 >= 0)
                 {
-                    index3++;
+                    this._index.RemoveAt(index3);
+                    this.RemoveAt(index3);
                 }
-                this._index.RemoveAt(index3);
-                this.RemoveAt(index3);
-                this.hasmap.Remove(order_id.ToString());
+                // a stale entry has no row to remove, just heal the hashmap,
+                // see https://github.com/ccxt/ccxt/pull/29745
+                this.hashmap.Remove(stringId2);
             }
         }
     }
@@ -500,9 +545,9 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
 
             var order = (IList<object>)order2;
             var order_id = order[2];
-            if (this.hasmap.ContainsKey(order_id.ToString()))
+            if (this.hashmap.ContainsKey(order_id.ToString()))
             {
-                this.hasmap.Remove(order_id.ToString());
+                this.hashmap.Remove(order_id.ToString());
             }
         }
     }
