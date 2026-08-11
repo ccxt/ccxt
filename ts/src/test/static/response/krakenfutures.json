@@ -3,6 +3,274 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees resolving the 30-day volume tier (single mocked body serves both the public feeschedules call and the private volumes call)",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-08-11T13:08:44Z",
+                    "feeSchedules": [
+                        {
+                            "uid": "abb50ea3-4fc9-401c-8d83-518610b16d8c",
+                            "name": "PGB Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        {
+                            "uid": "483158cd-ff99-4c0a-865b-290844f60ee9",
+                            "name": "MTF Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                }
+                            ]
+                        },
+                        {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        }
+                    ],
+                    "volumesByFeeSchedule": {
+                        "97ae0cc8-2964-43ea-91e9-d8e720b02b19": 7500000,
+                        "483158cd-ff99-4c0a-865b-290844f60ee9": 0
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "uid": "483158cd-ff99-4c0a-865b-290844f60ee9",
+                            "name": "MTF Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                }
+                            ]
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "maker": 0.0002,
+                        "taker": 0.0005,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "BTC/USD:USD": {
+                        "info": {
+                            "uid": "abb50ea3-4fc9-401c-8d83-518610b16d8c",
+                            "name": "PGB Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "maker": 0.0002,
+                        "taker": 0.0005,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "DOGE/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "ETH/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "FTM/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "FTM/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "LTC/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "LTC/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "PEPE/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "PEPE/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "user trades",
