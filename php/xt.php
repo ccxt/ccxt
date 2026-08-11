@@ -92,6 +92,7 @@ class xt extends Exchange {
                 'fetchOrderTrades' => false,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
                 'fetchStatus' => false,
@@ -248,6 +249,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/detail' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
                             'future/user/v1/account/info' => array( 'cost' => 1 ),
                             'future/user/v1/balance/bills' => array( 'cost' => 1 ),
@@ -293,6 +295,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/detail' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
                             'future/user/v1/account/info' => array( 'cost' => 1 ),
                             'future/user/v1/balance/bills' => array( 'cost' => 1 ),
@@ -4276,7 +4279,8 @@ class xt extends Exchange {
 
     public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
-        $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
+        $methodName = ($addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        $this->check_required_argument($methodName, $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5038,6 +5042,85 @@ class xt extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetches historical closed $positions
+         *
+         * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+         *
+         * @param {string[]} [$symbols] unified $market $symbols, all closed $positions are returned if not assigned
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum amount of records to fetch, default=10
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest position to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsHistory', $market, $params);
+        $response = null;
+        if ($subType === 'inverse') {
+            $response = $this->privateInverseGetFutureTradeV1PositionListHistory($this->extend($request, $params));
+        } else {
+            $response = $this->privateLinearGetFutureTradeV1PositionListHistory($this->extend($request, $params));
+        }
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => {
+        //             "hasPrev" => false,
+        //             "hasNext" => false,
+        //             "items" => array(
+        //                 {
+        //                     "id" => "654559911738263296",
+        //                     "positionSide" => "LONG",
+        //                     "contractType" => "PERPETUAL",
+        //                     "symbol" => "xrp_usdt",
+        //                     "positionType" => 2,
+        //                     "closeProfit" => "0.001",
+        //                     "closePositionSize" => "1",
+        //                     "closeOpenPrice" => "1.0651",
+        //                     "closePrice" => "1.0652",
+        //                     "maxPositionSize" => "1",
+        //                     "openTime" => 1785761266645,
+        //                     "closeTime" => 1785761266645,
+        //                     "startLeverage" => 10,
+        //                     "endLeverage" => 10,
+        //                     "working" => false,
+        //                     "force" => false,
+        //                     "forceMarkPrice" => null,
+        //                     "totalFee" => "0.0063",
+        //                     "totalFundFee" => "0"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $items = $this->safe_list($result, 'items', array());
+        $positions = $this->parse_positions($items, $symbols);
+        return $this->filter_by_since_limit($positions, $since, $limit);
+    }
+
     public function parse_position(mixed $position, ?array $market = null) {
         //
         // position/list
@@ -5069,33 +5152,63 @@ class xt extends Exchange {
         //         "calMarkPrice" => "27050"
         //     }
         //
+        // position/list-history
+        //
+        //     {
+        //         "id" => "654559911738263296",
+        //         "positionSide" => "LONG",
+        //         "contractType" => "PERPETUAL",
+        //         "symbol" => "xrp_usdt",
+        //         "positionType" => 2,
+        //         "closeProfit" => "0.001",
+        //         "closePositionSize" => "1",
+        //         "closeOpenPrice" => "1.0651",
+        //         "closePrice" => "1.0652",
+        //         "maxPositionSize" => "1",
+        //         "openTime" => 1785761266645,
+        //         "closeTime" => 1785761266645,
+        //         "startLeverage" => 10,
+        //         "endLeverage" => 10,
+        //         "working" => false,
+        //         "force" => false,
+        //         "forceMarkPrice" => null,
+        //         "totalFee" => "0.0063",
+        //         "totalFundFee" => "0"
+        //     }
+        //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
+        // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         $positionType = $this->safe_string($position, 'positionType');
-        $marginMode = ($positionType === 'CROSSED') ? 'cross' : 'isolated';
+        $isCross = ($positionType === 'CROSSED') || ($positionType === '1');
+        $marginMode = ($isCross) ? 'cross' : 'isolated';
         $collateral = $this->safe_number($position, 'isolatedMargin');
-        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'breakPrice'));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        $liquidationPriceString = $this->omit_zero($this->safe_string_2($position, 'breakPrice', 'forceMarkPrice'));
+        $timestamp = $this->safe_integer($position, 'closeTime');
         return $this->safe_position(array(
             'info' => $position,
-            'id' => null,
+            'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
-            'contracts' => $this->safe_number($position, 'positionSize'),
+            'contracts' => $this->safe_number_2($position, 'positionSize', 'closePositionSize'),
             'contractSize' => $market['contractSize'],
-            'entryPrice' => $this->safe_number($position, 'entryPrice'),
+            'entryPrice' => $this->safe_number_2($position, 'entryPrice', 'closeOpenPrice'),
             'markPrice' => $this->safe_number_2($position, 'markPrice', 'calMarkPrice'),
+            'lastPrice' => $this->safe_number($position, 'closePrice'),
             'notional' => null,
-            'leverage' => $this->safe_integer($position, 'leverage'),
+            'leverage' => $this->safe_integer_2($position, 'leverage', 'endLeverage'),
             'collateral' => $collateral,
             'initialMargin' => $collateral,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
             'unrealizedPnl' => null,
+            'realizedPnl' => $this->safe_number_2($position, 'realizedProfit', 'closeProfit'),
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'marginMode' => $marginMode,
             'percentage' => null,

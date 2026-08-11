@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 158 implicit endpoints across 2 access groups.
+> 160 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -148,6 +148,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateLinearGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateLinearGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
 | `privateLinearGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
 | `privateLinearGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
 | `privateLinearGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |
@@ -187,6 +188,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateInverseGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateInverseGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
 | `privateInverseGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
 | `privateInverseGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
 | `privateInverseGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |

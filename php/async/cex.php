@@ -98,6 +98,7 @@ class cex extends Exchange {
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,

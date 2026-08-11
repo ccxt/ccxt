@@ -34,7 +34,7 @@ class hitbtc extends hitbtc$1["default"] {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,

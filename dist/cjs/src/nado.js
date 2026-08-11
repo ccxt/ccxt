@@ -954,7 +954,7 @@ class nado extends nado$1["default"] {
             productIds.push(this.parseToInt(market['id']));
         }
         let subaccount = undefined;
-        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'subaccount', 'default');
+        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);

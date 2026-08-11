@@ -103,7 +103,7 @@ class weex extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => true,
@@ -118,7 +118,8 @@ class weex extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMarkPrices' => false,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
@@ -172,7 +173,7 @@ class weex extends Exchange {
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
-                'sandbox' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -184,6 +185,13 @@ class weex extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c', // todo
                 'api' => array(
+                    'public' => 'https://api-spot.weex.com',
+                    'private' => 'https://api-spot.weex.com',
+                    'contract' => 'https://api-contract.weex.com',
+                    'contractPrivate' => 'https://api-contract.weex.com',
+                ),
+                'test' => array(
+                    // demo trading lives on the live host, the private contract endpoints are swapped to their capi/v3/sim/ variants when sandbox mode is enabled
                     'public' => 'https://api-spot.weex.com',
                     'private' => 'https://api-spot.weex.com',
                     'contract' => 'https://api-contract.weex.com',
@@ -204,7 +212,7 @@ class weex extends Exchange {
                         'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
                         'api/v3/ping' => array( 'cost' => 5 ), // done
                         'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
-                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // done
                         'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
                         'api/v3/market/trades' => array( 'cost' => 125 ), // done
                         'api/v3/market/klines' => array( 'cost' => 10 ), // done
@@ -255,7 +263,7 @@ class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
-                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // done
                         'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
                         'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
                         'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
@@ -276,6 +284,9 @@ class weex extends Exchange {
                         'capi/v3/userTrades' => array( 'cost' => 5 ), // done
                         'capi/v3/openAlgoOrders' => array( 'cost' => 3 ), // done
                         'capi/v3/allAlgoOrders' => array( 'cost' => 10 ), // not unified - capi/v3/order/history returns both regular and algo orders
+                        'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
+                        'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
+                        'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
                     ),
                     'post' => array(
                         'capi/v3/account/income' => array( 'cost' => 5 ), // done
@@ -289,6 +300,7 @@ class weex extends Exchange {
                         'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
                         'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
                     ),
                     'delete' => array(
                         'capi/v3/order' => array( 'cost' => 3 ), // done
@@ -598,7 +610,7 @@ class weex extends Exchange {
                     ),
                 ),
                 'forDerivs' => array(
-                    'sandbox' => false,
+                    'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => false,
@@ -1174,7 +1186,7 @@ class weex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1186,10 +1198,13 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
         if ($marketType === 'spot') {
             $response = $this->publicGetApiV3MarketTickerBookTicker($params);
@@ -1199,7 +1214,15 @@ class weex extends Exchange {
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array( $response );
         }
-        return $this->parse_tickers($response, $symbols);
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rawTicker = $response[$i];
+            // book tickers have no markPrice, so resolve the $market from the endpoint type to disambiguate the spot/swap $market id in parseTicker
+            $marketId = $this->safe_string($rawTicker, 'symbol');
+            $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
+            $results[] = $this->parse_ticker($rawTicker, $tickerMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbols);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1241,10 +1264,32 @@ class weex extends Exchange {
         //         "indexPrice" => "2082.75"
         //     }
         //
+        // fetchMarkPrice ($markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "markPrice" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "markPrice" => "1929.88",
+        //         "indexPrice" => "1930.15",
+        //         "forecastFundingRate" => "0.00003489",
+        //         "lastFundingRate" => "0.00004879",
+        //         "interestRate" => "0.001",
+        //         "nextFundingTime" => 1786348800000,
+        //         "time" => 1786347284100,
+        //         "collectCycle" => 480
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if ($markPrice !== null) {
+        if (($markPrice !== null) || (($market !== null) && $market['contract'])) {
+            // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -1274,6 +1319,132 @@ class weex extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_last_prices(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the last price for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprice structures
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
+        }
+        $response = $this->publicGetApiV3MarketTickerPrice($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "price" => "1929.67"
+        //         }
+        //     )
+        //
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.67"
+        //     }
+        //
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'side' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array()): array {
+        /**
+         * fetches mark price for the $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
+        }
+        $priceType = null;
+        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        $request = array(
+            'symbol' => $market['id'],
+            'priceType' => $priceType,
+        );
+        $response = $this->contractGetCapiV3MarketSymbolPrice($this->extend($request, $params));
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        $ticker = $this->extend(array(), $response);
+        if ($priceType === 'INDEX') {
+            $ticker['indexPrice'] = $this->safe_string($ticker, 'price');
+        } else {
+            $ticker['markPrice'] = $this->safe_string($ticker, 'price');
+        }
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches mark prices for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract $symbols instead of silently filtering the result to an empty dict
+        $response = $this->contractGetCapiV3MarketPremiumIndex($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "markPrice" => "1929.88",
+        //             "indexPrice" => "1930.15",
+        //             "forecastFundingRate" => "0.00003489",
+        //             "lastFundingRate" => "0.00004879",
+        //             "interestRate" => "0.001",
+        //             "nextFundingTime" => 1786348800000,
+        //             "time" => 1786347284100,
+        //             "collectCycle" => 480
+        //         }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1810,16 +1981,25 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
          * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
          *
-         * query for balance and get the amount of funds available for trading or funds locked in positions
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
+         * query for balance and get $the amount of funds available for trading or funds locked in positions
+         * @param {array} [$params] extra parameters specific to $the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
+        $requestedType = $this->safe_string($params, 'type');
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode && ($requestedType === null)) {
+            $type = 'swap'; // $the demo trading API only provides $the swap account, don't $the default spot $type break a bare fetchBalance() call
+        }
         $response = null;
         if ($type === 'spot') {
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' fetchBalance() only supports $the swap account in sandbox mode, use $params["type"] = "swap"');
+            }
             //
             //     {
             //         "makerCommission" => 0,
@@ -1851,7 +2031,7 @@ class weex extends Exchange {
             //
             //     array(
             //         {
-            //             "asset" => "USDT",
+            //             "asset" => "USDT", // SUSDT in sandbox mode
             //             "balance" => "20.00000000",
             //             "availableBalance" => "20.00000000",
             //             "frozen" => "0",
@@ -1859,7 +2039,11 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->contractPrivateGetCapiV3AccountBalance($params);
+            if ($sandboxMode) {
+                $response = $this->contractPrivateGetCapiV3SimBalance($params);
+            } else {
+                $response = $this->contractPrivateGetCapiV3AccountBalance($params);
+            }
         }
         return $this->parse_balance($response);
     }
@@ -1868,11 +2052,15 @@ class weex extends Exchange {
         $result = array(
             'info' => $response,
         );
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $balances = $this->safe_list($response, 'balances', $response);
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
-            $id = $this->safe_string($entry, 'asset');
-            $code = $this->safe_currency_code($id);
+            $currencyId = $this->safe_string($entry, 'asset');
+            if ($sandboxMode && ($currencyId === 'SUSDT')) {
+                $currencyId = 'USDT'; // demo trading $balances are denominated in the demo asset SUSDT
+            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
@@ -1969,6 +2157,7 @@ class weex extends Exchange {
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -1986,6 +2175,10 @@ class weex extends Exchange {
         if ($market['contract']) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
         } else {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
+            }
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
         }
     }
@@ -2063,6 +2256,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
          * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+         * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -2091,9 +2285,15 @@ class weex extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $triggerPrice = $this->safe_string($request, 'triggerPrice');
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
+            if ($sandboxMode) {
+                throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
+            }
             $response = $this->contractPrivatePostCapiV3AlgoOrder($request);
+        } elseif ($sandboxMode) {
+            $response = $this->contractPrivatePostCapiV3SimOrder($request);
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
         }
@@ -2115,7 +2315,7 @@ class weex extends Exchange {
             throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
         }
         $request = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->to_sandbox_market_id($market),
             'side' => strtoupper($side),
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => strtoupper($type),
@@ -2605,6 +2805,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2641,6 +2842,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2740,6 +2942,7 @@ class weex extends Exchange {
          * fetches information on multiple closed and canceled orders made by the user
          *
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+         * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
          *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in (required for spot orders)
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2758,19 +2961,19 @@ class weex extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         $maxLimit = 1000;
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit);
+            return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $this->safe_string($market, 'id');
+            $request['symbol'] = $this->to_sandbox_market_id($market);
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2779,7 +2982,13 @@ class weex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode) {
+            $response = $this->contractPrivateGetCapiV3SimOrderHistory($this->extend($request, $params));
+        } else {
+            $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
+        }
         //
         //     array(
         //         {
@@ -2914,7 +3123,7 @@ class weex extends Exchange {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $order);
         }
         if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
+            $marketId = $this->from_sandbox_market_id($this->safe_string($order, 'symbol'));
             $positionSide = $this->safe_string($order, 'positionSide');
             $marketType = ($positionSide === null) ? 'spot' : 'swap';
             $market = $this->safe_market($marketId, null, null, $marketType);
@@ -3306,6 +3515,7 @@ class weex extends Exchange {
          * fetch all open positions
          *
          * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+         * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3315,7 +3525,13 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $response = null;
+        if ($sandboxMode) {
+            $response = $this->contractPrivateGetCapiV3SimPositionAllPosition($params);
+        } else {
+            $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
+        }
         return $this->parse_positions($response, $symbols);
     }
 
@@ -3348,6 +3564,11 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if ($sandboxMode) {
+            // the demo trading API does not provide a single-position endpoint
+            return $this->fetch_positions(array( $market['symbol'] ), $params);
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -3424,7 +3645,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        $marketId = $this->from_sandbox_market_id($this->safe_string_2($position, 'symbol', 'coinId')); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3928,6 +4149,48 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
+    public function to_sandbox_market_id(array $market): ?string {
+        /**
+         * @ignore
+         * get the $market id to send in a request, converting to the demo-trading $market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+         * @param {array} $market a unified $market structure
+         * @return {string} the $market id for the request
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $baseId = $this->safe_string($market, 'baseId');
+        if ($sandboxMode && ($baseId !== null)) {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return $baseId . 'SUSDT';
+        }
+        return $this->safe_string($market, 'id');
+    }
+
+    public function from_sandbox_market_id(?string $marketId): ?string {
+        /**
+         * @ignore
+         * convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+         * @param {string} [$marketId] a market id from an exchange response
+         * @return {string} the live market id
+         */
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        if (!$sandboxMode || ($marketId === null)) {
+            return $marketId;
+        }
+        if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+            return $marketId; // a live market id, not a demo one
+        }
+        if (str_ends_with($marketId, 'SUSDT')) {
+            $baseLength = strlen($marketId) - 5;
+            return mb_substr($marketId, 0, $baseLength - 0) . 'USDT';
+        }
+        return $marketId;
+    }
+
+    public function set_sandbox_mode(bool $enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -3938,6 +4201,11 @@ class weex extends Exchange {
             }
         }
         if (($api === 'private') || ($api === 'contractPrivate')) {
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+                // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
+                throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
+            }
             $this->check_required_credentials();
             $timestamp = $this->number_to_string($this->nonce());
             $payload = $timestamp . $method . '/' . $endpoint;

@@ -708,7 +708,7 @@ func (this *PoloniexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan
 		}
 		var watchOrderBookOptions any = this.SafeValue(this.Options, "watchOrderBook")
 		var name any = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
-		nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
+		nameparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 		name = ccxt.GetValue(nameparamsVariable, 0)
 		params = ccxt.GetValue(nameparamsVariable, 1)
 

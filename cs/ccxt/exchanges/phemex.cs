@@ -80,6 +80,7 @@ public partial class phemex : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPositionADLRank", true },
+                { "fetchPositionHistory", true },
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsRisk", false },

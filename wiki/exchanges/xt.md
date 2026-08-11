@@ -43,6 +43,7 @@
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [transfer](#transfer)
 * [setMarginMode](#setmarginmode)
 * [editOrder](#editorder)
@@ -996,6 +997,30 @@ fetch all open positions
 
 ```javascript
 xt.fetchPositions (symbols?, params)
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical closed positions
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://doc.xt.com/docs/futures/Entrust/GetPositionHistory  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols, all closed positions are returned if not assigned |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum amount of records to fetch, default=10 |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch |
+
+
+```javascript
+xt.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 

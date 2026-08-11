@@ -23,7 +23,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         //       {},
         //     ],
         // };
-        Assert(exchange.isDictionary(tiers), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(tiers)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
         Object tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tierKeys)); i++)

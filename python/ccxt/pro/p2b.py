@@ -130,7 +130,7 @@ class p2b(ccxt.async_support.p2b):
             await self.load_markets()
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
-        name, params = self.handle_option_and_params(params, 'method', 'name', name)
+        name, params = self.handle_option_and_params(params, 'watchTicker', 'name', name)
         market = self.market(symbol)
         symbol = market['symbol']
         self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
@@ -156,7 +156,7 @@ class p2b(ccxt.async_support.p2b):
         symbols = self.market_symbols(symbols, None, False)
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
-        name, params = self.handle_option_and_params(params, 'method', 'name', name)
+        name, params = self.handle_option_and_params(params, 'watchTickers', 'name', name)
         messageHashes = []
         args = []
         for i in range(0, len((symbols))):

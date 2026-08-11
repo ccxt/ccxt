@@ -103,6 +103,7 @@ class coinmate(Exchange, ImplicitAPI):
                 'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,

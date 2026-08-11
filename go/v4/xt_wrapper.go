@@ -1367,6 +1367,52 @@ func (this *Xt) FetchPositions(options ...FetchPositionsOptions) ([]Position, er
 
 /**
  * @method
+ * @name xt#fetchPositionsHistory
+ * @description fetches historical closed positions
+ * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+ * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum amount of records to fetch, default=10
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Xt) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionsHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsHistory(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+
+/**
+ * @method
  * @name xt#transfer
  * @description transfer currency internally between wallets on the same account
  * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
@@ -1722,9 +1768,6 @@ func (this *Xt) FetchPositionMode(options ...FetchPositionModeOptions) (Position
 }
 func (this *Xt) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Xt) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
 }
 func (this *Xt) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsRisk(options...)

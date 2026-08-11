@@ -16,7 +16,7 @@ interface Exchange {
     privatePostCancelOrder(params?: {}): Promise<Dict>;
     privateDeleteOrder(params?: {}): Promise<Dict>;
     graphGetOhlcs(params?: {}): Promise<List>;
-    graphGetKlinesHistory(params?: {}): Promise<Dict>;
+    graphGetKlinesHistory(params?: {}): Promise<List>;
 }
 declare abstract class Exchange extends _Exchange {
 }

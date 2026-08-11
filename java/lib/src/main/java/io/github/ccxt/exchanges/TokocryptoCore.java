@@ -115,8 +115,8 @@ public class TokocryptoCore extends TokocryptoApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchStatus", false );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );

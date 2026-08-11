@@ -52,6 +52,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );
@@ -98,6 +99,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
+                put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
                 put( "fetchLeverages", false );

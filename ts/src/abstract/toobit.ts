@@ -49,7 +49,7 @@ interface Exchange {
     privateGetApiV1FuturesOrder (params?: {}): Promise<Dict>;
     privateGetApiV1FuturesPositions (params?: {}): Promise<List>;
     privateGetApiV1FuturesHistoryPositions (params?: {}): Promise<List>;
-    privateGetApiV1FuturesBalance (params?: {}): Promise<Dict>;
+    privateGetApiV1FuturesBalance (params?: {}): Promise<List>;
     privateGetApiV1FuturesUserTrades (params?: {}): Promise<List>;
     privateGetApiV1FuturesBalanceFlow (params?: {}): Promise<List>;
     privateGetApiV1FuturesCommissionRate (params?: {}): Promise<Dict>;

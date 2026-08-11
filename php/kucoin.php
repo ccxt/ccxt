@@ -76,7 +76,7 @@ class kucoin extends Exchange {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
-                'fetchLeverageTiers' => false,
+                'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
@@ -4965,7 +4965,7 @@ class kucoin extends Exchange {
         $useSync = false;
         list($useSync, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'sync', false);
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         if ($hf || $useSync || $isMarginOrder) {
@@ -5164,10 +5164,10 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $request['symbol'] = $market['id'];
         $accountMode = 'unified';
-        list($accountMode, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'accountMode', $accountMode);
+        list($accountMode, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'accountMode', $accountMode);
         $request['accountMode'] = $accountMode;
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isUnified = ($accountMode === 'unified');
         $tradeType = $this->handle_trade_type($market['contract'], $marginMode, $isUnified, $params);
         $request['tradeType'] = $tradeType;
@@ -5221,7 +5221,7 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if (($marketType === 'spot') || ($marketType === 'margin')) {
             return $this->cancel_all_spot_orders($symbol, $params);
         } else {
@@ -10905,7 +10905,7 @@ class kucoin extends Exchange {
             list($accountMode, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'accountMode', $accountMode);
             $request['accountMode'] = $accountMode;
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
             $isUnified = ($accountMode === 'unified');
             $tradeType = $this->handle_trade_type($isContractMarket, $marginMode, $isUnified, $params);
             $request['tradeType'] = $tradeType;

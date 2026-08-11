@@ -46,6 +46,7 @@ class exmo(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -2071,7 +2072,7 @@ class exmo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchCanceledOrders', params)
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
         if limit is None:

@@ -2031,9 +2031,24 @@ class bitget(Exchange, ImplicitAPI):
             firstData = self.safe_dict(data, 0, {})
             isBorrowable = self.safe_bool(firstData, 'isBorrowable')
             if fetchMargins and isBorrowable is not None:
-                keysList = list(self.index_by(data, 'symbol').keys())
-                self.options['crossMarginPairsData'] = keysList
-                self.options['isolatedMarginPairsData'] = keysList
+                # cross and isolated availability are per-symbol - a coin can be listed by
+                # v2/margin/currencies yet have cross disabled(isCrossBorrowable False,
+                # maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                # fail with bitget error 50001 "coin does not support cross"
+                crossKeys = []
+                isolatedKeys = []
+                for j in range(0, len(data)):
+                    entry = self.safe_dict(data, j, {})
+                    entrySymbol = self.safe_string(entry, 'symbol')
+                    entryBorrowable = self.safe_bool(entry, 'isBorrowable', True)
+                    if entryBorrowable and self.safe_bool(entry, 'isCrossBorrowable', True):
+                        crossKeys.append(entrySymbol)
+                    isolatedBase = self.safe_bool(entry, 'isIsolatedBaseBorrowable', True)
+                    isolatedQuote = self.safe_bool_2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', True)
+                    if entryBorrowable and (isolatedBase or isolatedQuote):
+                        isolatedKeys.append(entrySymbol)
+                self.options['crossMarginPairsData'] = crossKeys
+                self.options['isolatedMarginPairsData'] = isolatedKeys
             else:
                 markets = self.array_concat(markets, data)
         #
@@ -8803,7 +8818,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta:
             if productType == 'SPOT':
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('fetchTrades', params)
+                marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
                 if marginMode is not None:
                     productType = 'MARGIN'
             request['coin'] = market['settleId']

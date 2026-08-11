@@ -1,4 +1,4 @@
-import { List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetConfConfig(params?: {}): Promise<List>;
@@ -30,7 +30,7 @@ interface Exchange {
     publicGetConfPubFees(params?: {}): Promise<List>;
     publicGetPlatformStatus(params?: {}): Promise<List>;
     publicGetTickers(params?: {}): Promise<List>;
-    publicGetTickerSymbol(params?: {}): Promise<List>;
+    publicGetTickerSymbol(params?: {}): Promise<Dict>;
     publicGetTickersHist(params?: {}): Promise<List>;
     publicGetTradesSymbolHist(params?: {}): Promise<List>;
     publicGetBookSymbolPrecision(params?: {}): Promise<List>;

@@ -455,7 +455,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $market = $this->market($symbol);
         $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'aggLevel', 1);
         $messageHash = 'orderbook:' . $symbol;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
@@ -493,7 +493,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $market = $this->market($symbol);
         $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'aggLevel', 1);
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;

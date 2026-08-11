@@ -15,7 +15,7 @@ interface Exchange {
     v1PrivateGetPortfoliosPortfolio(params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioDetail(params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioSummary(params?: {}): Promise<Dict>;
-    v1PrivateGetPortfoliosPortfolioBalances(params?: {}): Promise<List>;
+    v1PrivateGetPortfoliosPortfolioBalances(params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioBalancesAsset(params?: {}): Promise<Dict>;
     v1PrivateGetPortfoliosPortfolioPositions(params?: {}): Promise<List>;
     v1PrivateGetPortfoliosPortfolioPositionsInstrument(params?: {}): Promise<Dict>;

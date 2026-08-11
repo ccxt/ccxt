@@ -37,7 +37,7 @@ class whitebit extends whitebit$1["default"] {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -48,6 +48,7 @@ class whitebit extends whitebit$1["default"] {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -1422,6 +1423,7 @@ class whitebit extends whitebit$1["default"] {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        params = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };

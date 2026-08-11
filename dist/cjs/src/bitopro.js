@@ -98,7 +98,7 @@ class bitopro extends bitopro$1["default"] {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,

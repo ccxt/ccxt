@@ -67,9 +67,9 @@ class bybit extends Exchange {
                 'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => 'emulated',
-                'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRateHistory' => true,
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => true,
@@ -118,7 +118,7 @@ class bybit extends Exchange {
                 'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionADLRank' => true,
@@ -9866,7 +9866,7 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
         $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertQuote', 'accountType', $accountTypeDefault);
+        list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertTrade', 'accountType', $accountTypeDefault);
         $request = array(
             'quoteTxId' => $id,
             'accountType' => $accountType,

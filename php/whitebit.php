@@ -31,7 +31,7 @@ class whitebit extends Exchange {
                 'createConvertTrade' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -42,6 +42,7 @@ class whitebit extends Exchange {
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -1426,6 +1427,7 @@ class whitebit extends Exchange {
         // Extract control parameters from $params
         $checkActive = $this->safe_bool($params, 'checkActive', true);
         $checkExecuted = $this->safe_bool($params, 'checkExecuted', true);
+        $params = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
         $request = array(
             'orderId' => $id,
         );

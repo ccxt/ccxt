@@ -28,7 +28,7 @@ public partial class whitebit : Exchange
                 { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
-                { "createMarketOrderWithCost", false },
+                { "createMarketOrderWithCost", true },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
@@ -39,6 +39,7 @@ public partial class whitebit : Exchange
                 { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -1707,6 +1708,7 @@ public partial class whitebit : Exchange
         // Extract control parameters from params
         object checkActive = this.safeBool(parameters, "checkActive", true);
         object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };

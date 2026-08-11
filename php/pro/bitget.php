@@ -454,7 +454,7 @@ class bitget extends \ccxt\async\bitget {
         $market = $this->market($symbols[0]);
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchTickers', 'uta', false);
+        list($uta, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'uta', false);
         list($instType, $params) = $this->get_inst_type('watchBidsAsks', $market, $uta, $params);
         $topics = array();
         $messageHashes = array();

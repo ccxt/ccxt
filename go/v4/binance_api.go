@@ -1312,6 +1312,51 @@ func (this *BinanceCore) SapiGetAccumulatorProductSumHolding(args ...any) <-chan
 	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
 }
 
+// SapiGetEquityMarketExchangeInfo returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityMarketExchangeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityMarketExchangeInfo", args...)
+}
+
+// SapiGetEquityMarketTokenizedAssets returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityMarketTokenizedAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityMarketTokenizedAssets", args...)
+}
+
+// SapiGetEquityMarketQuote returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityMarketQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityMarketQuote", args...)
+}
+
+// SapiGetEquityOrderOpenOrders returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityOrderOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityOrderOpenOrders", args...)
+}
+
+// SapiGetEquityOrderHistory returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityOrderHistory", args...)
+}
+
+// SapiGetEquityOrderDetail returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityOrderDetail", args...)
+}
+
+// SapiGetEquityTradeHistory returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityTradeHistory", args...)
+}
+
+// SapiGetEquityTokenizedConvertStatus returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityTokenizedConvertStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityTokenizedConvertStatus", args...)
+}
+
+// SapiGetEquityTokenizedHistory returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetEquityTokenizedHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetEquityTokenizedHistory", args...)
+}
+
 // SapiPostAssetDust returns a channel that yields a JSON object.
 func (this *BinanceCore) SapiPostAssetDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
@@ -1930,6 +1975,41 @@ func (this *BinanceCore) SapiPostDciProductAutoCompoundEdit(args ...any) <-chan 
 // SapiPostAccumulatorProductSubscribe returns a channel that yields a JSON object.
 func (this *BinanceCore) SapiPostAccumulatorProductSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
+}
+
+// SapiPostEquityOrderPlace returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityOrderPlace(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityOrderPlace", args...)
+}
+
+// SapiPostEquityOrderCancel returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityOrderCancel", args...)
+}
+
+// SapiPostEquityOrderCancelAll returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityOrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityOrderCancelAll", args...)
+}
+
+// SapiPostEquityTokenizedMint returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityTokenizedMint(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityTokenizedMint", args...)
+}
+
+// SapiPostEquityTokenizedRedeem returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityTokenizedRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityTokenizedRedeem", args...)
+}
+
+// SapiPostEquityAccountDisclaimer returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityAccountDisclaimer(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityAccountDisclaimer", args...)
+}
+
+// SapiPostEquityListenKey returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostEquityListenKey(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostEquityListenKey", args...)
 }
 
 // SapiPutUserDataStream returns a channel that yields a JSON object.

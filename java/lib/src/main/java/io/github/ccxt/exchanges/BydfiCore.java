@@ -136,7 +136,7 @@ public class BydfiCore extends BydfiApi
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
-                put( "fetchOpenOrder", false );
+                put( "fetchOpenOrder", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
@@ -2702,7 +2702,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2916,11 +2916,11 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+            var walletparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;

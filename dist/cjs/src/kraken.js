@@ -42,7 +42,7 @@ class kraken extends kraken$1["default"] {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,

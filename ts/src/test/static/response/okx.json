@@ -10877,7 +10877,7 @@
                 "parsedResponse": {
                     "currency": "USDC",
                     "rate": 0.00004453,
-                    "period": 86400000,
+                    "period": 3600000,
                     "timestamp": null,
                     "datetime": null,
                     "info": {

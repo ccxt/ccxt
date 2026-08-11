@@ -49,7 +49,7 @@ class kraken extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,

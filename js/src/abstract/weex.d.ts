@@ -7,7 +7,7 @@ interface Exchange {
     publicGetApiV3Ping(params?: {}): Promise<Dict>;
     publicGetApiV3ApiTradingSymbols(params?: {}): Promise<List>;
     publicGetApiV3MarketTickerPrice(params?: {}): Promise<List>;
-    publicGetApiV3MarketTicker24hr(params?: {}): Promise<Dict | List>;
+    publicGetApiV3MarketTicker24hr(params?: {}): Promise<List>;
     publicGetApiV3MarketTrades(params?: {}): Promise<List>;
     publicGetApiV3MarketKlines(params?: {}): Promise<List>;
     publicGetApiV3MarketDepth(params?: {}): Promise<Dict>;
@@ -49,7 +49,7 @@ interface Exchange {
     contractGetCapiV3MarketPremiumIndex(params?: {}): Promise<List>;
     contractGetCapiV3MarketFundingRate(params?: {}): Promise<List>;
     contractGetCapiV3MarketApiTradingSymbols(params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountBalance(params?: {}): Promise<List>;
+    contractPrivateGetCapiV3AccountBalance(params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountCommissionRate(params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountAccountConfig(params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountSymbolConfig(params?: {}): Promise<List>;

@@ -116,7 +116,7 @@ interface Exchange {
     dataPublicGetPositions(params?: {}): Promise<Dict>;
     dataPublicGetRevisions(params?: {}): Promise<List>;
     dataPublicGetTraded(params?: {}): Promise<Dict>;
-    dataPublicGetTrades(params?: {}): Promise<List>;
+    dataPublicGetTrades(params?: {}): Promise<Dict>;
     dataPublicGetV1AccountingSnapshot(params?: {}): Promise<Dict>;
     dataPublicGetV1ActivityCombos(params?: {}): Promise<Dict>;
     dataPublicGetV1BuildersLeaderboard(params?: {}): Promise<List>;

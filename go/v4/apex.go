@@ -123,7 +123,7 @@ func (this *ApexCore) Describe() any {
 			"setLeverage":                   true,
 			"setMarginMode":                 false,
 			"setPositionMode":               false,
-			"transfer":                      false,
+			"transfer":                      true,
 			"withdraw":                      false,
 		},
 		"timeframes": map[string]any{

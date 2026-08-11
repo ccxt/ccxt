@@ -131,7 +131,7 @@ func (this *BydfiCore) Describe() any {
 			"fetchOpenInterest":                    false,
 			"fetchOpenInterestHistory":             false,
 			"fetchOpenInterests":                   false,
-			"fetchOpenOrder":                       false,
+			"fetchOpenOrder":                       true,
 			"fetchOpenOrders":                      true,
 			"fetchOption":                          false,
 			"fetchOptionChain":                     false,
@@ -2754,7 +2754,7 @@ func (this *BydfiCore) FetchPositionHistory(symbol any, optionalArgs ...any) <-c
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
-		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
+		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
 		params = GetValue(contractTypeparamsVariable, 1)
 		var request any = map[string]any{
@@ -2984,11 +2984,11 @@ func (this *BydfiCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 		}
 		var market any = this.Market(symbol)
 		var contractType any = "FUTURE"
-		contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
+		contractTypeparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "contractType", contractType)
 		contractType = GetValue(contractTypeparamsVariable, 0)
 		params = GetValue(contractTypeparamsVariable, 1)
 		var wallet any = "W001"
-		walletparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "wallet", wallet)
+		walletparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "wallet", wallet)
 		wallet = GetValue(walletparamsVariable, 0)
 		params = GetValue(walletparamsVariable, 1)
 		var request any = map[string]any{

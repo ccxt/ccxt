@@ -39,6 +39,7 @@ class exmo extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -2314,7 +2315,7 @@ class exmo extends Exchange {
             Async\await($this->load_markets());
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchCanceledOrders', $params);
         if ($marginMode === 'cross') {
             throw new BadRequest($this->id . ' only supports isolated margin');
         }

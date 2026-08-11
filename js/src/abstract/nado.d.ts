@@ -10,7 +10,7 @@ interface Exchange {
     gatewayV2PublicGetPairs(params?: {}): Promise<List>;
     gatewayV2PublicGetOrderbook(params?: {}): Promise<Dict>;
     archivePost(params?: {}): Promise<Dict>;
-    archiveV2PublicGetTickers(params?: {}): Promise<Dict>;
+    archiveV2PublicGetTickers(params?: {}): Promise<List>;
     archiveV2PublicGetContracts(params?: {}): Promise<Dict>;
     archiveV2PublicGetTrades(params?: {}): Promise<List>;
     triggerPrivatePostExecute(params?: {}): Promise<Dict>;

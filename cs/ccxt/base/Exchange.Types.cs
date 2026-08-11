@@ -215,6 +215,7 @@ public struct Market
 
     public Int64? created;
 
+    public bool? stock;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -251,6 +252,7 @@ public struct Market
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
+        stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
     }
 }
 
@@ -1831,7 +1833,6 @@ public struct MarketInterface
     public bool? swap;
     public bool? future;
     public bool? option;
-    public bool? stock;
     public bool? contract;
     public string settle;
     public string settleId;
@@ -1853,6 +1854,7 @@ public struct MarketInterface
     public Precision? precision;
     public MarketMarginModes? marginModes;
 
+    public bool? stock;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1871,7 +1873,6 @@ public struct MarketInterface
         swap = Exchange.SafeValue(market, "swap") != null ? (bool)Exchange.SafeValue(market, "swap") : null;
         future = Exchange.SafeValue(market, "future") != null ? (bool)Exchange.SafeValue(market, "future") : null;
         option = Exchange.SafeValue(market, "option") != null ? (bool)Exchange.SafeValue(market, "option") : null;
-        stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
         contract = Exchange.SafeValue(market, "contract") != null ? (bool)Exchange.SafeValue(market, "contract") : null;
         settle = Exchange.SafeString(market, "settle");
         settleId = Exchange.SafeString(market, "settleId");
@@ -1890,6 +1891,7 @@ public struct MarketInterface
         marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
         limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
 
+        stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
     }
 
 }

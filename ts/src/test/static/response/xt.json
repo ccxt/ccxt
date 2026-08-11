@@ -261,6 +261,7 @@
               "positionSize": "1",
               "entryPrice": "1.0663",
               "isolatedMargin": "0.5",
+              "realizedProfit": "-0.0013",
               "leverage": 10,
               "markPrice": "1.0664",
               "breakPrice": "1.2",
@@ -278,6 +279,7 @@
               "positionSize": "1",
               "entryPrice": "1.0663",
               "isolatedMargin": "0.5",
+              "realizedProfit": "-0.0013",
               "leverage": 10,
               "markPrice": "1.0664",
               "breakPrice": "1.2",
@@ -293,6 +295,7 @@
             "contractSize": 10,
             "entryPrice": 1.0663,
             "markPrice": 1.0664,
+            "lastPrice": null,
             "notional": null,
             "leverage": 10,
             "collateral": 0.5,
@@ -301,7 +304,100 @@
             "initialMarginPercentage": null,
             "maintenanceMarginPercentage": null,
             "unrealizedPnl": null,
+            "realizedPnl": -0.0013,
             "liquidationPrice": 1.2,
+            "marginMode": "isolated",
+            "percentage": null,
+            "marginRatio": null
+          }
+        ]
+      }
+    ],
+    "fetchPositionsHistory": [
+      {
+        "description": "closed isolated long position, positionType is an integer here (1 = cross, 2 = isolated) unlike position/list",
+        "method": "fetchPositionsHistory",
+        "input": [
+          [
+            "XRP/USDT:USDT"
+          ]
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "hasPrev": false,
+            "hasNext": false,
+            "items": [
+              {
+                "id": "654559911738263296",
+                "positionSide": "LONG",
+                "contractType": "PERPETUAL",
+                "symbol": "xrp_usdt",
+                "positionType": 2,
+                "closeProfit": "0.001",
+                "closePositionSize": "1",
+                "closeOpenPrice": "1.0651",
+                "closePrice": "1.0652",
+                "maxPositionSize": "1",
+                "openTime": 1785761266645,
+                "closeTime": 1785761266645,
+                "startLeverage": 10,
+                "endLeverage": 10,
+                "working": false,
+                "force": false,
+                "forceMarkPrice": null,
+                "totalFee": "0.0063",
+                "totalFundFee": "0"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "id": "654559911738263296",
+              "positionSide": "LONG",
+              "contractType": "PERPETUAL",
+              "symbol": "xrp_usdt",
+              "positionType": 2,
+              "closeProfit": "0.001",
+              "closePositionSize": "1",
+              "closeOpenPrice": "1.0651",
+              "closePrice": "1.0652",
+              "maxPositionSize": "1",
+              "openTime": 1785761266645,
+              "closeTime": 1785761266645,
+              "startLeverage": 10,
+              "endLeverage": 10,
+              "working": false,
+              "force": false,
+              "forceMarkPrice": null,
+              "totalFee": "0.0063",
+              "totalFundFee": "0"
+            },
+            "id": "654559911738263296",
+            "symbol": "XRP/USDT:USDT",
+            "timestamp": 1785761266645,
+            "datetime": "2026-08-03T12:47:46.645Z",
+            "hedged": null,
+            "side": "long",
+            "contracts": 1,
+            "contractSize": 10,
+            "entryPrice": 1.0651,
+            "markPrice": null,
+            "lastPrice": 1.0652,
+            "notional": null,
+            "leverage": 10,
+            "collateral": null,
+            "initialMargin": null,
+            "maintenanceMargin": null,
+            "initialMarginPercentage": null,
+            "maintenanceMarginPercentage": null,
+            "unrealizedPnl": null,
+            "realizedPnl": 0.001,
+            "liquidationPrice": null,
             "marginMode": "isolated",
             "percentage": null,
             "marginRatio": null

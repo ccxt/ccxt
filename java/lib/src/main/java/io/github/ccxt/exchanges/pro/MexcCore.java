@@ -239,7 +239,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null);
+            symbols = this.marketSymbols(symbols);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;
@@ -2004,7 +2004,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, null);
+            symbols = this.marketSymbols(symbols);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;
@@ -2271,7 +2271,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 Object splitHashes = Helpers.split(messageHash, ":");
                 Object symbol = this.safeString(splitHashes, 2);
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(splitHashes), 4)))
+                Object splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if (Helpers.isTrue(Helpers.isGreaterThan(splitHashesLength, 4)))
                 {
                     symbol = Helpers.add(symbol, Helpers.add(":", this.safeString(splitHashes, 3)));
                 }

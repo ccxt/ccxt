@@ -133,7 +133,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
-                'fetchStatus': False,  # none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,

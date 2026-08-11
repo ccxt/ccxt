@@ -922,6 +922,17 @@ public class XtApi extends Exchange
     }
 
     /**
+     * Calls the privateLinearGetFutureTradeV1PositionListHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLinearGetFutureTradeV1PositionListHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateLinearGetFutureTradeV1PositionListHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateLinearGetFutureTradeV1OrderTradeList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1348,6 +1359,17 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInverseGetFutureTradeV1OrderListHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateInverseGetFutureTradeV1OrderListHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateInverseGetFutureTradeV1PositionListHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInverseGetFutureTradeV1PositionListHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInverseGetFutureTradeV1PositionListHistory", optionalArgs);
     }
 
     /**

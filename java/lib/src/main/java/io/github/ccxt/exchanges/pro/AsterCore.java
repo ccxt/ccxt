@@ -2151,7 +2151,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object messageHash = "myTrades";
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();

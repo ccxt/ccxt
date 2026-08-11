@@ -97,6 +97,7 @@ class coinex extends coinex$1["default"] {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
                 'fetchPositions': true,

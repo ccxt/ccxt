@@ -7,7 +7,7 @@ diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # add \/test| # remove package json temporatily todo revert this!!
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|go\/v4\/exchange_|ccxt\/ws\/|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # ccxt\/ws\/ covers hand-written cs/ccxt/ws/ and java .../io/github/ccxt/ws/ base files, see https://github.com/ccxt/ccxt/pull/29740 for the go sibling # add \/test| # remove package json temporatily todo revert this!!
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
 COMMIT_MESSAGE=$(git log -1 --pretty=%B)

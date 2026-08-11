@@ -28,7 +28,7 @@ public class TestFetchLastPrices extends BaseTest {
             response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
             checkedSymbol = symbol;
         }
-        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
         Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Object atLeastOnePassed = false;

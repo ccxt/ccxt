@@ -8,7 +8,7 @@ interface Exchange {
     publicGetTickerPrice(params?: {}): Promise<List>;
     publicGetTickerBook(params?: {}): Promise<List>;
     publicGetMarketCandles(params?: {}): Promise<List>;
-    publicGetTicker24h(params?: {}): Promise<Dict | List>;
+    publicGetTicker24h(params?: {}): Promise<List>;
     publicGetTime(params?: {}): Promise<Dict>;
     publicGetMarkets(params?: {}): Promise<List>;
     publicGetAssets(params?: {}): Promise<List>;
@@ -20,7 +20,7 @@ interface Exchange {
     privateGetDepositHistory(params?: {}): Promise<List>;
     privateGetWithdrawalHistory(params?: {}): Promise<List>;
     privateGetAccount(params?: {}): Promise<List>;
-    privateGetBalance(params?: {}): Promise<List>;
+    privateGetBalance(params?: {}): Promise<Dict>;
     privateGetStakingBalance(params?: {}): Promise<List>;
     privateGetAccountFees(params?: {}): Promise<Dict>;
     privateGetAccountHistory(params?: {}): Promise<Dict>;

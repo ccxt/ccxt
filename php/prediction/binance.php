@@ -1949,10 +1949,18 @@ class binance extends Exchange {
         $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome', $outcome);
         $failedOrders = $this->safe_list($response, 'failed', array());
         $failedOrdersLength = count($failedOrders);
-        for ($i = 0; $i < $failedOrdersLength; $i++) {
-            $failedOrder = $failedOrders[$i];
-            $error = $this->safe_string($failedOrder, 'reason');
-            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . $this->safe_string($failedOrder, 'orderId') . ' => ' . $error);
+        if ($failedOrdersLength > 0) {
+            $failedDetails = '';
+            for ($i = 0; $i < $failedOrdersLength; $i++) {
+                $failedOrder = $failedOrders[$i];
+                $failedOrderId = $this->safe_string($failedOrder, 'orderId');
+                $failedReason = $this->safe_string($failedOrder, 'reason');
+                if ($i > 0) {
+                    $failedDetails = $failedDetails . ', ';
+                }
+                $failedDetails = $failedDetails . $failedOrderId . ' => ' . $failedReason;
+            }
+            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . $failedDetails);
         }
         $orders = array();
         $canceledOrdersLength = count($canceledOrders);
