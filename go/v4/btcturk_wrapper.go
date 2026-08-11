@@ -66,7 +66,7 @@ func (this *Btcturk) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Btcturk) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -283,7 +283,7 @@ func (this *Btcturk) CreateOrder(symbol string, typeVar string, side string, amo
  * @description cancels an open order
  * @see https://docs.btcturk.com/private-endpoints/cancel-order
  * @param {string} id order id
- * @param {string} symbol not used by btcturk cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -613,10 +613,10 @@ func (this *Btcturk) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 func (this *Btcturk) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Btcturk) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Btcturk) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Btcturk) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Btcturk) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Btcturk) FetchFreeBalance(params ...any) (Balance, error) {
@@ -742,7 +742,7 @@ func (this *Btcturk) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Btcturk) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcturk) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Btcturk) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Btcturk) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -760,7 +760,7 @@ func (this *Btcturk) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Btcturk) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcturk) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Btcturk) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Btcturk) FetchTime(params ...any) (int64, error) {
@@ -886,7 +886,7 @@ func (this *Btcturk) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Btcturk) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Btcturk) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Btcturk) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Btcturk) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -931,7 +931,7 @@ func (this *Btcturk) FetchTradesWs(symbol string, options ...FetchTradesWsOption
 func (this *Btcturk) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Btcturk) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Btcturk) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Btcturk) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

@@ -73,6 +73,7 @@ func (this *BitbankCore) Describe() any {
 			"fetchMarginMode":                        false,
 			"fetchMarginModes":                       false,
 			"fetchMarketLeverageTiers":               false,
+			"fetchMarkets":                           true,
 			"fetchMarkOHLCV":                         false,
 			"fetchMarkPrices":                        false,
 			"fetchMyLiquidations":                    false,
@@ -140,44 +141,100 @@ func (this *BitbankCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"{pair}/ticker":                  1,
-					"tickers":                        1,
-					"tickers_jpy":                    1,
-					"{pair}/depth":                   1,
-					"{pair}/transactions":            1,
-					"{pair}/transactions/{yyyymmdd}": 1,
-					"{pair}/candlestick/{candletype}/{yyyymmdd}": 1,
-					"{pair}/circuit_break_info":                  1,
+					"{pair}/ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"tickers_jpy": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/depth": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/transactions": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/transactions/{yyyymmdd}": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/candlestick/{candletype}/{yyyymmdd}": map[string]any{
+						"cost": 1,
+					},
+					"{pair}/circuit_break_info": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user/assets":               1,
-					"user/spot/order":           1,
-					"user/spot/active_orders":   1,
-					"user/margin/positions":     1,
-					"user/spot/trade_history":   1,
-					"user/deposit_history":      1,
-					"user/unconfirmed_deposits": 1,
-					"user/deposit_originators":  1,
-					"user/withdrawal_account":   1,
-					"user/withdrawal_history":   1,
-					"spot/status":               1,
-					"spot/pairs":                1,
+					"user/assets": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/order": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/active_orders": map[string]any{
+						"cost": 1,
+					},
+					"user/margin/positions": map[string]any{
+						"cost": 1,
+					},
+					"user/spot/trade_history": map[string]any{
+						"cost": 1,
+					},
+					"user/deposit_history": map[string]any{
+						"cost": 1,
+					},
+					"user/unconfirmed_deposits": map[string]any{
+						"cost": 1,
+					},
+					"user/deposit_originators": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal_account": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal_history": map[string]any{
+						"cost": 1,
+					},
+					"spot/status": map[string]any{
+						"cost": 1,
+					},
+					"spot/pairs": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"user/spot/order":           1.66,
-					"user/spot/cancel_order":    1.66,
-					"user/spot/cancel_orders":   1.66,
-					"user/spot/orders_info":     1.66,
-					"user/confirm_deposits":     1.66,
-					"user/confirm_deposits_all": 1.66,
-					"user/request_withdrawal":   1.66,
+					"user/spot/order": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/cancel_order": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/cancel_orders": map[string]any{
+						"cost": 1.66,
+					},
+					"user/spot/orders_info": map[string]any{
+						"cost": 1.66,
+					},
+					"user/confirm_deposits": map[string]any{
+						"cost": 1.66,
+					},
+					"user/confirm_deposits_all": map[string]any{
+						"cost": 1.66,
+					},
+					"user/request_withdrawal": map[string]any{
+						"cost": 1.66,
+					},
 				},
 			},
 			"markets": map[string]any{
 				"get": map[string]any{
-					"spot/pairs": 1,
+					"spot/pairs": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -325,7 +382,7 @@ func (this *BitbankCore) ParseMarket(entry any) any {
 	var quoteId any = this.SafeString(entry, "quote_asset")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -375,7 +432,7 @@ func (this *BitbankCore) ParseMarket(entry any) any {
 		},
 		"created": nil,
 		"info":    entry,
-	}
+	})
 }
 func (this *BitbankCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -425,8 +482,8 @@ func (this *BitbankCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes40812 := (<-this.LoadMarkets())
-			PanicOnError(retRes40812)
+			retRes40912 := (<-this.LoadMarkets())
+			PanicOnError(retRes40912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -452,7 +509,7 @@ func (this *BitbankCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitbankCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -465,8 +522,8 @@ func (this *BitbankCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes43112 := (<-this.LoadMarkets())
-			PanicOnError(retRes43112)
+			retRes43212 := (<-this.LoadMarkets())
+			PanicOnError(retRes43212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -556,8 +613,8 @@ func (this *BitbankCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50212 := (<-this.LoadMarkets())
-			PanicOnError(retRes50212)
+			retRes50312 := (<-this.LoadMarkets())
+			PanicOnError(retRes50312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -593,8 +650,8 @@ func (this *BitbankCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes52412 := (<-this.LoadMarkets())
-			PanicOnError(retRes52412)
+			retRes52512 := (<-this.LoadMarkets())
+			PanicOnError(retRes52512)
 		}
 
 		response := (<-this.MarketsGetSpotPairs(params))
@@ -701,8 +758,8 @@ func (this *BitbankCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes61712 := (<-this.LoadMarkets())
-			PanicOnError(retRes61712)
+			retRes61812 := (<-this.LoadMarkets())
+			PanicOnError(retRes61812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -758,7 +815,9 @@ func (this *BitbankCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString(balance, "free_amount"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked_amount"))
 		AddElementToObject(account, "total", this.SafeString(balance, "onhand_amount"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -780,8 +839,8 @@ func (this *BitbankCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68212 := (<-this.LoadMarkets())
-			PanicOnError(retRes68212)
+			retRes68512 := (<-this.LoadMarkets())
+			PanicOnError(retRes68512)
 		}
 
 		response := (<-this.PrivateGetUserAssets(params))
@@ -900,8 +959,8 @@ func (this *BitbankCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78512 := (<-this.LoadMarkets())
-			PanicOnError(retRes78512)
+			retRes78812 := (<-this.LoadMarkets())
+			PanicOnError(retRes78812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -946,8 +1005,8 @@ func (this *BitbankCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81412 := (<-this.LoadMarkets())
-			PanicOnError(retRes81412)
+			retRes81712 := (<-this.LoadMarkets())
+			PanicOnError(retRes81712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1010,8 +1069,8 @@ func (this *BitbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes86112 := (<-this.LoadMarkets())
-			PanicOnError(retRes86112)
+			retRes86412 := (<-this.LoadMarkets())
+			PanicOnError(retRes86412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1078,8 +1137,8 @@ func (this *BitbankCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes90812 := (<-this.LoadMarkets())
-			PanicOnError(retRes90812)
+			retRes91112 := (<-this.LoadMarkets())
+			PanicOnError(retRes91112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1130,8 +1189,8 @@ func (this *BitbankCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93912 := (<-this.LoadMarkets())
-			PanicOnError(retRes93912)
+			retRes94212 := (<-this.LoadMarkets())
+			PanicOnError(retRes94212)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1176,8 +1235,8 @@ func (this *BitbankCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97012 := (<-this.LoadMarkets())
-			PanicOnError(retRes97012)
+			retRes97312 := (<-this.LoadMarkets())
+			PanicOnError(retRes97312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1234,8 +1293,8 @@ func (this *BitbankCore) Withdraw(code any, amount any, address any, optionalArg
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100912 := (<-this.LoadMarkets())
-			PanicOnError(retRes100912)
+			retRes101212 := (<-this.LoadMarkets())
+			PanicOnError(retRes101212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1337,8 +1396,21 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
+		// bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+		// 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+		// since bitbank offers no server time endpoint to compensate against
+		var authMethod any = this.SafeString(this.Options, "authMethod", "timeWindow")
+		var isTimeWindow any = (IsEqual(authMethod, "timeWindow"))
+		var requestTime any = ToString(this.Milliseconds())
+		var timeWindow any = this.SafeString(this.Options, "timeWindow", "5000")
 		var nonce any = ToString(this.Nonce())
-		var auth any = nonce
+		var auth any = nil
+		if IsTrue(isTimeWindow) {
+			auth = Add(requestTime, timeWindow)
+		} else {
+			auth = nonce
+		}
 		url = Add(url, Add(Add(this.Version, "/"), this.ImplodeParams(path, params)))
 		if IsTrue(IsEqual(method, "POST")) {
 			body = this.Json(query)
@@ -1354,8 +1426,13 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"Content-Type":     "application/json",
 			"ACCESS-KEY":       this.ApiKey,
-			"ACCESS-NONCE":     nonce,
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
+		}
+		if IsTrue(isTimeWindow) {
+			AddElementToObject(headers, "ACCESS-REQUEST-TIME", requestTime)
+			AddElementToObject(headers, "ACCESS-TIME-WINDOW", timeWindow)
+		} else {
+			AddElementToObject(headers, "ACCESS-NONCE", nonce)
 		}
 	}
 	return map[string]any{

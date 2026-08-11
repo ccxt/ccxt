@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
@@ -348,7 +349,14 @@ public class BaseTest {
 
     public static void dump(Object... messObjects) {
         StringBuilder sb = new StringBuilder();
+        // join with spaces like console.log / print do in the other lanes:
+        // glued args broke the [INFO] TESTING <exchange> <method> markers that
+        // run-tests.js diffs on RUNTEST_TIMED_OUT, so the java lane reported a
+        // phantom ".java{symbol=null,.method" instead of the stalled methods
         for (Object obj : messObjects) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
             sb.append(Helpers.toStringOrNull(obj));
         }
         System.out.println(sb.toString());
@@ -424,8 +432,9 @@ public class BaseTest {
         return Functions.json(data);
     }
 
-    public static Exchange setFetchResponse(Object exchange2, Object response) {
-        var exchange = (Exchange) exchange2;
+    public static BaseExchange setFetchResponse(Object exchange2, Object response) {
+        // BaseExchange, not Exchange — prediction venues don't extend the crypto tier
+        var exchange = (BaseExchange) exchange2;
         exchange.setFetchResponse(response);
         return exchange;
     }
@@ -662,7 +671,7 @@ public class BaseTest {
         }
     }
 
-    public static Exchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
         if (!(exchangeId instanceof String)) {
             return null;
         }
@@ -678,10 +687,13 @@ public class BaseTest {
             return new Exchange(exchangeArgs);
         }
 
-        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
+        // --prediction routes ids that exist in both packages (hyperliquid) to the
+        // prediction-markets namespace, mirroring the js/python test harnesses
+        boolean forcePrediction = getCliArgValue("--prediction");
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
     }
 
-    public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs) {
         return initExchange(exchangeId, exchangeArgs, false);
     }
 

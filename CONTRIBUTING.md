@@ -186,7 +186,7 @@ The contents of the repository are structured as follows:
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /build/                    # build scripts
 /build/export-exchanges.js # used to create tables of exchanges in the docs during the build
-/build/transpile.js        # the transpilation script
+/build/transpile.ts        # the transpilation script
 /build/update-badges.js    # a JS script to update badges in the README and in docs
 /build/vss.js              # reads single-sourced version from package.json and writes it everywhere
 /dist/                     # a folder for the generated browser bundle of CCXT
@@ -236,6 +236,17 @@ Generated versions and docs are transpiled from the source `ts/src` folder by th
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - Base classes are **not** entirely transpiled and are only transpiled partially, as they are language-specific.
 
+#### Base types
+
+The base type declarations are generated from `ts/src/base/types.ts` by `npm run transpile-types`:
+
+- `python/ccxt/base/types.py`
+- `cs/ccxt/base/Exchange.Types.cs`, `cs/ccxt/base/PredictionTypes.cs`
+- `go/v4/exchange_types.go`
+- `java/lib/src/main/java/io/github/ccxt/types/*.java`
+
+Do not edit them by hand — edit `ts/src/base/types.ts` and regenerate. `npm run transpile-types-check` fails the build when they are out of sync. PHP needs no type file (unified structures are plain associative arrays) and the JS/TS declarations are emitted by `tsc`.
+
 #### JavaScript
 
 The `ccxt.browser.js` is generated with Babel from source.
@@ -250,7 +261,7 @@ These files containing derived exchange classes are transpiled from TS into Pyth
 
 These Python base classes and files are not transpiled:
 
-- `python/ccxt/base/*`
+- `python/ccxt/base/*` (except `types.py`, see [Base types](#base-types))
 - `python/ccxt/async/base/*`
 
 #### PHP
@@ -340,6 +351,7 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
+- an empty container is ambiguous in PHP: `{}` and `[]` are both `array()` there, so `isDictionary` returns `true` for an empty array in PHP while every other language can tell them apart and returns `false` — never branch dict-vs-list logic on a possibly-empty container, and don't assert empty containers in shared tests, see https://github.com/ccxt/ccxt/pull/29704 and https://github.com/ccxt/ccxt/pull/29698
 
 #### Sending Market Ids
 

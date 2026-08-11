@@ -54,6 +54,7 @@ public partial class bingx : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchBorrowRates", false },
                 { "fetchBorrowRatesPerSymbol", false },
+                { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
@@ -92,7 +93,7 @@ public partial class bingx : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", true },
-                { "fetchPositionHistory", false },
+                { "fetchPositionHistory", true },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsHistory", true },
@@ -113,6 +114,7 @@ public partial class bingx : Exchange
                 { "setMarginMode", true },
                 { "setPositionMode", true },
                 { "transfer", true },
+                { "withdraw", true },
             } },
             { "hostname", "bingx.com" },
             { "urls", new Dictionary<string, object>() {
@@ -169,7 +171,9 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "account/balance", 1 },
+                                { "account/balance", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -178,60 +182,128 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "server/time", 1 },
-                                { "common/symbols", 1 },
-                                { "market/trades", 1 },
-                                { "market/depth", 1 },
-                                { "market/kline", 1 },
-                                { "ticker/24hr", 1 },
-                                { "ticker/price", 1 },
-                                { "ticker/bookTicker", 1 },
+                                { "server/time", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "common/symbols", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/trades", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/depth", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/kline", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "ticker/24hr", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "ticker/price", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "ticker/bookTicker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "trade/query", 1 },
-                                { "trade/openOrders", 1 },
-                                { "trade/historyOrders", 1 },
-                                { "trade/myTrades", 2 },
-                                { "user/commissionRate", 5 },
-                                { "account/balance", 2 },
-                                { "oco/orderList", 5 },
-                                { "oco/openOrderList", 5 },
-                                { "oco/historyOrderList", 5 },
+                                { "trade/query", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "trade/openOrders", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "trade/historyOrders", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "trade/myTrades", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/commissionRate", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "account/balance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "oco/orderList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "oco/openOrderList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "oco/historyOrderList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/order", 2 },
-                                { "trade/cancel", 2 },
-                                { "trade/batchOrders", 5 },
-                                { "trade/order/cancelReplace", 5 },
-                                { "trade/cancelOrders", 5 },
-                                { "trade/cancelOpenOrders", 5 },
-                                { "trade/cancelAllAfter", 5 },
-                                { "oco/order", 5 },
-                                { "oco/cancel", 5 },
+                                { "trade/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/cancel", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/batchOrders", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/order/cancelReplace", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/cancelOrders", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/cancelOpenOrders", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/cancelAllAfter", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "oco/order", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "oco/cancel", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "market/depth", 1 },
-                                { "market/kline", 1 },
-                                { "ticker/price", 1 },
+                                { "market/depth", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/kline", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "ticker/price", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
                     { "v3", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "get/asset/transfer", 1 },
-                                { "asset/transfer", 1 },
-                                { "capital/deposit/hisrec", 1 },
-                                { "capital/withdraw/history", 1 },
+                                { "get/asset/transfer", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "asset/transfer", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "capital/deposit/hisrec", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "capital/withdraw/history", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "post/asset/transfer", 5 },
+                                { "post/asset/transfer", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                         } },
                     } },
@@ -240,103 +312,237 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ticker/price", 1 },
-                                { "market/historicalTrades", 1 },
-                                { "market/markPriceKlines", 1 },
-                                { "trade/multiAssetsRules", 1 },
-                                { "tradingRules", 1 },
+                                { "ticker/price", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/historicalTrades", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/markPriceKlines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "trade/multiAssetsRules", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "tradingRules", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "positionSide/dual", 5 },
-                                { "trade/batchCancelReplace", 5 },
-                                { "trade/fullOrder", 2 },
-                                { "maintMarginRatio", 2 },
-                                { "trade/positionHistory", 2 },
-                                { "positionMargin/history", 2 },
-                                { "twap/openOrders", 5 },
-                                { "twap/historyOrders", 5 },
-                                { "twap/orderDetail", 5 },
-                                { "trade/assetMode", 5 },
-                                { "user/marginAssets", 5 },
+                                { "positionSide/dual", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/batchCancelReplace", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/fullOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "maintMarginRatio", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/positionHistory", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "positionMargin/history", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "twap/openOrders", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "twap/historyOrders", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "twap/orderDetail", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/assetMode", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "user/marginAssets", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/amend", 2 },
-                                { "trade/cancelReplace", 2 },
-                                { "positionSide/dual", 5 },
-                                { "trade/batchCancelReplace", 5 },
-                                { "trade/closePosition", 2 },
-                                { "trade/getVst", 5 },
-                                { "twap/order", 5 },
-                                { "twap/cancelOrder", 5 },
-                                { "trade/assetMode", 5 },
-                                { "trade/reverse", 5 },
-                                { "trade/autoAddMargin", 5 },
+                                { "trade/amend", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/cancelReplace", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "positionSide/dual", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/batchCancelReplace", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/closePosition", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/getVst", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "twap/order", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "twap/cancelOrder", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/assetMode", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/reverse", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/autoAddMargin", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "server/time", 1 },
-                                { "quote/contracts", 1 },
-                                { "quote/price", 1 },
-                                { "quote/depth", 1 },
-                                { "quote/trades", 1 },
-                                { "quote/premiumIndex", 1 },
-                                { "quote/fundingRate", 1 },
-                                { "quote/klines", 1 },
-                                { "quote/openInterest", 1 },
-                                { "quote/ticker", 1 },
-                                { "quote/bookTicker", 1 },
+                                { "server/time", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/contracts", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/price", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/depth", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/trades", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/premiumIndex", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/fundingRate", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/klines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/openInterest", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/ticker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/bookTicker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "user/balance", 2 },
-                                { "user/positions", 2 },
-                                { "user/income", 2 },
-                                { "trade/openOrders", 2 },
-                                { "trade/openOrder", 2 },
-                                { "trade/order", 2 },
-                                { "trade/marginType", 5 },
-                                { "trade/leverage", 2 },
-                                { "trade/forceOrders", 1 },
-                                { "trade/allOrders", 2 },
-                                { "trade/allFillOrders", 2 },
-                                { "trade/fillHistory", 2 },
-                                { "user/income/export", 2 },
-                                { "user/commissionRate", 2 },
-                                { "quote/bookTicker", 1 },
+                                { "user/balance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/positions", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/income", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/openOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/openOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/marginType", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/leverage", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/forceOrders", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "trade/allOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/allFillOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/fillHistory", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/income/export", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/commissionRate", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "quote/bookTicker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/getVst", 5 },
-                                { "trade/order", 2 },
-                                { "trade/batchOrders", 2 },
-                                { "trade/closeAllPositions", 2 },
-                                { "trade/cancelAllAfter", 5 },
-                                { "trade/marginType", 5 },
-                                { "trade/leverage", 5 },
-                                { "trade/positionMargin", 5 },
-                                { "trade/order/test", 2 },
+                                { "trade/getVst", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/batchOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/closeAllPositions", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/cancelAllAfter", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/marginType", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/leverage", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/positionMargin", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "trade/order/test", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "trade/order", 2 },
-                                { "trade/batchOrders", 2 },
-                                { "trade/allOpenOrders", 2 },
+                                { "trade/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/batchOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/allOpenOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
                     { "v3", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "quote/klines", 1 },
+                                { "quote/klines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "user/balance", 2 },
+                                { "user/balance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
@@ -345,38 +551,86 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "market/contracts", 1 },
-                                { "market/premiumIndex", 1 },
-                                { "market/openInterest", 1 },
-                                { "market/klines", 1 },
-                                { "market/depth", 1 },
-                                { "market/ticker", 1 },
+                                { "market/contracts", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/premiumIndex", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/openInterest", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/klines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/depth", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "market/ticker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "trade/leverage", 2 },
-                                { "trade/forceOrders", 2 },
-                                { "trade/allFillOrders", 2 },
-                                { "trade/openOrders", 2 },
-                                { "trade/orderDetail", 2 },
-                                { "trade/orderHistory", 2 },
-                                { "trade/marginType", 2 },
-                                { "user/commissionRate", 2 },
-                                { "user/positions", 2 },
-                                { "user/balance", 2 },
+                                { "trade/leverage", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/forceOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/allFillOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/openOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/orderDetail", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/orderHistory", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/marginType", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/commissionRate", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/positions", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "user/balance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/order", 2 },
-                                { "trade/leverage", 2 },
-                                { "trade/allOpenOrders", 2 },
-                                { "trade/closeAllPositions", 2 },
-                                { "trade/marginType", 2 },
-                                { "trade/positionMargin", 2 },
+                                { "trade/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/leverage", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/allOpenOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/closeAllPositions", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/marginType", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/positionMargin", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "trade/allOpenOrders", 2 },
-                                { "trade/cancelOrder", 2 },
+                                { "trade/allOpenOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "trade/cancelOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
@@ -385,9 +639,15 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "allPosition", 2 },
-                                { "allOrders", 2 },
-                                { "balance", 2 },
+                                { "allPosition", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "allOrders", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "balance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
@@ -396,19 +656,41 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "capital/config/getall", 5 },
-                                { "capital/deposit/address", 5 },
-                                { "capital/innerTransfer/records", 1 },
-                                { "capital/subAccount/deposit/address", 5 },
-                                { "capital/deposit/subHisrec", 2 },
-                                { "capital/subAccount/innerTransfer/records", 1 },
-                                { "capital/deposit/riskRecords", 5 },
+                                { "capital/config/getall", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/deposit/address", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/innerTransfer/records", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "capital/subAccount/deposit/address", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/deposit/subHisrec", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "capital/subAccount/innerTransfer/records", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "capital/deposit/riskRecords", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "capital/withdraw/apply", 5 },
-                                { "capital/innerTransfer/apply", 5 },
-                                { "capital/subAccountInnerTransfer/apply", 2 },
-                                { "capital/deposit/createSubAddress", 2 },
+                                { "capital/withdraw/apply", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/innerTransfer/apply", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/subAccountInnerTransfer/apply", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "capital/deposit/createSubAddress", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
@@ -417,16 +699,32 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "list", 10 },
-                                { "assets", 2 },
-                                { "allAccountBalance", 2 },
+                                { "list", new Dictionary<string, object>() {
+                                    { "cost", 10 },
+                                } },
+                                { "assets", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "allAccountBalance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "create", 10 },
-                                { "apiKey/create", 2 },
-                                { "apiKey/edit", 2 },
-                                { "apiKey/del", 2 },
-                                { "updateStatus", 10 },
+                                { "create", new Dictionary<string, object>() {
+                                    { "cost", 10 },
+                                } },
+                                { "apiKey/create", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "apiKey/edit", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "apiKey/del", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "updateStatus", new Dictionary<string, object>() {
+                                    { "cost", 10 },
+                                } },
                             } },
                         } },
                     } },
@@ -435,13 +733,23 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "uid", 1 },
-                                { "apiKey/query", 2 },
-                                { "account/apiPermissions", 5 },
-                                { "allAccountBalance", 2 },
+                                { "uid", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "apiKey/query", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "account/apiPermissions", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "allAccountBalance", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "innerTransfer/authorizeSubAccount", 1 },
+                                { "innerTransfer/authorizeSubAccount", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -449,11 +757,17 @@ public partial class bingx : Exchange
                         { "v1", new Dictionary<string, object>() {
                             { "private", new Dictionary<string, object>() {
                                 { "get", new Dictionary<string, object>() {
-                                    { "subAccount/asset/transferHistory", 1 },
+                                    { "subAccount/asset/transferHistory", new Dictionary<string, object>() {
+                                        { "cost", 1 },
+                                    } },
                                 } },
                                 { "post", new Dictionary<string, object>() {
-                                    { "subAccount/transferAsset/supportCoins", 1 },
-                                    { "subAccount/transferAsset", 1 },
+                                    { "subAccount/transferAsset/supportCoins", new Dictionary<string, object>() {
+                                        { "cost", 1 },
+                                    } },
+                                    { "subAccount/transferAsset", new Dictionary<string, object>() {
+                                        { "cost", 1 },
+                                    } },
                                 } },
                             } },
                         } },
@@ -463,13 +777,19 @@ public partial class bingx : Exchange
                     { "auth", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "post", new Dictionary<string, object>() {
-                                { "userDataStream", 2 },
+                                { "userDataStream", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "put", new Dictionary<string, object>() {
-                                { "userDataStream", 2 },
+                                { "userDataStream", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "userDataStream", 2 },
+                                { "userDataStream", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                         } },
                     } },
@@ -478,21 +798,47 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "swap/trace/currentTrack", 2 },
-                                { "PFutures/traderDetail", 2 },
-                                { "PFutures/profitHistorySummarys", 2 },
-                                { "PFutures/profitDetail", 2 },
-                                { "PFutures/tradingPairs", 2 },
-                                { "spot/traderDetail", 2 },
-                                { "spot/profitHistorySummarys", 2 },
-                                { "spot/profitDetail", 2 },
-                                { "spot/historyOrder", 2 },
+                                { "swap/trace/currentTrack", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "PFutures/traderDetail", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "PFutures/profitHistorySummarys", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "PFutures/profitDetail", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "PFutures/tradingPairs", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "spot/traderDetail", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "spot/profitHistorySummarys", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "spot/profitDetail", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "spot/historyOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "swap/trace/closeTrackOrder", 2 },
-                                { "swap/trace/setTPSL", 2 },
-                                { "PFutures/setCommission", 2 },
-                                { "spot/trader/sellOrder", 10 },
+                                { "swap/trace/closeTrackOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "swap/trace/setTPSL", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "PFutures/setCommission", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "spot/trader/sellOrder", new Dictionary<string, object>() {
+                                    { "cost", 10 },
+                                } },
                             } },
                         } },
                     } },
@@ -501,13 +847,23 @@ public partial class bingx : Exchange
                     { "v3", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "asset/transfer", 1 },
-                                { "asset/transferRecord", 5 },
-                                { "capital/deposit/hisrec", 1 },
-                                { "capital/withdraw/history", 1 },
+                                { "asset/transfer", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "asset/transferRecord", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "capital/deposit/hisrec", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "capital/withdraw/history", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "post/asset/transfer", 1 },
+                                { "post/asset/transfer", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -515,12 +871,16 @@ public partial class bingx : Exchange
                         { "v1", new Dictionary<string, object>() {
                             { "private", new Dictionary<string, object>() {
                                 { "post", new Dictionary<string, object>() {
-                                    { "transfer", 5 },
+                                    { "transfer", new Dictionary<string, object>() {
+                                        { "cost", 5 },
+                                    } },
                                 } },
                             } },
                             { "public", new Dictionary<string, object>() {
                                 { "get", new Dictionary<string, object>() {
-                                    { "transfer/supportCoins", 5 },
+                                    { "transfer/supportCoins", new Dictionary<string, object>() {
+                                        { "cost", 5 },
+                                    } },
                                 } },
                             } },
                         } },
@@ -530,14 +890,30 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "account/inviteAccountList", 5 },
-                                { "reward/commissionDataList", 5 },
-                                { "account/inviteRelationCheck", 5 },
-                                { "asset/depositDetailList", 5 },
-                                { "reward/third/commissionDataList", 5 },
-                                { "asset/partnerData", 5 },
-                                { "commissionDataList/referralCode", 5 },
-                                { "account/superiorCheck", 5 },
+                                { "account/inviteAccountList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "reward/commissionDataList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "account/inviteRelationCheck", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "asset/depositDetailList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "reward/third/commissionDataList", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "asset/partnerData", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "commissionDataList/referralCode", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
+                                { "account/superiorCheck", new Dictionary<string, object>() {
+                                    { "cost", 5 },
+                                } },
                             } },
                         } },
                     } },
@@ -604,6 +980,9 @@ public partial class bingx : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "timeZone", 0 },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "funding", "fund" },
                     { "spot", "spot" },
@@ -893,17 +1272,20 @@ public partial class bingx : Exchange
                 } },
             };
             object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawNetwork },
-                { "id", network },
-                { "network", networkCode },
-                { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
-                { "active", null },
-                { "deposit", this.safeBool(rawNetwork, "depositEnable") },
-                { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
-                { "precision", precision },
-                { "limits", limits },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawNetwork },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
+                    { "active", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnable") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
+                    { "precision", precision },
+                    { "limits", limits },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1216,6 +1598,16 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            object timeZone = null;
+            var timeZoneparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+            timeZone = ((IList<object>)timeZoneparametersVariable)[0];
+            parameters = ((IList<object>)timeZoneparametersVariable)[1];
+            if (isTrue(!isEqual(timeZone, null)))
+            {
+                ((IDictionary<string,object>)request)["timeZone"] = timeZone;
+            }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
         } else
         {
@@ -1549,13 +1941,22 @@ public partial class bingx : Exchange
         object amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))) && isTrue((inOp(trade, "volume")))))
         {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
-            object volume = this.safeString(trade, "volume");
-            amount = Precise.stringMul(volume, contractSize);
+            if (isTrue(getValue(market, "linear")))
+            {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, "volume");
+            } else
+            {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
+                object volume = this.safeString(trade, "volume");
+                amount = Precise.stringMul(volume, contractSize);
+            }
         }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeStringN(trade, new List<object>() {"id", "t"}) },
+            { "id", this.safeString2(trade, "id", "t") },
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
@@ -1584,7 +1985,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2643,7 +3044,10 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "availableMargin", "availableBalance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "usedMargin");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "maxWithdrawAmount");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         } else
         {
@@ -2655,7 +3059,10 @@ public partial class bingx : Exchange
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -2669,7 +3076,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -3007,20 +3414,28 @@ public partial class bingx : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name bingx#createOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name bingx#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         object postOnly = null;
         object marketType = null;
@@ -3091,7 +3506,7 @@ public partial class bingx : Exchange
             }
             if (isTrue(!isEqual(triggerPrice, null)))
             {
-                if (isTrue(isTrue(isMarketOrder) && isTrue(isEqual(this.safeString(request, "quoteOrderQty"), null))))
+                if (isTrue(isTrue(isTrue(isMarketOrder) && isTrue((isEqual(side, "buy")))) && isTrue(isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
@@ -3149,10 +3564,19 @@ public partial class bingx : Exchange
             object isTrailingAmountOrder = !isEqual(trailingAmount, null);
             object isTrailingPercentOrder = !isEqual(trailingPercent, null);
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-            object stopLoss = this.safeValue(parameters, "stopLoss");
-            object takeProfit = this.safeValue(parameters, "takeProfit");
-            object hasStopLoss = !isEqual(stopLoss, null);
-            object hasTakeProfit = !isEqual(takeProfit, null);
+            object stopLossDict = this.safeDict(parameters, "stopLoss");
+            object takeProfitDict = this.safeDict(parameters, "takeProfit");
+            object hasStopLoss = !isEqual(stopLossDict, null);
+            object hasTakeProfit = !isEqual(takeProfitDict, null);
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if (isTrue(hasStopLoss))
+            {
+                parameters = this.omit(parameters, "stopLoss");
+            }
+            if (isTrue(hasTakeProfit))
+            {
+                parameters = this.omit(parameters, "takeProfit");
+            }
             if (isTrue(isTrue((isTrue(isTrue(isTrue((isEqual(type, "LIMIT"))) || isTrue((isEqual(type, "TRIGGER_LIMIT")))) || isTrue((isEqual(type, "STOP")))) || isTrue((isEqual(type, "TAKE_PROFIT"))))) && !isTrue(isTrailing)))
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -3210,39 +3634,39 @@ public partial class bingx : Exchange
                 object stringifiedAmount = this.numberToString(amount);
                 if (isTrue(hasStopLoss))
                 {
-                    object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                    object slWorkingType = this.safeString(stopLoss, "workingType", "MARK_PRICE");
-                    object slType = this.safeString(stopLoss, "type", "STOP_MARKET");
+                    object slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
+                    object slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
+                    object slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
                     object slRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, slTriggerPrice)) },
                         { "workingType", slWorkingType },
                         { "type", slType },
                     };
-                    object slPrice = this.safeString(stopLoss, "price");
+                    object slPrice = this.safeString(stopLossDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)slRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object slQuantity = this.safeString(stopLoss, "quantity", stringifiedAmount);
+                    object slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
                 if (isTrue(hasTakeProfit))
                 {
-                    object tkTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                    object tkWorkingType = this.safeString(takeProfit, "workingType", "MARK_PRICE");
-                    object tpType = this.safeString(takeProfit, "type", "TAKE_PROFIT_MARKET");
+                    object tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
+                    object tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
+                    object tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
                     object tpRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, tkTriggerPrice)) },
                         { "workingType", tkWorkingType },
                         { "type", tpType },
                     };
-                    object slPrice = this.safeString(takeProfit, "price");
+                    object slPrice = this.safeString(takeProfitDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)tpRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object tkQuantity = this.safeString(takeProfit, "quantity", stringifiedAmount);
+                    object tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)tpRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
                     ((IDictionary<string,object>)request)["takeProfit"] = this.json(tpRequest);
                 }
@@ -3275,7 +3699,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -3414,7 +3838,8 @@ public partial class bingx : Exchange
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers(response);
-            response = this.parseJson(response);
+            object parsedResponse = this.parseJson(response);
+            response = parsedResponse;
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
@@ -3432,8 +3857,11 @@ public partial class bingx : Exchange
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLossDict = this.safeDict(result, "stopLoss");
         object stopLoss = this.safeString(result, "stopLoss");
-        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
+        // so we need trick to check if it's non-parsed string yet
+        if (isTrue(isTrue(isTrue((isEqual(stopLossDict, null))) && isTrue((!isEqual(stopLoss, null)))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
         {
             ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
         }
@@ -3468,7 +3896,7 @@ public partial class bingx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
+            object marketId = this.safeString(rawOrder, "symbol", "");
             object type = this.safeString(rawOrder, "type");
             ((IList<object>)marketIds).Add(marketId);
             object side = this.safeString(rawOrder, "side");
@@ -3552,7 +3980,8 @@ public partial class bingx : Exchange
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             response = this.fixStringifiedJsonMembers(response);
-            response = this.parseJson(response);
+            object parsedResponse = this.parseJson(response);
+            response = parsedResponse;
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "orders", new List<object>() {});
@@ -3582,7 +4011,7 @@ public partial class bingx : Exchange
             { "take_profit_market", "market" },
             { "stop", "limit" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -4809,13 +5238,13 @@ public partial class bingx : Exchange
         object subType = null;
         object standard = null;
         object response = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchClosedOrders", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "standard", false);
+        var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
         standard = ((IList<object>)standardparametersVariable)[0];
         parameters = ((IList<object>)standardparametersVariable)[1];
         if (isTrue(standard))
@@ -5146,8 +5575,19 @@ public partial class bingx : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
         object address = this.safeString(depositAddress, "addressWithPrefix");
-        object networkdId = this.safeString(depositAddress, "network");
-        object networkCode = this.networkIdToCode(networkdId, code);
+        object networkId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (isTrue(!isEqual(address, null)))
+        {
+            object isPrefixed = isTrue(((string)address).StartsWith(((string)"0x"))) || isTrue(((string)address).StartsWith(((string)"0X")));
+            object evmNetworks = new List<object>() {"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
+            if (isTrue(!isTrue(isPrefixed) && isTrue(this.inArray(networkCode, evmNetworks))))
+            {
+                address = add("0x", address);
+            }
+        }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
@@ -5332,7 +5772,7 @@ public partial class bingx : Exchange
         object network = this.safeString(transaction, "network");
         object currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        if (isTrue(isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, network)))) && isTrue(isGreaterThanOrEqual(getIndexOf(code, network), 0))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(network, null)))) && isTrue((!isEqual(code, network)))) && isTrue(isGreaterThanOrEqual(getIndexOf(code, network), 0))))
         {
             if (isTrue(!isEqual(network, null)))
             {
@@ -5468,7 +5908,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
@@ -5877,6 +6317,7 @@ public partial class bingx : Exchange
     public virtual object parseParams(object parameters)
     {
         // const sortedParams = this.keysort (params);
+        object copied = this.clone(parameters);
         object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
         object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -5896,10 +6337,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
+                ((IDictionary<string,object>)copied)[(string)key] = arrStr;
             }
         }
-        return parameters;
+        return copied;
     }
 
     /**
@@ -6069,7 +6510,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -6098,7 +6539,7 @@ public partial class bingx : Exchange
                 response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
             }
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -6108,7 +6549,7 @@ public partial class bingx : Exchange
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.recvWindow] request valid time window value
      * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -6194,7 +6635,7 @@ public partial class bingx : Exchange
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -6268,12 +6709,12 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.swapV1PrivatePostTradeCancelReplace(this.extend(request, parameters));
+            response = await this.swapV1PrivatePostTradeCancelReplace(request);
         } else
         {
-            response = await this.spotV1PrivatePostTradeOrderCancelReplace(this.extend(request, parameters));
+            response = await this.spotV1PrivatePostTradeOrderCancelReplace(request);
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -6620,7 +7061,8 @@ public partial class bingx : Exchange
                 parsedParams = this.parseParams(parameters);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
+            object encodeRequestSafe = ((bool) isTrue((isEqual(encodeRequest, null)))) ? "" : encodeRequest;
+            object signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },

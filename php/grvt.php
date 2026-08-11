@@ -98,64 +98,64 @@ class grvt extends Exchange {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge' => array(
                     'post' => array(
-                        'auth/api_key/login' => 100,
-                        'auth/wallet/login' => 100,
+                        'auth/api_key/login' => array( 'cost' => 100 ),
+                        'auth/wallet/login' => array( 'cost' => 100 ),
                     ),
                 ),
                 'publicMarket' => array(
                     'post' => array(
-                        'full/v1/instrument' => 4,
-                        'full/v1/all_instruments' => 4,
-                        'full/v1/instruments' => 4,
-                        'full/v1/currency' => 12,
-                        'full/v1/margin_rules' => 12,
-                        'full/v1/mini' => 4,
-                        'full/v1/ticker' => 4,
-                        'full/v1/book' => 12,
-                        'full/v1/trade' => 12,
-                        'full/v1/trade_history' => 12,
-                        'full/v1/kline' => 12,
-                        'full/v1/funding' => 12,
+                        'full/v1/instrument' => array( 'cost' => 4 ),
+                        'full/v1/all_instruments' => array( 'cost' => 4 ),
+                        'full/v1/instruments' => array( 'cost' => 4 ),
+                        'full/v1/currency' => array( 'cost' => 12 ),
+                        'full/v1/margin_rules' => array( 'cost' => 12 ),
+                        'full/v1/mini' => array( 'cost' => 4 ),
+                        'full/v1/ticker' => array( 'cost' => 4 ),
+                        'full/v1/book' => array( 'cost' => 12 ),
+                        'full/v1/trade' => array( 'cost' => 12 ),
+                        'full/v1/trade_history' => array( 'cost' => 12 ),
+                        'full/v1/kline' => array( 'cost' => 12 ),
+                        'full/v1/funding' => array( 'cost' => 12 ),
                     ),
                 ),
                 'privateTrading' => array(
                     'post' => array(
-                        'full/v1/create_order' => 5,
-                        'full/v1/cancel_order' => 5,
-                        'full/v1/cancel_on_disconnect' => 100,
-                        'full/v1/cancel_all_orders' => 50,
-                        'full/v1/order' => $rlOrders,
-                        'full/v1/order_history' => $rlOrders,
-                        'full/v1/open_orders' => $rlOrders,
-                        'full/v1/fill_history' => $rlOrders,
-                        'full/v1/positions' => $rlOrders,
-                        'full/v1/funding_payment_history' => $rlOthers,
-                        'full/v1/get_sub_accounts' => $rlOthers,
-                        'full/v1/account_summary' => $rlOthers,
-                        'full/v1/account_history' => $rlOthers,
-                        'full/v1/aggregated_account_summary' => $rlOthers,
-                        'full/v1/funding_account_summary' => $rlOthers,
-                        'full/v1/transfer' => 100,
-                        'full/v1/deposit_history' => 100,
-                        'full/v1/transfer_history' => 100,
-                        'full/v1/withdrawal' => 100,
-                        'full/v1/withdrawal_history' => 100,
-                        'full/v1/add_position_margin' => $rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits' => $rlOthers,
-                        'full/v1/set_position_config' => $rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage' => $rlOthers,
-                        'full/v1/get_all_initial_leverage' => $rlOthers,
-                        'full/v1/set_derisk_mm_ratio' => $rlOthers,
-                        'full/v1/vault_burn_tokens' => $rlOthers,
-                        'full/v1/vault_invest' => $rlOthers,
-                        'full/v1/vault_investor_summary' => $rlOthers,
-                        'full/v1/vault_redeem' => $rlOthers,
-                        'full/v1/vault_redeem_cancel' => $rlOthers,
-                        'full/v1/vault_view_redemption_queue' => $rlOthers,
-                        'full/v1/vault_manager_investor_history' => $rlOthers,
-                        'full/v1/authorize_builder' => $rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders' => $rlOthers,
-                        'full/v1/builder_fill_history' => $rlOthers,
+                        'full/v1/create_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_order' => array( 'cost' => 5 ),
+                        'full/v1/cancel_on_disconnect' => array( 'cost' => 100 ),
+                        'full/v1/cancel_all_orders' => array( 'cost' => 50 ),
+                        'full/v1/order' => array( 'cost' => $rlOrders ),
+                        'full/v1/order_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/open_orders' => array( 'cost' => $rlOrders ),
+                        'full/v1/fill_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/positions' => array( 'cost' => $rlOrders ),
+                        'full/v1/funding_payment_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_sub_accounts' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/account_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/aggregated_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/funding_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/transfer' => array( 'cost' => 100 ),
+                        'full/v1/deposit_history' => array( 'cost' => 100 ),
+                        'full/v1/transfer_history' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal' => array( 'cost' => 100 ),
+                        'full/v1/withdrawal_history' => array( 'cost' => 100 ),
+                        'full/v1/add_position_margin' => array( 'cost' => $rlOthers ), // addMargin
+                        'full/v1/get_position_margin_limits' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_position_config' => array( 'cost' => $rlOthers ),  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_all_initial_leverage' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_derisk_mm_ratio' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_burn_tokens' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_invest' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_investor_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_redeem_cancel' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_view_redemption_queue' => array( 'cost' => $rlOthers ),
+                        'full/v1/vault_manager_investor_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/authorize_builder' => array( 'cost' => $rlOthers ), // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders' => array( 'cost' => $rlOthers ),
+                        'full/v1/builder_fill_history' => array( 'cost' => $rlOthers ),
                     ),
                 ),
             ),
@@ -164,7 +164,7 @@ class grvt extends Exchange {
                 'accountId' => null, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks' => array(
-                    'ARBONE' => '42161',
+                    'ARBITRUM' => '42161',
                     'AVAXC' => '43114',
                     'BASE' => '8453',
                     'BSC' => '56',
@@ -617,7 +617,7 @@ class grvt extends Exchange {
          *
          * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
@@ -657,7 +657,7 @@ class grvt extends Exchange {
         return $this->parse_markets($result);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //    {
         //        "instrument" => "BTC_USDT_Perp",
@@ -905,9 +905,12 @@ class grvt extends Exchange {
         //        }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
+        $timestamp = $this->safe_integer_product($ticker, 'event_time', 0.000001);
         return $this->safe_ticker(array(
             'info' => $ticker,
             'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'open' => $this->safe_string($ticker, 'open_price'),
             'high' => $this->safe_string($ticker, 'high_price'),
             'low' => $this->safe_string($ticker, 'low_price'),
@@ -938,7 +941,7 @@ class grvt extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1178,7 +1181,7 @@ class grvt extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //            {
         //                "open_time" => "1767288240000000000",
@@ -1260,7 +1263,7 @@ class grvt extends Exchange {
         return $this->parse_funding_rate_histories($result, $market);
     }
 
-    public function parse_funding_rate_history($rawItem, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
         //
         //            array(
         //                "instrument" => "BTC_USDT_Perp",
@@ -1282,7 +1285,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function get_sub_account_id($params) {
+    public function get_sub_account_id(mixed $params) {
         $subAccountId = null;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId');
         if ($subAccountId === null) {
@@ -1337,7 +1340,7 @@ class grvt extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //        {
         //            "event_time" => "1764863116142428457",
@@ -1379,7 +1382,9 @@ class grvt extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['free'] = $availableBalance; // todo => revise after API team clarification
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1505,7 +1510,7 @@ class grvt extends Exchange {
         }
     }
 
-    public function internal_fetch_transfers($req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
+    public function internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
         $response = $this->privateTradingPostFullV1TransferHistory($req);
         //
         //    {
@@ -1617,7 +1622,7 @@ class grvt extends Exchange {
         $addressTo = $this->safe_string($transaction, 'to_account_id');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
+        if (is_array($transaction) && array_key_exists('transfer_metadata' ?? '', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
@@ -2164,11 +2169,11 @@ class grvt extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function convert_to_big_int_custom($x) {
+    public function convert_to_big_int_custom(mixed $x) {
         return intval($x);
     }
 
-    public function eip_message_for_order($order, $structureType) {
+    public function eip_message_for_order(mixed $order, mixed $structureType) {
         $priceMultiplier = '1000000000';
         $orderLegs = $this->safe_list($order, 'legs', array());
         $legs = array();
@@ -2197,7 +2202,7 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $limitDecLengthStr = (string) $limitDecLength;
-                $powerNum = $limitDecLengthStr === '0' ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
+                $powerNum = ($limitDecLengthStr === '0') ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
                 $priceInteger = ($this->convert_to_big_int_custom(str_replace('.', '', $price)) * $this->convert_to_big_int_custom($priceMultiplier) / (pow($bigInt10, $powerNum)));
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {
@@ -2442,7 +2447,7 @@ class grvt extends Exchange {
         return $this->parse_leverages($results, $symbols);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -2532,7 +2537,7 @@ class grvt extends Exchange {
         return $this->parse_leverages($results, $symbols);
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         // fetchMarginModes
         //
@@ -2611,7 +2616,7 @@ class grvt extends Exchange {
         return $this->parse_incomes($result, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //            {
         //                "event_time" => "1765267200004987902",
@@ -2971,7 +2976,7 @@ class grvt extends Exchange {
         //        "ack" => true
         //    }
         //
-        if (is_array($order) && array_key_exists('ack', $order)) {
+        if (is_array($order) && array_key_exists('ack' ?? '', $order)) {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => null,
@@ -3075,7 +3080,7 @@ class grvt extends Exchange {
          *
          * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
          *
-         * @param {string} $symbol cancel alls open orders
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -3154,11 +3159,14 @@ class grvt extends Exchange {
         return $this->convert_to_big_int_custom('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    public function create_signed_request(mixed $request, string $structureType, $currencyObj = null, ?string $signerAddress = null): array {
+    public function create_signed_request(mixed $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
         $messageData = null;
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
             $amountInt = $request['num_tokens'] * $amountMultiplier;
+            if ($currencyObj === null) {
+                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
+            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'fromSubAccount' => $request['from_sub_account_id'],
@@ -3171,6 +3179,9 @@ class grvt extends Exchange {
             );
         } elseif ($structureType === 'EIP712_WITHDRAWAL_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
+            if ($currencyObj === null) {
+                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
+            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'toEthAddress' => $request['to_eth_address'],
@@ -3235,7 +3246,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function handle_until_option_string(string $key, $request, $params, $multiplier = 1) {
+    public function handle_until_option_string(string $key, mixed $request, mixed $params, $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->number_to_string($this->parse_to_int($until * $multiplier));
@@ -3250,7 +3261,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';
@@ -3260,7 +3271,20 @@ class grvt extends Exchange {
                 $url .= '?' . $queryString;
             }
         } elseif ($method === 'POST') {
-            $body = $this->json($params);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own $headers, this covers the public market-data endpoints
+            $headers = array(
+                'Content-Type' => 'application/json',
+            );
+            // an empty $params dict must serialize empty json object, not an empty json array,
+            // php json_encode would produce array() here which the venue rejects with the same 1003 error
+            $paramsKeys = is_array($params) ? array_keys($params) : array();
+            $paramsKeysLength = count($paramsKeys);
+            if ($paramsKeysLength === 0) {
+                $body = '{}';
+            } else {
+                $body = $this->json($params);
+            }
         }
         $isPrivate = str_starts_with($api, 'private');
         if ($isPrivate) {
@@ -3286,7 +3310,7 @@ class grvt extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (str_ends_with($url, 'auth/api_key/login') || str_ends_with($url, 'auth/wallet/login')) {
             $accountId = $this->safe_string_2($headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             $this->options['AuthAccountId'] = $accountId;

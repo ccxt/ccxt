@@ -15,112 +15,126 @@ const isRegExp = (o) => (o instanceof RegExp);
 const isDictionary = (o) => (isObject(o) && (Object.getPrototypeOf(o) === Object.prototype) && !isArray(o) && !isRegExp(o));
 const isStringCoercible = (x) => ((hasProps(x) && x.toString) || isNumber(x));
 /*  .............................................   */
-const prop = (o, k) => (isObject(o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
-const prop2 = (o, k1, k2) => (!isObject(o)
-    ? undefined
-    : (o[k1] !== undefined && o[k1] !== '' && o[k1] !== null
-        ? o[k1]
-        : (o[k2] !== '' && o[k2] !== null
-            ? o[k2]
-            : undefined)));
+const prop = (o, k) => {
+    if (k === undefined || k === null) {
+        return undefined;
+    }
+    return (isObject(o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
+};
+const prop2 = (o, k1, k2) => {
+    if (!isObject(o)) {
+        return undefined;
+    }
+    if (k1 !== undefined && k1 !== null) {
+        if (o[k1] !== undefined && o[k1] !== '' && o[k1] !== null) {
+            return o[k1];
+        }
+    }
+    if (k2 !== undefined && k2 !== null) {
+        if (o[k2] !== '' && o[k2] !== null) {
+            return o[k2];
+        }
+    }
+    return undefined;
+};
 const getValueFromKeysInArray = (object, array) => isObject(object) ? object[array.find((k) => prop(object, k) !== undefined)] : undefined;
 /*  .............................................   */
 const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
 const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
 /*  .............................................   */
-const safeFloat = (o, k, $default) => {
+function safeFloat(o, k, $default) {
     const n = asFloat(prop(o, k));
     return isNumber(n) ? n : $default;
-};
+}
 function safeInteger(o, k, $default) {
     const n = asInteger(prop(o, k));
     return isNumber(n) ? n : $default;
 }
-const safeIntegerProduct = (o, k, $factor, $default) => {
+function safeIntegerProduct(o, k, $factor, $default) {
     const n = asFloat(prop(o, k));
     return isNumber(n) ? parseInt(n * $factor) : $default;
-};
-const safeTimestamp = (o, k, $default) => {
+}
+function safeTimestamp(o, k, $default) {
     const n = asFloat(prop(o, k));
     return isNumber(n) ? parseInt(n * 1000) : $default;
-};
-const safeValue = (o, k, $default) => {
+}
+function safeValue(o, k, $default) {
     const x = prop(o, k);
     return hasProps(x) ? x : $default;
-};
+}
 function safeString(o, k, $default) {
     const x = prop(o, k);
-    return isStringCoercible(x) ? String(x) : $default;
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
 }
-const safeStringLower = (o, k, $default) => {
+function safeStringLower(o, k, $default) {
     const x = prop(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
-};
-const safeStringUpper = (o, k, $default) => {
+}
+function safeStringUpper(o, k, $default) {
     const x = prop(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
-    }
     return $default;
-};
+}
 /*  .............................................   */
-const safeFloat2 = (o, k1, k2, $default) => {
+function safeFloat2(o, k1, k2, $default) {
     const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? n : $default;
-};
+}
 function safeInteger2(o, k1, k2, $default) {
     const n = asInteger(prop2(o, k1, k2));
     return isNumber(n) ? n : $default;
 }
-const safeIntegerProduct2 = (o, k1, k2, $factor, $default) => {
+function safeIntegerProduct2(o, k1, k2, $factor, $default) {
     const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? parseInt(n * $factor) : $default;
-};
-const safeTimestamp2 = (o, k1, k2, $default) => {
+}
+function safeTimestamp2(o, k1, k2, $default) {
     const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? parseInt(n * 1000) : $default;
-};
-const safeValue2 = (o, k1, k2, $default) => {
+}
+function safeValue2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
     return hasProps(x) ? x : $default;
-};
+}
 function safeString2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
-    return isStringCoercible(x) ? String(x) : $default;
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
 }
-const safeStringLower2 = (o, k1, k2, $default) => {
+function safeStringLower2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
-};
-const safeStringUpper2 = (o, k1, k2, $default) => {
+}
+function safeStringUpper2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
-    }
     return $default;
-};
-const safeFloatN = (o, k, $default) => {
+}
+function safeFloatN(o, k, $default) {
     const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? n : $default;
-};
+}
 function safeIntegerN(o, k, $default) {
     if (o === undefined) {
         return $default;
@@ -128,48 +142,51 @@ function safeIntegerN(o, k, $default) {
     const n = asInteger(getValueFromKeysInArray(o, k));
     return isNumber(n) ? n : $default;
 }
-const safeIntegerProductN = (o, k, $factor, $default) => {
+function safeIntegerProductN(o, k, $factor, $default) {
     const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? parseInt(n * $factor) : $default;
-};
-const safeTimestampN = (o, k, $default) => {
+}
+function safeTimestampN(o, k, $default) {
     const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? parseInt(n * 1000) : $default;
-};
-const safeValueN = (o, k, $default) => {
+}
+function safeValueN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
     const x = getValueFromKeysInArray(o, k);
     return hasProps(x) ? x : $default;
-};
-function safeStringN(o, k, $default) {
-    if (o === undefined) {
-        return $default;
-    }
-    const x = getValueFromKeysInArray(o, k);
-    return isStringCoercible(x) ? String(x) : $default;
 }
-const safeStringLowerN = (o, k, $default) => {
+function safeStringN(o, k, $default) {
+    if (o === undefined)
+        return $default;
     const x = getValueFromKeysInArray(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
+}
+function safeStringLowerN(o, k, $default) {
+    if (o === undefined)
+        return $default;
+    const x = getValueFromKeysInArray(o, k);
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
-};
-const safeStringUpperN = (o, k, $default) => {
+}
+function safeStringUpperN(o, k, $default) {
+    if (o === undefined)
+        return $default;
     const x = getValueFromKeysInArray(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
-    }
     return $default;
-};
+}
 export { isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDictionary as isDict, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper
 // not using safeFloats with an array argument as we're trying to save some cycles here
 // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization

@@ -1,0 +1,85 @@
+{
+    "exchange": "hyperliquid",
+    "asyncOnly": true,
+    "skipKeys": [
+        "startTime",
+        "endTime",
+        "r",
+        "s",
+        "v",
+        "nonce",
+        "time"
+    ],
+    "outputType": "json",
+    "options": {
+        "loadAllOutcomes": true
+    },
+    "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel order by outcome",
+                "method": "cancelOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    480264497594,
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES"
+                ],
+                "output": "{\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":100001720,\"o\":480264497594}]},\"nonce\":1783249421740,\"signature\":{\"r\":\"0x4564058bb6ad2d4e4c757b8f6c49ad76b184cb50c1ea3e40111a4f385e967fa6\",\"s\":\"0x5085fbbb412d9338f4b0db463159ea5bef3d9ca2b3d7445ed45b0f270ab08837\",\"v\":28}}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch OB by outcome label",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#1720\"}"
+            },
+            {
+                "description": "fetch orderbook by id",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "#1720"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"#1720\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
+                    null,
+                    1,
+                    {
+                        "address": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"
+                    }
+                ],
+                "output": "{\"type\":\"recentTrades\",\"coin\":\"#1720\",\"address\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder attaches the builder code with a zero fee for attribution",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
+                    "limit",
+                    "buy",
+                    10,
+                    0.1
+                ],
+                "options": {
+                    "approvedBuilderFee": true
+                },
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":100001720,\"b\":true,\"p\":\"0.1\",\"s\":\"10\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":0}},\"nonce\":1784720562071,\"signature\":{\"r\":\"0x158a82d795e23e835b3df0d81dbbfa4dc632d4f9d7b52edb47aabf0c42a23b0f\",\"s\":\"0x31de108b0ba020b522aa40bdb2229bc98df27187a91a4d4682dc304f75cc5ef8\",\"v\":28}}"
+            }
+        ]
+    }
+}

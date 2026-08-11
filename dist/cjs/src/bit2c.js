@@ -129,37 +129,37 @@ class bit2c extends bit2c$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/trades': { 'cost': 1 },
+                        'Exchanges/{pair}/lasttrades': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': { 'cost': 1 },
+                        'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Order/AddFund': { 'cost': 1 },
+                        'Order/AddOrder': { 'cost': 1 },
+                        'Order/GetById': { 'cost': 1 },
+                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 },
+                        'Order/AddOrderMarketPriceSell': { 'cost': 1 },
+                        'Order/CancelOrder': { 'cost': 1 },
+                        'Order/AddCoinFundsRequest': { 'cost': 1 },
+                        'Order/AddStopOrder': { 'cost': 1 },
+                        'Payment/GetMyId': { 'cost': 1 },
+                        'Payment/Send': { 'cost': 1 },
+                        'Payment/Pay': { 'cost': 1 },
+                    },
+                    'get': {
+                        'Account/Balance': { 'cost': 1 },
+                        'Account/Balance/v2': { 'cost': 1 },
+                        'Order/MyOrders': { 'cost': 1 },
+                        'Order/GetById': { 'cost': 1 },
+                        'Order/AccountHistory': { 'cost': 1 },
+                        'Order/OrderHistory': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -207,7 +207,9 @@ class bit2c extends bit2c$1["default"] {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -368,7 +370,7 @@ class bit2c extends bit2c$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -446,7 +448,8 @@ class bit2c extends bit2c$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request = {
             'pair': market['id'],
         };
@@ -456,24 +459,29 @@ class bit2c extends bit2c$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response = undefined;
+        let responseList = [];
         if (method === 'public_get_exchanges_pair_trades') {
-            response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+            const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if (typeof response === 'string') {
+                throw new errors.ExchangeError(response);
+            }
+            responseList = this.toArray(response);
         }
         else {
-            response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+            const response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+            if (typeof response === 'string') {
+                throw new errors.ExchangeError(response);
+            }
+            responseList = this.toArray(response);
         }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if (typeof response === 'string') {
-            throw new errors.ExchangeError(response);
-        }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -830,7 +838,11 @@ class bit2c extends bit2c$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = this.toArray(response);
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     removeCommaFromValue(str) {
         let newString = '';

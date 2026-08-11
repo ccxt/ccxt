@@ -76,7 +76,7 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 				return nil
 			}
 			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 				var values any = ObjectValues(response)
 				var checkedSymbol any = nil
 				if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
@@ -95,9 +95,14 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 									}
 									ret_ = func() any {
 										// catch block:
+										var ohlcv any = nil
+										var tickerSymbol any = GetValue(ticker, "symbol")
+										if IsTrue(IsTrue((!IsEqual(tickerSymbol, nil))) && IsTrue(TickerExceptionNeedsOhlcv(ex, exchange, ticker))) {
 
-										retRes5820 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
-										PanicOnError(retRes5820)
+											ohlcv = (<-exchange.FetchOHLCV(tickerSymbol, "1d", nil, 5))
+											PanicOnError(ohlcv)
+										}
+										ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 										return nil
 									}()
 								}

@@ -281,6 +281,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Poloniex Limits Amount Min](./examples/js/poloniex-limits-amount-min.md)
 
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/js/prediction)
+
 - [Proxy Round Robin](./examples/js/proxy-round-robin.md)
 
 - [Proxy Usage](./examples/js/proxy-usage.md)

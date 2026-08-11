@@ -265,15 +265,15 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/margin/crossed/place-order",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  10,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false,
-                    "marginMode": "cross"
-                  }
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false,
+                        "marginMode": "cross"
+                    }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"loanType\":\"normal\",\"quoteSize\":\"10\"}"
             },
@@ -282,14 +282,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/margin/crossed/place-order",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  5.1,
-                  1,
-                  {
-                    "marginMode": "cross"
-                  }
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    5.1,
+                    1,
+                    {
+                        "marginMode": "cross"
+                    }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"loanType\":\"normal\",\"quoteSize\":\"5.1\"}"
             },
@@ -449,14 +449,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/place-order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0.001,
-                  null,
-                  {
-                    "hedged": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "hedged": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Open\",\"side\":\"buy\"}"
             },
@@ -465,14 +465,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/place-order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.001,
-                  null,
-                  {
-                    "hedged": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "hedged": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Open\",\"side\":\"sell\"}"
             },
@@ -481,15 +481,15 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/place-order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0.001,
-                  null,
-                  {
-                    "hedged": true,
-                    "reduceOnly": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "hedged": true,
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"sell\"}"
             },
@@ -498,15 +498,15 @@
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/place-order",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.001,
-                  null,
-                  {
-                    "hedged": true,
-                    "reduceOnly": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "hedged": true,
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
             },
@@ -596,6 +596,29 @@
                     }
                 ],
                 "output": "{\"category\":\"MARGIN\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"buy\",\"price\":\"101000\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
+            },
+            {
+                "description": "swap limit order with attached takeProfit and stopLoss limit execute prices",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    100,
+                    {
+                        "takeProfit": {
+                            "triggerPrice": 120,
+                            "price": 119
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 90,
+                            "price": 89
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"limit\",\"price\":\"100\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.2\",\"productType\":\"USDT-FUTURES\",\"presetStopLossPrice\":\"90\",\"presetStopLossExecutePrice\":\"89\",\"presetStopSurplusPrice\":\"120\",\"presetStopSurplusExecutePrice\":\"119\",\"marginMode\":\"crossed\",\"side\":\"buy\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -793,6 +816,23 @@
                     }
                 ],
                 "output": "{\"orderId\":\"1113281809859813380\",\"size\":\"0.0002\",\"orderType\":\"limit\",\"triggerPrice\":28000,\"executePrice\":\"27000\"}"
+            },
+            {
+              "description": "Spot edit a market trigger order without a price, the execute price must not be sent",
+              "method": "editOrder",
+              "url": "https://api.bitget.com/api/v2/spot/trade/modify-plan-order",
+              "input": [
+                "1113281809859813380",
+                "BTC/USDT",
+                "market",
+                "sell",
+                0.0002,
+                null,
+                {
+                  "triggerPrice": 28000
+                }
+              ],
+              "output": "{\"orderId\":\"1113281809859813380\",\"size\":\"0.0002\",\"orderType\":\"market\",\"triggerPrice\":28000}"
             },
             {
                 "description": "Swap edit order",
@@ -1134,19 +1174,19 @@
                 ]
             },
             {
-                    "description": "uta spot margin fetchOpenOrders",
-                    "method": "fetchOpenOrders",
-                    "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=MARGIN&symbol=BTCUSDT",
-                    "input": [
-                        "BTC/USDT",
-                        null,
-                        null,
-                        {
-                            "uta": true,
-                            "marginMode": "cross"
-                        }
-                    ]
-                }
+                "description": "uta spot margin fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=MARGIN&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ]
+            }
         ],
         "fetchClosedOrders": [
             {
@@ -1339,7 +1379,35 @@
                         "uta": true
                     }
                 ]
-        }
+            },
+            {
+                "description": "Fetch the uta funding balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/funding-assets",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "funding"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Uta transfer from spot-funding to the unified account",
+                "method": "transfer",
+                "url": "https://api.bitget.com/api/v3/account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "uta",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"fromType\":\"spot\",\"toType\":\"uta\",\"amount\":1,\"coin\":\"USDT\"}"
+            }
         ],
         "fetchPosition": [
             {
@@ -1393,10 +1461,10 @@
                 "method": "fetchPositions",
                 "url": "https://api.bitget.com/api/v2/mix/position/history-position?productType=USDT-FUTURES&useHistoryEndpoint=true",
                 "input": [
-                  null,
-                  {
-                    "useHistoryEndpoint": true
-                  }
+                    null,
+                    {
+                        "useHistoryEndpoint": true
+                    }
                 ]
             },
             {
@@ -1438,14 +1506,14 @@
                 "method": "fetchPositionsHistory",
                 "url": "https://api.bitget.com/api/v2/mix/position/history-position?endTime=1709590068602&limit=1&startTime=1709589714736&symbol=XRPUSDT",
                 "input": [
-                  [
-                    "XRP/USDT:USDT"
-                  ],
-                  1709589714736,
-                  1,
-                  {
-                    "until": 1709590068602
-                  }
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    1709589714736,
+                    1,
+                    {
+                        "until": 1709590068602
+                    }
                 ]
             },
             {
@@ -1454,7 +1522,7 @@
                 "url": "https://api.bitget.com/api/v3/position/history-position?category=USDT-FUTURES&symbol=BTCUSDT",
                 "input": [
                     [
-                    "BTC/USDT:USDT"
+                        "BTC/USDT:USDT"
                     ],
                     null,
                     null,
@@ -1758,7 +1826,7 @@
                 "method": "cancelOrders",
                 "url": "https://api.bitget.com/api/v3/trade/cancel-batch",
                 "input": [
-                        [
+                    [
                         "1329948909442023424",
                         "1329948909442023425"
                     ],
@@ -1776,21 +1844,21 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.bitget.com/api/v2/spot/trade/batch-cancel-plan-order",
                 "input": [
-                  "BTC/USDT",
-                  {
-                    "stop": true
-                  }
+                    "BTC/USDT",
+                    {
+                        "stop": true
+                    }
                 ],
                 "output": "{\"symbolList\":[\"BTCUSDT\"]}"
             },
             {
-              "description": "Spot cancel all plan orders",
-              "method": "cancelAllOrders",
-              "url": "https://api.bitget.com/api/v2/spot/trade/cancel-symbol-order",
-              "input": [
-                "BTC/USDT"
-              ],
-              "output": "{\"symbol\":\"BTCUSDT\"}"
+                "description": "Spot cancel all plan orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v2/spot/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\"}"
             },
             {
                 "description": "Swap cancel all orders",
@@ -2526,10 +2594,10 @@
                 "method": "fetchDepositAddress",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?chain=TRC20&coin=USDT",
                 "input": [
-                  "USDT",
-                  {
-                    "network": "TRC20"
-                  }
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
                 ]
             }
         ],
@@ -2567,7 +2635,7 @@
                 "method": "fetchMarkPrice",
                 "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -2744,10 +2812,10 @@
                 "method": "fetchFundingRate",
                 "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
-                  "BTC/USDT:USDT",
-                  {
-                    "method": "publicMixGetV2MixMarketFundingTime"
-                  }
+                    "BTC/USDT:USDT",
+                    {
+                        "method": "publicMixGetV2MixMarketFundingTime"
+                    }
                 ]
             },
             {
@@ -2775,7 +2843,7 @@
                 "method": "fetchDeposits",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?coin=USDT&endTime=1712048378795&startTime=1704272378795",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -2792,7 +2860,7 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?coin=USDT&endTime=1712048411669&startTime=1704272411669",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -2802,9 +2870,9 @@
                 "method": "fetchConvertQuote",
                 "url": "https://api.bitget.com/api/v2/convert/quoted-price?fromCoin=USDC&fromCoinSize=3&toCoin=USDT",
                 "input": [
-                  "USDC",
-                  "USDT",
-                  3
+                    "USDC",
+                    "USDT",
+                    3
                 ]
             }
         ],
@@ -2822,14 +2890,14 @@
                 "method": "createConvertTrade",
                 "url": "https://api.bitget.com/api/v2/convert/trade",
                 "input": [
-                  "1164014202462613512",
-                  "USDC",
-                  "USDT",
-                  5,
-                  {
-                    "toAmount": "4.9915035",
-                    "price": "0.9983007"
-                  }
+                    "1164014202462613512",
+                    "USDC",
+                    "USDT",
+                    5,
+                    {
+                        "toAmount": "4.9915035",
+                        "price": "0.9983007"
+                    }
                 ],
                 "output": "{\"traceId\":\"1164014202462613512\",\"fromCoin\":\"USDC\",\"toCoin\":\"USDT\",\"fromCoinSize\":\"5\",\"toCoinSize\":\"4.9915035\",\"cnvtPrice\":\"0.9983007\"}"
             }
@@ -2869,7 +2937,7 @@
                 "method": "fetchLongShortRatioHistory",
                 "url": "https://api.bitget.com/api/v2/mix/market/account-long-short?symbol=BTCUSDT",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {
@@ -2877,7 +2945,7 @@
                 "method": "fetchLongShortRatioHistory",
                 "url": "https://api.bitget.com/api/v2/margin/market/long-short-ratio?symbol=BTCUSDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -2887,13 +2955,13 @@
                 "method": "fetchBorrowInterest",
                 "url": "https://api.bitget.com/api/v2/margin/isolated/interest-history?coin=USDT&startTime=1722564280941&symbol=BTCUSDT",
                 "input": [
-                  "USDT",
-                  "BTC/USDT",
-                  null,
-                  null,
-                  {
-                    "marginMode": "isolated"
-                  }
+                    "USDT",
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "marginMode": "isolated"
+                    }
                 ]
             },
             {
@@ -2901,13 +2969,13 @@
                 "method": "fetchBorrowInterest",
                 "url": "https://api.bitget.com/api/v2/margin/crossed/interest-history?coin=USDT&startTime=1722564342903",
                 "input": [
-                  "USDT",
-                  null,
-                  null,
-                  null,
-                  {
-                    "marginMode": "cross"
-                  }
+                    "USDT",
+                    null,
+                    null,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
                 ]
             }
         ],

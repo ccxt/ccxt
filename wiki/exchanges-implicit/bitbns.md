@@ -1,6 +1,6 @@
 Every endpoint in `bitbns`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitbns) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `wwwGetOrderFetchMarkets`); the snake_case alias (`www_get_order_fetchmarkets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`WwwGetOrderFetchMarkets`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `wwwGetOrderFetchMarkets`); the snake_case alias (`www_get_order_fetchmarkets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`WwwGetOrderFetchMarkets`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -63,13 +63,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `wwwGetOrderFetchMarkets` | GET | `order/fetchMarkets` |  |
-| `wwwGetOrderFetchTickers` | GET | `order/fetchTickers` |  |
-| `wwwGetOrderFetchOrderbook` | GET | `order/fetchOrderbook` |  |
-| `wwwGetOrderGetTickerWithVolume` | GET | `order/getTickerWithVolume` |  |
-| `wwwGetExchangeDataOhlc` | GET | `exchangeData/ohlc` |  |
-| `wwwGetExchangeDataOrderBook` | GET | `exchangeData/orderBook` |  |
-| `wwwGetExchangeDataTradedetails` | GET | `exchangeData/tradedetails` |  |
+| `wwwGetOrderFetchMarkets` | GET | `order/fetchMarkets` | 1 |
+| `wwwGetOrderFetchTickers` | GET | `order/fetchTickers` | 1 |
+| `wwwGetOrderFetchOrderbook` | GET | `order/fetchOrderbook` | 1 |
+| `wwwGetOrderGetTickerWithVolume` | GET | `order/getTickerWithVolume` | 1 |
+| `wwwGetExchangeDataOhlc` | GET | `exchangeData/ohlc` | 1 |
+| `wwwGetExchangeDataOrderBook` | GET | `exchangeData/orderBook` | 1 |
+| `wwwGetExchangeDataTradedetails` | GET | `exchangeData/tradedetails` | 1 |
 
 ## v1
 
@@ -77,31 +77,31 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `v1GetPlatformStatus` | GET | `platform/status` |  |
-| `v1GetTickers` | GET | `tickers` |  |
-| `v1GetOrderbookSellSymbol` | GET | `orderbook/sell/{symbol}` |  |
-| `v1GetOrderbookBuySymbol` | GET | `orderbook/buy/{symbol}` |  |
-| `v1PostCurrentCoinBalanceEVERYTHING` | POST | `currentCoinBalance/EVERYTHING` |  |
-| `v1PostGetApiUsageStatusUSAGE` | POST | `getApiUsageStatus/USAGE` |  |
-| `v1PostGetOrderSocketTokenUSAGE` | POST | `getOrderSocketToken/USAGE` |  |
-| `v1PostCurrentCoinBalanceSymbol` | POST | `currentCoinBalance/{symbol}` |  |
-| `v1PostOrderStatusSymbol` | POST | `orderStatus/{symbol}` |  |
-| `v1PostDepositHistorySymbol` | POST | `depositHistory/{symbol}` |  |
-| `v1PostWithdrawHistorySymbol` | POST | `withdrawHistory/{symbol}` |  |
-| `v1PostWithdrawHistoryAllSymbol` | POST | `withdrawHistoryAll/{symbol}` |  |
-| `v1PostDepositHistoryAllSymbol` | POST | `depositHistoryAll/{symbol}` |  |
-| `v1PostListOpenOrdersSymbol` | POST | `listOpenOrders/{symbol}` |  |
-| `v1PostListOpenStopOrdersSymbol` | POST | `listOpenStopOrders/{symbol}` |  |
-| `v1PostGetCoinAddressSymbol` | POST | `getCoinAddress/{symbol}` |  |
-| `v1PostPlaceSellOrderSymbol` | POST | `placeSellOrder/{symbol}` |  |
-| `v1PostPlaceBuyOrderSymbol` | POST | `placeBuyOrder/{symbol}` |  |
-| `v1PostBuyStopLossSymbol` | POST | `buyStopLoss/{symbol}` |  |
-| `v1PostSellStopLossSymbol` | POST | `sellStopLoss/{symbol}` |  |
-| `v1PostCancelOrderSymbol` | POST | `cancelOrder/{symbol}` |  |
-| `v1PostCancelStopLossOrderSymbol` | POST | `cancelStopLossOrder/{symbol}` |  |
-| `v1PostListExecutedOrdersSymbol` | POST | `listExecutedOrders/{symbol}` |  |
-| `v1PostPlaceMarketOrderSymbol` | POST | `placeMarketOrder/{symbol}` |  |
-| `v1PostPlaceMarketOrderQntySymbol` | POST | `placeMarketOrderQnty/{symbol}` |  |
+| `v1GetPlatformStatus` | GET | `platform/status` | 1 |
+| `v1GetTickers` | GET | `tickers` | 1 |
+| `v1GetOrderbookSellSymbol` | GET | `orderbook/sell/{symbol}` | 1 |
+| `v1GetOrderbookBuySymbol` | GET | `orderbook/buy/{symbol}` | 1 |
+| `v1PostCurrentCoinBalanceEVERYTHING` | POST | `currentCoinBalance/EVERYTHING` | 1 |
+| `v1PostGetApiUsageStatusUSAGE` | POST | `getApiUsageStatus/USAGE` | 1 |
+| `v1PostGetOrderSocketTokenUSAGE` | POST | `getOrderSocketToken/USAGE` | 1 |
+| `v1PostCurrentCoinBalanceSymbol` | POST | `currentCoinBalance/{symbol}` | 1 |
+| `v1PostOrderStatusSymbol` | POST | `orderStatus/{symbol}` | 1 |
+| `v1PostDepositHistorySymbol` | POST | `depositHistory/{symbol}` | 1 |
+| `v1PostWithdrawHistorySymbol` | POST | `withdrawHistory/{symbol}` | 1 |
+| `v1PostWithdrawHistoryAllSymbol` | POST | `withdrawHistoryAll/{symbol}` | 1 |
+| `v1PostDepositHistoryAllSymbol` | POST | `depositHistoryAll/{symbol}` | 1 |
+| `v1PostListOpenOrdersSymbol` | POST | `listOpenOrders/{symbol}` | 1 |
+| `v1PostListOpenStopOrdersSymbol` | POST | `listOpenStopOrders/{symbol}` | 1 |
+| `v1PostGetCoinAddressSymbol` | POST | `getCoinAddress/{symbol}` | 1 |
+| `v1PostPlaceSellOrderSymbol` | POST | `placeSellOrder/{symbol}` | 1 |
+| `v1PostPlaceBuyOrderSymbol` | POST | `placeBuyOrder/{symbol}` | 1 |
+| `v1PostBuyStopLossSymbol` | POST | `buyStopLoss/{symbol}` | 1 |
+| `v1PostSellStopLossSymbol` | POST | `sellStopLoss/{symbol}` | 1 |
+| `v1PostCancelOrderSymbol` | POST | `cancelOrder/{symbol}` | 1 |
+| `v1PostCancelStopLossOrderSymbol` | POST | `cancelStopLossOrder/{symbol}` | 1 |
+| `v1PostListExecutedOrdersSymbol` | POST | `listExecutedOrders/{symbol}` | 1 |
+| `v1PostPlaceMarketOrderSymbol` | POST | `placeMarketOrder/{symbol}` | 1 |
+| `v1PostPlaceMarketOrderQntySymbol` | POST | `placeMarketOrderQnty/{symbol}` | 1 |
 
 ## v2
 
@@ -109,8 +109,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `v2PostOrders` | POST | `orders` |  |
-| `v2PostCancel` | POST | `cancel` |  |
-| `v2PostGetordersnew` | POST | `getordersnew` |  |
-| `v2PostMarginOrders` | POST | `marginOrders` |  |
+| `v2PostOrders` | POST | `orders` | 1 |
+| `v2PostCancel` | POST | `cancel` | 1 |
+| `v2PostGetordersnew` | POST | `getordersnew` | 1 |
+| `v2PostMarginOrders` | POST | `marginOrders` | 1 |
 

@@ -3,10 +3,10 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/htx.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Fun
  * @augments Exchange
  */
 export default class htx extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'htx',
             'name': 'HTX',
@@ -115,7 +115,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': false, // none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -206,131 +206,131 @@ export default class htx extends Exchange {
                 // old api definitions
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1, // 币链参考信息
-                        'market-status': 1, // 获取当前市场状态
+                        'reference/currencies': { 'cost': 1 } as Endpoint<Dict>, // 币链参考信息
+                        'market-status': { 'cost': 1 } as Endpoint<Dict>, // 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': 1,
-                        'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1, // 提币地址查询(限母用户可用)
-                        'account/deposit/address': 1,
-                        'account/repayment': 5, // 还币交易记录查询
-                        'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2, // 获取账户资产估值
-                        'point/account': 5, // 点卡余额查询
-                        'sub-user/user-list': 1, // 获取子用户列表
-                        'sub-user/user-state': 1, // 获取特定子用户的用户状态
-                        'sub-user/account-list': 1, // 获取特定子用户的账户列表
-                        'sub-user/deposit-address': 1, // 子用户充币地址查询
-                        'sub-user/query-deposit': 1, // 子用户充币记录查询
-                        'user/api-key': 1, // 母子用户API key信息查询
-                        'user/uid': 1, // 母子用户获取用户UID
-                        'algo-orders/opening': 1, // 查询未触发OPEN策略委托
-                        'algo-orders/history': 1, // 查询策略委托历史
-                        'algo-orders/specific': 1, // 查询特定策略委托
-                        'c2c/offers': 1, // 查询借入借出订单
-                        'c2c/offer': 1, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': 1, // 查询借入借出交易记录
-                        'c2c/repayment': 1, // 查询还币交易记录
-                        'c2c/account': 1, // 查询账户余额
-                        'etp/reference': 1, // 基础参考信息
-                        'etp/transactions': 5, // 获取杠杆ETP申赎记录
-                        'etp/transaction': 5, // 获取特定杠杆ETP申赎记录
-                        'etp/rebalance': 1, // 获取杠杆ETP调仓记录
-                        'etp/limit': 1, // 获取ETP持仓限额
+                        'account/ledger': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/withdraw/quota': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/withdraw/address': { 'cost': 1 } as Endpoint<Dict>, // 提币地址查询(限母用户可用)
+                        'account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/repayment': { 'cost': 5 } as Endpoint<Dict>, // 还币交易记录查询
+                        'reference/transact-fee-rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/asset-valuation': { 'cost': 0.2 } as Endpoint<Dict>, // 获取账户资产估值
+                        'point/account': { 'cost': 5 } as Endpoint<Dict>, // 点卡余额查询
+                        'sub-user/user-list': { 'cost': 1 } as Endpoint<Dict>, // 获取子用户列表
+                        'sub-user/user-state': { 'cost': 1 } as Endpoint<Dict>, // 获取特定子用户的用户状态
+                        'sub-user/account-list': { 'cost': 1 } as Endpoint<Dict>, // 获取特定子用户的账户列表
+                        'sub-user/deposit-address': { 'cost': 1 } as Endpoint<Dict>, // 子用户充币地址查询
+                        'sub-user/query-deposit': { 'cost': 1 } as Endpoint<Dict>, // 子用户充币记录查询
+                        'user/api-key': { 'cost': 1 } as Endpoint<Dict>, // 母子用户API key信息查询
+                        'user/uid': { 'cost': 1 } as Endpoint<Dict>, // 母子用户获取用户UID
+                        'algo-orders/opening': { 'cost': 1 } as Endpoint<Dict>, // 查询未触发OPEN策略委托
+                        'algo-orders/history': { 'cost': 1 } as Endpoint<Dict>, // 查询策略委托历史
+                        'algo-orders/specific': { 'cost': 1 } as Endpoint<Dict>, // 查询特定策略委托
+                        'c2c/offers': { 'cost': 1 } as Endpoint<Dict>, // 查询借入借出订单
+                        'c2c/offer': { 'cost': 1 } as Endpoint<Dict>, // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': { 'cost': 1 } as Endpoint<Dict>, // 查询借入借出交易记录
+                        'c2c/repayment': { 'cost': 1 } as Endpoint<Dict>, // 查询还币交易记录
+                        'c2c/account': { 'cost': 1 } as Endpoint<Dict>, // 查询账户余额
+                        'etp/reference': { 'cost': 1 } as Endpoint<Dict>, // 基础参考信息
+                        'etp/transactions': { 'cost': 5 } as Endpoint<Dict>, // 获取杠杆ETP申赎记录
+                        'etp/transaction': { 'cost': 5 } as Endpoint<Dict>, // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': { 'cost': 1 } as Endpoint<Dict>, // 获取杠杆ETP调仓记录
+                        'etp/limit': { 'cost': 1 } as Endpoint<Dict>, // 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5, // 归还借币（全仓逐仓通用）
-                        'point/transfer': 5, // 点卡划转
-                        'sub-user/management': 1, // 冻结/解冻子用户
-                        'sub-user/creation': 1, // 子用户创建
-                        'sub-user/tradable-market': 1, // 设置子用户交易权限
-                        'sub-user/transferability': 1, // 设置子用户资产转出权限
-                        'sub-user/api-key-generation': 1, // 子用户API key创建
-                        'sub-user/api-key-modification': 1, // 修改子用户API key
-                        'sub-user/api-key-deletion': 1, // 删除子用户API key
-                        'sub-user/deduct-mode': 1, // 设置子用户手续费抵扣模式
-                        'algo-orders': 1, // 策略委托下单
-                        'algo-orders/cancel-all-after': 1, // 自动撤销订单
-                        'algo-orders/cancellation': 1, // 策略委托（触发前）撤单
-                        'c2c/offer': 1, // 借入借出下单
-                        'c2c/cancellation': 1, // 借入借出撤单
-                        'c2c/cancel-all': 1, // 撤销所有借入借出订单
-                        'c2c/repayment': 1, // 还币
-                        'c2c/transfer': 1, // 资产划转
-                        'etp/creation': 5, // 杠杆ETP换入
-                        'etp/redemption': 5, // 杠杆ETP换出
-                        'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
-                        'etp/batch-cancel': 50, // 杠杆ETP批量撤单
+                        'account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/repayment': { 'cost': 5 } as Endpoint<Dict>, // 归还借币（全仓逐仓通用）
+                        'point/transfer': { 'cost': 5 } as Endpoint<Dict>, // 点卡划转
+                        'sub-user/management': { 'cost': 1 } as Endpoint<Dict>, // 冻结/解冻子用户
+                        'sub-user/creation': { 'cost': 1 } as Endpoint<Dict>, // 子用户创建
+                        'sub-user/tradable-market': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户交易权限
+                        'sub-user/transferability': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户资产转出权限
+                        'sub-user/api-key-generation': { 'cost': 1 } as Endpoint<Dict>, // 子用户API key创建
+                        'sub-user/api-key-modification': { 'cost': 1 } as Endpoint<Dict>, // 修改子用户API key
+                        'sub-user/api-key-deletion': { 'cost': 1 } as Endpoint<Dict>, // 删除子用户API key
+                        'sub-user/deduct-mode': { 'cost': 1 } as Endpoint<Dict>, // 设置子用户手续费抵扣模式
+                        'algo-orders': { 'cost': 1 } as Endpoint<Dict>, // 策略委托下单
+                        'algo-orders/cancel-all-after': { 'cost': 1 } as Endpoint<Dict>, // 自动撤销订单
+                        'algo-orders/cancellation': { 'cost': 1 } as Endpoint<Dict>, // 策略委托（触发前）撤单
+                        'c2c/offer': { 'cost': 1 } as Endpoint<Dict>, // 借入借出下单
+                        'c2c/cancellation': { 'cost': 1 } as Endpoint<Dict>, // 借入借出撤单
+                        'c2c/cancel-all': { 'cost': 1 } as Endpoint<Dict>, // 撤销所有借入借出订单
+                        'c2c/repayment': { 'cost': 1 } as Endpoint<Dict>, // 还币
+                        'c2c/transfer': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'etp/creation': { 'cost': 5 } as Endpoint<Dict>, // 杠杆ETP换入
+                        'etp/redemption': { 'cost': 5 } as Endpoint<Dict>, // 杠杆ETP换出
+                        'etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>, // 杠杆ETP单个撤单
+                        'etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>, // 杠杆ETP批量撤单
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1, // 查询系统支持的所有交易对
-                        'common/currencys': 1, // 查询系统支持的所有币种
-                        'common/timestamp': 1, // 查询系统当前时间
-                        'common/exchange': 1, // order limits
-                        'settings/currencys': 1, // ?language=en-US
+                        'common/symbols': { 'cost': 1 } as Endpoint<Dict>, // 查询系统支持的所有交易对
+                        'common/currencys': { 'cost': 1 } as Endpoint<Dict>, // 查询系统支持的所有币种
+                        'common/timestamp': { 'cost': 1 } as Endpoint<Dict>, // 查询系统当前时间
+                        'common/exchange': { 'cost': 1 } as Endpoint<Dict>, // order limits
+                        'settings/currencys': { 'cost': 1 } as Endpoint<Dict>, // ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2, // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance': 0.2, // 查询指定账户的余额
-                        'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
-                        'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1, // 查询借币币息率及额度
-                        'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
-                        'order/orders': 0.4,
-                        'order/orders/{id}': 0.4, // 查询某个订单详情
-                        'order/orders/{id}/matchresults': 0.4, // 查询某个订单的成交明细
-                        'order/orders/getClientOrder': 0.4,
-                        'order/history': 1, // 查询当前委托、历史委托
-                        'order/matchresults': 1, // 查询当前成交、历史成交
+                        'account/accounts': { 'cost': 0.2 } as Endpoint<Dict>, // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': { 'cost': 0.2 } as Endpoint<Dict>, // 查询指定账户的余额
+                        'account/accounts/{sub-uid}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'cross-margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/loan-info': { 'cost': 1 } as Endpoint<Dict>, // 查询借币币息率及额度
+                        'fee/fee-rate/get': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/openOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders/{id}': { 'cost': 0.4 } as Endpoint<Dict>, // 查询某个订单详情
+                        'order/orders/{id}/matchresults': { 'cost': 0.4 } as Endpoint<Dict>, // 查询某个订单的成交明细
+                        'order/orders/getClientOrder': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/history': { 'cost': 1 } as Endpoint<Dict>, // 查询当前委托、历史委托
+                        'order/matchresults': { 'cost': 1 } as Endpoint<Dict>, // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
+                        'query/deposit-withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders': 0.2, // 借贷订单
-                        'margin/accounts/balance': 0.2, // 借贷账户详情
-                        'cross-margin/loan-orders': 1, // 查询借币订单
-                        'cross-margin/accounts/balance': 1, // 借币账户详情
-                        'points/actions': 1,
-                        'points/orders': 1,
-                        'subuser/aggregate-balance': 10,
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'margin/loan-orders': { 'cost': 0.2 } as Endpoint<Dict>, // 借贷订单
+                        'margin/accounts/balance': { 'cost': 0.2 } as Endpoint<Dict>, // 借贷账户详情
+                        'cross-margin/loan-orders': { 'cost': 1 } as Endpoint<Dict>, // 查询借币订单
+                        'cross-margin/accounts/balance': { 'cost': 1 } as Endpoint<Dict>, // 借币账户详情
+                        'points/actions': { 'cost': 1 } as Endpoint<Dict>,
+                        'points/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'subuser/aggregate-balance': { 'cost': 10 } as Endpoint<Dict>,
+                        'stable-coin/exchange_rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'stable-coin/quote': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'account/transfer': 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
+                        'account/transfer': { 'cost': 1 } as Endpoint<Dict>, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/batch-orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'order/orders/place': { 'cost': 0.2 } as Endpoint<Dict>, // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': { 'cost': 0.2 } as Endpoint<Dict>,
+                        'order/orders/batchCancelOpenOrders': { 'cost': 0.4 } as Endpoint<Dict>,
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2, // 申请撤销一个订单请求
-                        'order/orders/batchcancel': 0.4, // 批量撤销订单
+                        'order/orders/{id}/submitcancel': { 'cost': 0.2 } as Endpoint<Dict>, // 申请撤销一个订单请求
+                        'order/orders/batchcancel': { 'cost': 0.4 } as Endpoint<Dict>, // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create': 1, // 申请提现虚拟币
+                        'dw/withdraw/api/create': { 'cost': 1 } as Endpoint<Dict>, // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin': 10, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': 10, // 借贷账户划出至现货账户
-                        'margin/orders': 10, // 申请借贷
-                        'margin/orders/{id}/repay': 10, // 归还借贷
-                        'cross-margin/transfer-in': 1, // 资产划转
-                        'cross-margin/transfer-out': 1, // 资产划转
-                        'cross-margin/orders': 1, // 申请借币
-                        'cross-margin/orders/{id}/repay': 1, // 归还借币
-                        'stable-coin/exchange': 1,
-                        'subuser/transfer': 10,
+                        'dw/withdraw-virtual/{id}/cancel': { 'cost': 1 } as Endpoint<Dict>, // 申请取消提现虚拟币
+                        'dw/transfer-in/margin': { 'cost': 10 } as Endpoint<Dict>, // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': { 'cost': 10 } as Endpoint<Dict>, // 借贷账户划出至现货账户
+                        'margin/orders': { 'cost': 10 } as Endpoint<Dict>, // 申请借贷
+                        'margin/orders/{id}/repay': { 'cost': 10 } as Endpoint<Dict>, // 归还借贷
+                        'cross-margin/transfer-in': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'cross-margin/transfer-out': { 'cost': 1 } as Endpoint<Dict>, // 资产划转
+                        'cross-margin/orders': { 'cost': 1 } as Endpoint<Dict>, // 申请借币
+                        'cross-margin/orders/{id}/repay': { 'cost': 1 } as Endpoint<Dict>, // 归还借币
+                        'stable-coin/exchange': { 'cost': 1 } as Endpoint<Dict>,
+                        'subuser/transfer': { 'cost': 10 } as Endpoint<Dict>,
                     },
                 },
                 // ------------------------------------------------------------
@@ -343,30 +343,30 @@ export default class htx extends Exchange {
                     'public': {
                         'spot': {
                             'get': {
-                                'api/v2/summary.json': 1,
+                                'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                         'future': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
                         'swap': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': { 'cost': 1 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -375,414 +375,414 @@ export default class htx extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'v2/market-status': 1,
-                            'v1/common/symbols': 1,
-                            'v1/common/currencys': 1,
-                            'v2/settings/common/currencies': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/common/timestamp': 1,
-                            'v1/common/exchange': 1, // order limits
-                            'v1/settings/common/chains': 1,
-                            'v1/settings/common/currencys': 1,
-                            'v1/settings/common/symbols': 1,
-                            'v2/settings/common/symbols': 1,
-                            'v1/settings/common/market-symbols': 1,
+                            'v2/market-status': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/currencys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/settings/common/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/common/exchange': { 'cost': 1 } as Endpoint<Dict>, // order limits
+                            'v1/settings/common/chains': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/currencys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/settings/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/settings/common/market-symbols': { 'cost': 1 } as Endpoint<Dict>,
                             // Market Data
-                            'market/history/candles': 1,
-                            'market/history/kline': 1,
-                            'market/detail/merged': 1,
-                            'market/tickers': 1,
-                            'market/detail': 1,
-                            'market/depth': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'market/etp': 1, // Get real-time equity of leveraged ETP
+                            'market/history/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/etp': { 'cost': 1 } as Endpoint<Dict>, // Get real-time equity of leveraged ETP
                             // ETP
-                            'v2/etp/reference': 1,
-                            'v2/etp/rebalance': 1,
+                            'v2/etp/reference': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/etp/rebalance': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
                             // Account
-                            'v1/account/accounts': 0.2,
-                            'v1/account/accounts/{account-id}/balance': 0.2,
-                            'v2/account/valuation': 1,
-                            'v2/account/asset-valuation': 0.2,
-                            'v1/account/history': 4,
-                            'v2/account/ledger': 1,
-                            'v2/point/account': 5,
+                            'v1/account/accounts': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/account/accounts/{account-id}/balance': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v2/account/valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/asset-valuation': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/account/history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/account/ledger': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/point/account': { 'cost': 5 } as Endpoint<Dict>,
                             // Wallet (Deposit and Withdraw)
-                            'v2/account/deposit/address': 1,
-                            'v2/account/withdraw/quota': 1,
-                            'v2/account/withdraw/address': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/query/deposit-withdraw': 1,
-                            'v1/query/withdraw/client-order-id': 1,
+                            'v2/account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/withdraw/quota': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/withdraw/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/query/deposit-withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/query/withdraw/client-order-id': { 'cost': 1 } as Endpoint<Dict>,
                             // Sub user management
-                            'v2/user/api-key': 1,
-                            'v2/user/uid': 1,
-                            'v2/sub-user/user-list': 1,
-                            'v2/sub-user/user-state': 1,
-                            'v2/sub-user/account-list': 1,
-                            'v2/sub-user/deposit-address': 1,
-                            'v2/sub-user/query-deposit': 1,
-                            'v1/subuser/aggregate-balance': 10,
-                            'v1/account/accounts/{sub-uid}': 1,
+                            'v2/user/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/user/uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/user-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/user-state': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/account-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/deposit-address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/query-deposit': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/subuser/aggregate-balance': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/account/accounts/{sub-uid}': { 'cost': 1 } as Endpoint<Dict>,
                             // Trading
-                            'v1/order/openOrders': 0.4,
-                            'v1/order/orders/{order-id}': 0.4,
-                            'v1/order/orders/getClientOrder': 0.4,
-                            'v1/order/orders/{order-id}/matchresult': 0.4,
-                            'v1/order/orders/{order-id}/matchresults': 0.4,
-                            'v1/order/orders': 0.4,
-                            'v1/order/history': 1,
-                            'v1/order/matchresults': 1,
-                            'v2/reference/transact-fee-rate': 1,
+                            'v1/order/openOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/getClientOrder': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/matchresult': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/matchresults': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/order/matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/reference/transact-fee-rate': { 'cost': 1 } as Endpoint<Dict>,
                             // Conditional Order
-                            'v2/algo-orders/opening': 1,
-                            'v2/algo-orders/history': 1,
-                            'v2/algo-orders/specific': 1,
+                            'v2/algo-orders/opening': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/specific': { 'cost': 1 } as Endpoint<Dict>,
                             // Margin Loan (Cross/Isolated)
-                            'v1/margin/loan-info': 1,
-                            'v1/margin/loan-orders': 0.2,
-                            'v1/margin/accounts/balance': 0.2,
-                            'v1/cross-margin/loan-info': 1,
-                            'v1/cross-margin/loan-orders': 1,
-                            'v1/cross-margin/accounts/balance': 1,
-                            'v2/account/repayment': 5,
+                            'v1/margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/margin/loan-orders': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/margin/accounts/balance': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/cross-margin/loan-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/loan-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/repayment': { 'cost': 5 } as Endpoint<Dict>,
                             // Universal Transfer
-                            'v5/account/universal_transfer_records': 4, // 5 requests per 2 seconds
+                            'v5/account/universal_transfer_records': { 'cost': 4 } as Endpoint<Dict>, // 5 requests per 2 seconds
                             // Stable Coin Exchange
-                            'v1/stable-coin/quote': 1,
-                            'v1/stable_coin/exchange_rate': 1,
+                            'v1/stable-coin/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/stable_coin/exchange_rate': { 'cost': 1 } as Endpoint<Dict>,
                             // ETP
-                            'v2/etp/transactions': 5,
-                            'v2/etp/transaction': 5,
-                            'v2/etp/limit': 1,
+                            'v2/etp/transactions': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/transaction': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/limit': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Account
-                            'v1/account/transfer': 1,
-                            'v1/futures/transfer': 1, // future transfers
-                            'v2/point/transfer': 5,
-                            'v2/account/transfer': 1, // swap transfers
+                            'v1/account/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/futures/transfer': { 'cost': 1 } as Endpoint<Dict>, // future transfers
+                            'v2/point/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/account/transfer': { 'cost': 1 } as Endpoint<Dict>, // swap transfers
                             // Wallet (Deposit and Withdraw)
-                            'v1/dw/withdraw/api/create': 1,
-                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': 1,
+                            'v1/dw/withdraw/api/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': { 'cost': 1 } as Endpoint<Dict>,
                             // Sub user management
-                            'v2/sub-user/deduct-mode': 1,
-                            'v2/sub-user/creation': 1,
-                            'v2/sub-user/management': 1,
-                            'v2/sub-user/tradable-market': 1,
-                            'v2/sub-user/transferability': 1,
-                            'v2/sub-user/api-key-generation': 1,
-                            'v2/sub-user/api-key-modification': 1,
-                            'v2/sub-user/api-key-deletion': 1,
-                            'v1/subuser/transfer': 10,
-                            'v1/trust/user/active/credit': 10,
+                            'v2/sub-user/deduct-mode': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/creation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/management': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/tradable-market': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/transferability': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-generation': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-modification': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/sub-user/api-key-deletion': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/subuser/transfer': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trust/user/active/credit': { 'cost': 10 } as Endpoint<Dict>,
                             // Trading
-                            'v1/order/orders/place': 0.2,
-                            'v1/order/batch-orders': 0.4,
-                            'v1/order/auto/place': 0.2,
-                            'v1/order/orders/{order-id}/submitcancel': 0.2,
-                            'v1/order/orders/submitCancelClientOrder': 0.2,
-                            'v1/order/orders/batchCancelOpenOrders': 0.4,
-                            'v1/order/orders/batchcancel': 0.4,
-                            'v2/algo-orders/cancel-all-after': 1,
+                            'v1/order/orders/place': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/batch-orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/auto/place': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/{order-id}/submitcancel': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/submitCancelClientOrder': { 'cost': 0.2 } as Endpoint<Dict>,
+                            'v1/order/orders/batchCancelOpenOrders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v1/order/orders/batchcancel': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'v2/algo-orders/cancel-all-after': { 'cost': 1 } as Endpoint<Dict>,
                             // Conditional Order
-                            'v2/algo-orders': 1,
-                            'v2/algo-orders/cancellation': 1,
+                            'v2/algo-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/algo-orders/cancellation': { 'cost': 1 } as Endpoint<Dict>,
                             // Margin Loan (Cross/Isolated)
-                            'v2/account/repayment': 5,
-                            'v1/dw/transfer-in/margin': 10,
-                            'v1/dw/transfer-out/margin': 10,
-                            'v1/margin/orders': 10,
-                            'v1/margin/orders/{order-id}/repay': 10,
-                            'v1/cross-margin/transfer-in': 1,
-                            'v1/cross-margin/transfer-out': 1,
-                            'v1/cross-margin/orders': 1,
-                            'v1/cross-margin/orders/{order-id}/repay': 1,
+                            'v2/account/repayment': { 'cost': 5 } as Endpoint<Dict>,
+                            'v1/dw/transfer-in/margin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/dw/transfer-out/margin': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/margin/orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/margin/orders/{order-id}/repay': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/cross-margin/transfer-in': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/transfer-out': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/cross-margin/orders/{order-id}/repay': { 'cost': 1 } as Endpoint<Dict>,
                             // Stable Coin Exchange
-                            'v1/stable-coin/exchange': 1,
+                            'v1/stable-coin/exchange': { 'cost': 1 } as Endpoint<Dict>,
                             // ETP
-                            'v2/etp/creation': 5,
-                            'v2/etp/redemption': 5,
-                            'v2/etp/{transactId}/cancel': 10,
-                            'v2/etp/batch-cancel': 50,
+                            'v2/etp/creation': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/redemption': { 'cost': 5 } as Endpoint<Dict>,
+                            'v2/etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'api/v1/timestamp': 1,
-                            'heartbeat/': 1, // backslash is not a typo
+                            'api/v1/timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'heartbeat/': { 'cost': 1 } as Endpoint<Dict>, // backslash is not a typo
                             // Future Market Data interface
-                            'api/v1/contract_contract_info': 1,
-                            'api/v1/contract_index': 1,
-                            'api/v1/contract_query_elements': 1,
-                            'api/v1/contract_price_limit': 1,
-                            'api/v1/contract_open_interest': 1,
-                            'api/v1/contract_delivery_price': 1,
-                            'market/depth': 1,
-                            'market/bbo': 1,
-                            'market/history/kline': 1,
-                            'index/market/history/mark_price_kline': 1,
-                            'market/detail/merged': 1,
-                            'market/detail/batch_merged': 1,
-                            'v2/market/detail/batch_merged': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'api/v1/contract_risk_info': 1,
-                            'api/v1/contract_insurance_fund': 1,
-                            'api/v1/contract_adjustfactor': 1,
-                            'api/v1/contract_his_open_interest': 1,
-                            'api/v1/contract_ladder_margin': 1,
-                            'api/v1/contract_api_state': 1,
-                            'api/v1/contract_elite_account_ratio': 1,
-                            'api/v1/contract_elite_position_ratio': 1,
-                            'api/v1/contract_liquidation_orders': 1,
-                            'api/v1/contract_settlement_records': 1,
-                            'index/market/history/index': 1,
-                            'index/market/history/basis': 1,
-                            'api/v1/contract_estimated_settlement_price': 1,
-                            'api/v3/contract_liquidation_orders': 1,
+                            'api/v1/contract_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_delivery_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_risk_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/basis': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Market Data interface
-                            'swap-api/v1/swap_contract_info': 1,
-                            'swap-api/v1/swap_index': 1,
-                            'swap-api/v1/swap_query_elements': 1,
-                            'swap-api/v1/swap_price_limit': 1,
-                            'swap-api/v1/swap_open_interest': 1,
-                            'swap-ex/market/depth': 1,
-                            'swap-ex/market/bbo': 1,
-                            'swap-ex/market/history/kline': 1,
-                            'index/market/history/swap_mark_price_kline': 1,
-                            'swap-ex/market/detail/merged': 1,
-                            'v2/swap-ex/market/detail/batch_merged': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
-                            'swap-ex/market/detail/batch_merged': 1,
-                            'swap-ex/market/trade': 1,
-                            'swap-ex/market/history/trade': 1,
-                            'swap-api/v1/swap_risk_info': 1,
-                            'swap-api/v1/swap_insurance_fund': 1,
-                            'swap-api/v1/swap_adjustfactor': 1,
-                            'swap-api/v1/swap_his_open_interest': 1,
-                            'swap-api/v1/swap_ladder_margin': 1,
-                            'swap-api/v1/swap_api_state': 1,
-                            'swap-api/v1/swap_elite_account_ratio': 1,
-                            'swap-api/v1/swap_elite_position_ratio': 1,
-                            'swap-api/v1/swap_estimated_settlement_price': 1,
-                            'swap-api/v1/swap_liquidation_orders': 1,
-                            'swap-api/v1/swap_settlement_records': 1,
-                            'swap-api/v1/swap_funding_rate': 1,
-                            'swap-api/v1/swap_batch_funding_rate': 1,
-                            'swap-api/v1/swap_historical_funding_rate': 1,
-                            'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_estimated_rate_kline': 1,
-                            'index/market/history/swap_basis': 1,
+                            'swap-api/v1/swap_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_premium_index_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-ex/market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_risk_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_batch_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_historical_funding_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_estimated_rate_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/swap_basis': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Market Data interface
-                            'linear-swap-api/v1/swap_contract_info': 1,
-                            'linear-swap-api/v1/swap_index': 1,
-                            'linear-swap-api/v1/swap_query_elements': 1,
-                            'linear-swap-api/v1/swap_price_limit': 1,
-                            'linear-swap-ex/market/depth': 1,
-                            'linear-swap-ex/market/bbo': 1,
-                            'linear-swap-ex/market/history/kline': 1,
-                            'index/market/history/linear_swap_mark_price_kline': 1,
-                            'linear-swap-ex/market/detail/merged': 1,
-                            'linear-swap-ex/market/detail/batch_merged': 1,
-                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
-                            'linear-swap-ex/market/trade': 1,
-                            'linear-swap-ex/market/history/trade': 1,
-                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
-                            'linear-swap-api/v1/swap_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_cross_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_his_open_interest': 1,
-                            'linear-swap-api/v1/swap_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_cross_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_elite_account_ratio': 1,
-                            'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_settlement_records': 1,
-                            'linear-swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/linear_swap_premium_index_kline': 1,
-                            'index/market/history/linear_swap_estimated_rate_kline': 1,
-                            'index/market/history/linear_swap_basis': 1,
-                            'linear-swap-api/v1/swap_estimated_settlement_price': 1,
-                            'v5/market/funding_rate': 0.125, // 80 requests per second = 1000ms / ( 100 * 0.125)
-                            'v5/market/funding_rate_history': 0.125,
-                            'v5/market/open_interest': 0.125,
-                            'v5/market/liquidation_orders': 0.125,
-                            'v5/market/settlement_history': 0.125,
-                            'v5/market/elite_account_ratio': 0.125,
-                            'v5/market/elite_position_ratio': 0.125,
-                            'v5/market/estimated_settlement_price': 0.125,
-                            'v5/market/price_limit': 0.125,
+                            'linear-swap-api/v1/swap_contract_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_index': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_query_elements': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_price_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/bbo': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/history/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_mark_price_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/detail/merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/linear-swap-ex/market/detail/batch_merged': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-ex/market/history/trade': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_cross_adjustfactor': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_his_open_interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_cross_ladder_margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_api_state': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_elite_account_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_elite_position_ratio': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v3/swap_liquidation_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_premium_index_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_estimated_rate_kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'index/market/history/linear_swap_basis': { 'cost': 1 } as Endpoint<Dict>,
+                            'linear-swap-api/v1/swap_estimated_settlement_price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v5/market/funding_rate': { 'cost': 0.125 } as Endpoint<Dict>, // 80 requests per second = 1000ms / ( 100 * 0.125)
+                            'v5/market/funding_rate_history': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/open_interest': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/liquidation_orders': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/settlement_history': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/elite_account_ratio': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/elite_position_ratio': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/estimated_settlement_price': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/price_limit': { 'cost': 0.125 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
                             // Future Account Interface
-                            'api/v1/contract_sub_auth_list': 1,
-                            'api/v1/contract_api_trading_status': 1,
+                            'api/v1/contract_sub_auth_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_api_trading_status': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Account Interface
-                            'swap-api/v1/swap_sub_auth_list': 1,
-                            'swap-api/v1/swap_api_trading_status': 1,
+                            'swap-api/v1/swap_sub_auth_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_api_trading_status': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Interface
-                            'v5/account/asset_mode': 0.20834, // 48 requests per second = 1000ms / ( 100 * 0.20834)
-                            'v5/account/balance': 0.20834,
-                            'v5/account/bills': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/trade/position/opens': 0.41679, // 24 requests per second = 1000ms / ( 100 * 0.41679)
-                            'v5/trade/order/opens': 0.41679,
-                            'v5/trade/order/details': 0.41679,
-                            'v5/trade/order/history': 0.41679,
-                            'v5/trade/order': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/risk/limit': 0.20834,
-                            'v5/position/risk/limit_tier': 0.20834,
-                            'v5/market/risk/limit': 0.125,
-                            'v5/market/assets_deduction_currency': 0.125,
-                            'v5/market/multi_assets_margin': 0.125,
-                            'v5/algo/order/opens': 0.41679,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/order/history': 0.41679,
+                            'v5/account/asset_mode': { 'cost': 0.20834 } as Endpoint<Dict>, // 48 requests per second = 1000ms / ( 100 * 0.20834)
+                            'v5/account/balance': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/bills': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/trade/position/opens': { 'cost': 0.41679 } as Endpoint<Dict>, // 24 requests per second = 1000ms / ( 100 * 0.41679)
+                            'v5/trade/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order/details': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/position/lever': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/mode': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/risk/limit': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/risk/limit_tier': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/market/risk/limit': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/assets_deduction_currency': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/market/multi_assets_margin': { 'cost': 0.125 } as Endpoint<Dict>,
+                            'v5/algo/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Future Account Interface
-                            'api/v1/contract_balance_valuation': 1,
-                            'api/v1/contract_account_info': 1,
-                            'api/v1/contract_position_info': 1,
-                            'api/v1/contract_sub_auth': 1,
-                            'api/v1/contract_sub_account_list': 1,
-                            'api/v1/contract_sub_account_info_list': 1,
-                            'api/v1/contract_sub_account_info': 1,
-                            'api/v1/contract_sub_position_info': 1,
-                            'api/v1/contract_financial_record': 1,
-                            'api/v1/contract_financial_record_exact': 1,
-                            'api/v1/contract_user_settlement_records': 1,
-                            'api/v1/contract_order_limit': 1,
-                            'api/v1/contract_fee': 1,
-                            'api/v1/contract_transfer_limit': 1,
-                            'api/v1/contract_position_limit': 1,
-                            'api/v1/contract_account_position_info': 1,
-                            'api/v1/contract_master_sub_transfer': 1,
-                            'api/v1/contract_master_sub_transfer_record': 1,
-                            'api/v1/contract_available_level_rate': 1,
-                            'api/v3/contract_financial_record': 1,
-                            'api/v3/contract_financial_record_exact': 1,
+                            'api/v1/contract_balance_valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_info_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_sub_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_user_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_transfer_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_position_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_account_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_master_sub_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_master_sub_transfer_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_available_level_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Future Trade Interface
-                            'api/v1/contract-cancel-after': 1,
-                            'api/v1/contract_order': 1,
-                            'api/v1/contract_batchorder': 1,
-                            'api/v1/contract_cancel': 1,
-                            'api/v1/contract_cancelall': 1,
-                            'api/v1/contract_switch_lever_rate': 30,
-                            'api/v1/lightning_close_position': 1,
-                            'api/v1/contract_order_info': 1,
-                            'api/v1/contract_order_detail': 1,
-                            'api/v1/contract_openorders': 1,
-                            'api/v1/contract_hisorders': 1,
-                            'api/v1/contract_hisorders_exact': 1,
-                            'api/v1/contract_matchresults': 1,
-                            'api/v1/contract_matchresults_exact': 1,
-                            'api/v3/contract_hisorders': 1,
-                            'api/v3/contract_hisorders_exact': 1,
-                            'api/v3/contract_matchresults': 1,
-                            'api/v3/contract_matchresults_exact': 1,
+                            'api/v1/contract-cancel-after': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_batchorder': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_switch_lever_rate': { 'cost': 30 } as Endpoint<Dict>,
+                            'api/v1/lightning_close_position': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v3/contract_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Contract Strategy Order Interface
-                            'api/v1/contract_trigger_order': 1,
-                            'api/v1/contract_trigger_cancel': 1,
-                            'api/v1/contract_trigger_cancelall': 1,
-                            'api/v1/contract_trigger_openorders': 1,
-                            'api/v1/contract_trigger_hisorders': 1,
-                            'api/v1/contract_tpsl_order': 1,
-                            'api/v1/contract_tpsl_cancel': 1,
-                            'api/v1/contract_tpsl_cancelall': 1,
-                            'api/v1/contract_tpsl_openorders': 1,
-                            'api/v1/contract_tpsl_hisorders': 1,
-                            'api/v1/contract_relation_tpsl_order': 1,
-                            'api/v1/contract_track_order': 1,
-                            'api/v1/contract_track_cancel': 1,
-                            'api/v1/contract_track_cancelall': 1,
-                            'api/v1/contract_track_openorders': 1,
-                            'api/v1/contract_track_hisorders': 1,
+                            'api/v1/contract_trigger_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_trigger_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_tpsl_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_relation_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'api/v1/contract_track_hisorders': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Account Interface
-                            'swap-api/v1/swap_balance_valuation': 1,
-                            'swap-api/v1/swap_account_info': 1,
-                            'swap-api/v1/swap_position_info': 1,
-                            'swap-api/v1/swap_account_position_info': 1,
-                            'swap-api/v1/swap_sub_auth': 1,
-                            'swap-api/v1/swap_sub_account_list': 1,
-                            'swap-api/v1/swap_sub_account_info_list': 1,
-                            'swap-api/v1/swap_sub_account_info': 1,
-                            'swap-api/v1/swap_sub_position_info': 1,
-                            'swap-api/v1/swap_financial_record': 1,
-                            'swap-api/v1/swap_financial_record_exact': 1,
-                            'swap-api/v1/swap_user_settlement_records': 1,
-                            'swap-api/v1/swap_available_level_rate': 1,
-                            'swap-api/v1/swap_order_limit': 1,
-                            'swap-api/v1/swap_fee': 1,
-                            'swap-api/v1/swap_transfer_limit': 1,
-                            'swap-api/v1/swap_position_limit': 1,
-                            'swap-api/v1/swap_master_sub_transfer': 1,
-                            'swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'swap-api/v3/swap_financial_record': 1,
-                            'swap-api/v3/swap_financial_record_exact': 1,
+                            'swap-api/v1/swap_balance_valuation': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_account_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_info_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_account_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_sub_position_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_user_settlement_records': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_available_level_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_fee': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_transfer_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_position_limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_master_sub_transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_master_sub_transfer_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_financial_record': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_financial_record_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Trade Interface
-                            'swap-api/v1/swap-cancel-after': 1,
-                            'swap-api/v1/swap_order': 1,
-                            'swap-api/v1/swap_batchorder': 1,
-                            'swap-api/v1/swap_cancel': 1,
-                            'swap-api/v1/swap_cancelall': 1,
-                            'swap-api/v1/swap_lightning_close_position': 1,
-                            'swap-api/v1/swap_switch_lever_rate': 30,
-                            'swap-api/v1/swap_order_info': 1,
-                            'swap-api/v1/swap_order_detail': 1,
-                            'swap-api/v1/swap_openorders': 1,
-                            'swap-api/v1/swap_hisorders': 1,
-                            'swap-api/v1/swap_hisorders_exact': 1,
-                            'swap-api/v1/swap_matchresults': 1,
-                            'swap-api/v1/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_matchresults': 1,
-                            'swap-api/v3/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_hisorders': 1,
-                            'swap-api/v3/swap_hisorders_exact': 1,
+                            'swap-api/v1/swap-cancel-after': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_batchorder': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_lightning_close_position': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_switch_lever_rate': { 'cost': 30 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_order_detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_matchresults': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_matchresults_exact': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v3/swap_hisorders_exact': { 'cost': 1 } as Endpoint<Dict>,
                             // Swap Strategy Order Interface
-                            'swap-api/v1/swap_trigger_order': 1,
-                            'swap-api/v1/swap_trigger_cancel': 1,
-                            'swap-api/v1/swap_trigger_cancelall': 1,
-                            'swap-api/v1/swap_trigger_openorders': 1,
-                            'swap-api/v1/swap_trigger_hisorders': 1,
-                            'swap-api/v1/swap_tpsl_order': 1,
-                            'swap-api/v1/swap_tpsl_cancel': 1,
-                            'swap-api/v1/swap_tpsl_cancelall': 1,
-                            'swap-api/v1/swap_tpsl_openorders': 1,
-                            'swap-api/v1/swap_tpsl_hisorders': 1,
-                            'swap-api/v1/swap_relation_tpsl_order': 1,
-                            'swap-api/v1/swap_track_order': 1,
-                            'swap-api/v1/swap_track_cancel': 1,
-                            'swap-api/v1/swap_track_cancelall': 1,
-                            'swap-api/v1/swap_track_openorders': 1,
-                            'swap-api/v1/swap_track_hisorders': 1,
+                            'swap-api/v1/swap_trigger_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_trigger_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_tpsl_hisorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_relation_tpsl_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_cancelall': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_openorders': { 'cost': 1 } as Endpoint<Dict>,
+                            'swap-api/v1/swap_track_hisorders': { 'cost': 1 } as Endpoint<Dict>,
                             // Linear Swap Interface
-                            'v5/account/asset_mode': 100, // 0.1 requests per second = 1000ms / (100 * 100)
-                            'v5/trade/order': 0.41679,
-                            'v5/trade/batch_orders': 0.41679,
-                            'v5/trade/cancel_order': 0.41679,
-                            'v5/trade/cancel_batch_orders': 0.41679,
-                            'v5/trade/cancel_all_orders': 0.41679,
-                            'v5/trade/cancel-after': 0.41679,
-                            'v5/trade/position': 0.41679,
-                            'v5/trade/position_all': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/margin': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/cancel_orders': 0.41679,
+                            'v5/account/asset_mode': { 'cost': 100 } as Endpoint<Dict>, // 0.1 requests per second = 1000ms / (100 * 100)
+                            'v5/trade/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/batch_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_batch_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel_all_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/cancel-after': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/position': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/trade/position_all': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/position/lever': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/mode': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/position/margin': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
+                            'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            'v5/algo/cancel_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1317,14 +1317,14 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const enabledForContracts = this.handleOption ('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
@@ -1507,7 +1507,7 @@ export default class htx extends Exchange {
         //      }
         //
         let status: Str = undefined;
-        let updated = undefined;
+        let updated: Int = undefined;
         let url: Str = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
@@ -1516,7 +1516,7 @@ export default class htx extends Exchange {
             } else {
                 status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
             }
-            updated = this.safeString (response, 'ts');
+            updated = this.safeInteger (response, 'ts');
         } else {
             const statusData = this.safeValue (response, 'status', {});
             const statusRaw = this.safeString (statusData, 'indicator');
@@ -1544,12 +1544,12 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const options = this.safeValue (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if ((type === 'future') || (type === 'swap')) {
             response = await this.contractPublicGetApiV1Timestamp (params);
         } else {
@@ -1597,7 +1597,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1626,7 +1626,7 @@ export default class htx extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
+    override async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -1635,6 +1635,9 @@ export default class htx extends Exchange {
         }
         if (symbols === undefined) {
             symbols = this.symbols;
+        }
+        if (symbols === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
         }
         const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
@@ -1653,7 +1656,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    async fetchTradingLimitsById (id: string, params = {}) {
+    async fetchTradingLimitsById (id: Str, params = {}) {
         const request: Dict = {
             'symbol': id,
         };
@@ -1677,7 +1680,7 @@ export default class htx extends Exchange {
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
-    parseTradingLimits (limits, symbol: Str = undefined, params = {}) {
+    parseTradingLimits (limits: any, symbol: Str = undefined, params = {}) {
         //
         //   {                                "symbol": "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -1704,8 +1707,8 @@ export default class htx extends Exchange {
         };
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+    override costToPrecision (symbol: Str, cost: any) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
     /**
@@ -1719,7 +1722,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -1765,7 +1768,7 @@ export default class htx extends Exchange {
     async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}) {
         const isSpot = (type === 'spot');
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (!isSpot) {
             if (subType === 'linear') {
                 request['business_type'] = 'all'; // override default to fetch all linear markets
@@ -1888,6 +1891,9 @@ export default class htx extends Exchange {
             // check if parsed market is contract
             if (contract) {
                 id = this.safeString (market, 'contract_code');
+                if (id === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing id');
+                }
                 lowercaseId = id.toLowerCase ();
                 const delivery_date = this.safeString (market, 'delivery_date');
                 const business_type = this.safeString (market, 'business_type');
@@ -1897,6 +1903,9 @@ export default class htx extends Exchange {
                 inverse = !linear;
                 if (swap) {
                     type = 'swap';
+                    if (id === undefined) {
+                        throw new ExchangeError (this.id + ' method() missing id');
+                    }
                     const parts = id.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
@@ -1909,6 +1918,9 @@ export default class htx extends Exchange {
                         settleId = baseId;
                     } else {
                         const pair = this.safeString (market, 'pair');
+                        if (pair === undefined) {
+                            throw new ExchangeError (this.id + ' method() missing pair');
+                        }
                         const parts = pair.split ('-');
                         quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
@@ -1918,6 +1930,12 @@ export default class htx extends Exchange {
                 type = 'spot';
                 baseId = this.safeString (market, 'base-currency');
                 quoteId = this.safeString (market, 'quote-currency');
+                if (quoteId === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing quoteId');
+                }
+                if (baseId === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing baseId');
+                }
                 id = baseId + quoteId;
                 lowercaseId = id.toLowerCase ();
             }
@@ -2049,7 +2067,7 @@ export default class htx extends Exchange {
     }
 
     tryGetSymbolFromFutureMarkets (symbolOrMarketId: string) {
-        if (symbolOrMarketId in this.markets) {
+        if ((this.markets !== undefined) && (symbolOrMarketId in this.markets)) {
             return symbolOrMarketId;
         }
         // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
@@ -2074,7 +2092,7 @@ export default class htx extends Exchange {
             const market = futureMarkets[i];
             const info = this.safeValue (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
-            const contractSuffix = futuresCharsMaps[contractType];
+            const contractSuffix = this.safeValue (futuresCharsMaps, contractType);
             // see comment on formats a bit above
             const constructedId = market['linear'] ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
@@ -2088,7 +2106,7 @@ export default class htx extends Exchange {
         return symbolOrMarketId;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -2200,13 +2218,13 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['linear']) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged (this.extend (request, params));
@@ -2285,7 +2303,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2306,7 +2324,7 @@ export default class htx extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (!isSpot || isSubTypeRequested) {
             if (linear) {
                 // independently of type, supports calling all linear symbols i.e. fetchTickers(undefined, {subType:'linear'})
@@ -2398,7 +2416,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
      */
-    async fetchLastPrices (symbols: Strings = undefined, params = {}) {
+    override async fetchLastPrices (symbols: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2408,7 +2426,7 @@ export default class htx extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (((type === 'swap') || (type === 'future')) && (subType === 'linear')) {
             response = await this.contractPublicGetLinearSwapExMarketTrade (params);
             //
@@ -2492,7 +2510,7 @@ export default class htx extends Exchange {
         return this.parseLastPrices (data, symbols);
     }
 
-    parseLastPrice (entry, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined) {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -2520,9 +2538,9 @@ export default class htx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2538,7 +2556,7 @@ export default class htx extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['linear']) {
             request['contract_code'] = market['id'];
             response = await this.contractPublicGetLinearSwapExMarketDepth (this.extend (request, params));
@@ -2592,6 +2610,9 @@ export default class htx extends Exchange {
         //         }
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchOrderBook() returned empty response');
+        }
         if ('tick' in response) {
             if (!response['tick']) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
@@ -2605,7 +2626,7 @@ export default class htx extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot fetchTrades (public)
         //
@@ -2727,7 +2748,7 @@ export default class htx extends Exchange {
         let amountString = this.safeString2 (trade, 'filled-amount', 'amount');
         amountString = this.safeString (trade, 'trade_volume', amountString);
         const costString = this.safeString (trade, 'trade_turnover');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let feeCost = this.safeString (trade, 'filled-fees');
         if (feeCost === undefined) {
             feeCost = Precise.stringNeg (this.safeString (trade, 'trade_fee'));
@@ -2789,7 +2810,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2823,7 +2844,8 @@ export default class htx extends Exchange {
             'order-id': id,
         };
         const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], undefined, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     /**
@@ -2840,7 +2862,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2874,7 +2896,7 @@ export default class htx extends Exchange {
             // 'direct': 'prev', // next, prev
             // 'size': limit, // default 20, max 50
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 market = this.market (symbol);
@@ -3039,7 +3061,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3051,7 +3073,7 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 2000); // max 2000
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['future']) {
             if (market['inverse']) {
                 request['symbol'] = market['id'];
@@ -3108,7 +3130,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -3148,7 +3170,7 @@ export default class htx extends Exchange {
      * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3166,7 +3188,7 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        const priceType = this.safeStringN (params, [ 'priceType', 'price' ]);
+        const priceType = this.safeString2 (params, 'priceType', 'price');
         params = this.omit (params, [ 'priceType', 'price' ]);
         let until: Int = undefined;
         [ until, params ] = this.handleParamInteger (params, 'until');
@@ -3193,7 +3215,7 @@ export default class htx extends Exchange {
                 request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
             }
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['future']) {
             if (market['inverse']) {
                 request['symbol'] = market['id'];
@@ -3288,7 +3310,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3306,7 +3328,7 @@ export default class htx extends Exchange {
         return this.parseAccounts (data);
     }
 
-    parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "id": 5202591,
@@ -3379,7 +3401,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
@@ -3423,7 +3445,7 @@ export default class htx extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         if (!('networkNamesByChainIds' in this.options)) {
             this.options['networkNamesByChainIds'] = {};
         }
@@ -3434,36 +3456,44 @@ export default class htx extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const assetType = this.safeString (rawCurrency, 'assetType');
         const type = (assetType === '1') ? 'crypto' : 'fiat';
-        this.options['networkChainIdsByNames'][code] = {};
+        if (code !== undefined) {
+            this.options['networkChainIdsByNames'][code] = {};
+        }
         const chains = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            if (code !== undefined && title !== undefined) {
+                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+            }
+            if (uniqueChainId !== undefined) {
+                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            }
             const networkCode = this.networkIdToCode (uniqueChainId, code);
-            networks[networkCode] = {
-                'info': chainEntry,
-                'id': uniqueChainId,
-                'network': networkCode,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (chainEntry, 'minDepositAmt'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chainEntry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
-                        'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
-                'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
-                'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
-            };
+                    'active': undefined,
+                    'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,
@@ -3494,7 +3524,7 @@ export default class htx extends Exchange {
         });
     }
 
-    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
+    override networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
@@ -3505,7 +3535,7 @@ export default class htx extends Exchange {
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
-    networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    override networkCodeToId (networkCode: Str, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (networkCode === undefined) {
             return undefined;
         }
@@ -3541,11 +3571,11 @@ export default class htx extends Exchange {
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let isUnifiedAccount = undefined;
+        let isUnifiedAccount: Bool = undefined;
         [ isUnifiedAccount, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
         if (isUnifiedAccount) {
             throw new NotSupported (this.id + ' fetchBalance() unified account has been deprecated on htx');
@@ -3554,7 +3584,10 @@ export default class htx extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType: SubType = undefined;
         let isMultiAssetMode: Bool = undefined;
-        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType');
+        if (subType === undefined) {
+            subType = 'linear';
+        }
         [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
@@ -3567,7 +3600,7 @@ export default class htx extends Exchange {
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isMultiAssetMode || (linear && (swap || future))) {
             response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
         } else if (spot || margin) {
@@ -3732,7 +3765,7 @@ export default class htx extends Exchange {
         //     }
         //
         const finalResponse = response;
-        let result: Dict = { 'info': finalResponse } as any;
+        let result: Dict = { 'info': finalResponse };
         const data = this.safeValue (response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList (data, 'details', []);
@@ -3743,7 +3776,9 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available_margin');
                 account['total'] = this.safeString (balance, 'equity');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance (result);
         } else if (spot || margin) {
@@ -3757,7 +3792,9 @@ export default class htx extends Exchange {
                         const balance = balances[j];
                         const currencyId = this.safeString (balance, 'currency');
                         const code = this.safeCurrencyCode (currencyId);
-                        subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
+                        if (code !== undefined) {
+                            subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
+                        }
                     }
                     result[symbol] = this.safeBalance (subResult);
                 }
@@ -3767,7 +3804,9 @@ export default class htx extends Exchange {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
-                    result[code] = this.parseMarginBalanceHelper (balance, code, result);
+                    if (code !== undefined) {
+                        result[code] = this.parseMarginBalanceHelper (balance, code, result);
+                    }
                 }
                 result = this.safeBalance (result);
             }
@@ -3779,7 +3818,9 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'margin_available');
                 account['used'] = this.safeString (balance, 'margin_frozen');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance (result);
         }
@@ -3805,7 +3846,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3828,7 +3869,7 @@ export default class htx extends Exchange {
             // 'pair': 'BTC-USDT',
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -4006,15 +4047,21 @@ export default class htx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseMarginBalanceHelper (balance, code, result) {
+    parseMarginBalanceHelper (balance: any, code: any, result: any) {
         let account: NullableDict = undefined;
         if (code in result) {
             account = result[code];
         } else {
             account = this.account ();
         }
+        if (account === undefined) {
+            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
+        }
         if (balance['type'] === 'trade') {
             account['free'] = this.safeString (balance, 'balance');
+        }
+        if (account === undefined) {
+            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
         if (balance['type'] === 'frozen') {
             account['used'] = this.safeString (balance, 'balance');
@@ -4022,7 +4069,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -4062,7 +4109,7 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (method === 'spot_private_get_v1_order_orders') {
             response = await this.spotPrivateGetV1OrderOrders (this.extend (request, params));
         } else {
@@ -4115,7 +4162,7 @@ export default class htx extends Exchange {
         }
         const market = this.market (symbol);
         let request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         const stopLoss = this.safeBool (params, 'stopLoss');
@@ -4310,7 +4357,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.takeProfit] *contract only* set to true if you want to fetch take profit orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4349,7 +4396,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4408,7 +4455,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4448,7 +4495,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4462,7 +4509,7 @@ export default class htx extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, 'linear');
         const isLinear = (subType === 'linear');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
@@ -4842,7 +4889,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -5061,7 +5108,7 @@ export default class htx extends Exchange {
         if (isLinearOrder) {
             type = this.safeString (order, 'type');
             if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
-                type = this.safeStringN (order, [ 'tp_type', 'sl_type' ]);
+                type = this.safeString2 (order, 'tp_type', 'sl_type');
             }
             if (type === '0') {
                 type = undefined;
@@ -5093,7 +5140,7 @@ export default class htx extends Exchange {
         const price = this.safeString2 (order, 'price', 'order_price');
         let feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled feeSide
         feeCost = this.safeString (order, 'fee', feeCost);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if ((feeCost !== undefined) && (feeCost !== '0') && (feeCost !== '0.0')) {
             let feeCurrency: Str = undefined;
             const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_currency');
@@ -5156,7 +5203,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5182,7 +5229,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -5209,7 +5256,13 @@ export default class htx extends Exchange {
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5314,7 +5367,13 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -5548,7 +5607,7 @@ export default class htx extends Exchange {
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5561,7 +5620,7 @@ export default class htx extends Exchange {
         const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (isTrailingPercentOrder) {
                 throw new NotSupported (this.id + ' createOrder() does not support trailing orders for spot markets');
@@ -5690,6 +5749,9 @@ export default class htx extends Exchange {
             } else {
                 result = this.safeDict (response, 'data', {});
             }
+            if (result === undefined) {
+                throw new NullResponse (this.id + ' parseOrder() returned empty response');
+            }
             return this.extend (this.parseOrder (result, market), {
                 'type': type,
                 'side': side,
@@ -5704,6 +5766,9 @@ export default class htx extends Exchange {
             result = this.safeValue (data, 'tp_order', {});
         } else {
             result = this.safeValue (response, 'data', {});
+        }
+        if (result === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (result, market) as Order;
     }
@@ -5720,7 +5785,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5765,7 +5830,7 @@ export default class htx extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (this.safeBool (market, 'spot')) {
             response = await this.privatePostOrderBatchOrders (ordersRequests);
         } else {
@@ -5877,7 +5942,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5906,7 +5971,7 @@ export default class htx extends Exchange {
         const stopLossTakeProfit = this.safeBoolN (params, [ 'stopLossTakeProfit', 'stopLoss', 'takeProfit' ]);
         const trailing = this.safeBool (params, 'trailing', false);
         params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
             if (clientOrderId === undefined) {
@@ -5937,7 +6002,7 @@ export default class htx extends Exchange {
             }
             if (isLinear) {
                 if (trigger || stopLossTakeProfit || trailing) {
-                    const requestItem = {
+                    const requestItem: Dict = {
                         'contract_code': this.safeString (market, 'id'),
                     };
                     if (clientOrderId === undefined) {
@@ -6036,6 +6101,9 @@ export default class htx extends Exchange {
         } else {
             result = response;
         }
+        if (result === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.extend (this.parseOrder (result, market), {
             'id': id,
             'status': 'canceled',
@@ -6054,7 +6122,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6077,7 +6145,7 @@ export default class htx extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             let clientOrderIds = this.safeValue2 (params, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeValue2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
@@ -6228,7 +6296,7 @@ export default class htx extends Exchange {
         return this.parseCancelOrders (data) as Order[];
     }
 
-    parseCancelOrders (orders) {
+    parseCancelOrders (orders: any) {
         //
         //    {
         //        "success": [
@@ -6330,7 +6398,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6354,7 +6422,7 @@ export default class htx extends Exchange {
             // 'direction': 'buy': // buy, sell
             // 'offset': 'open', // open, close
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
@@ -6457,9 +6525,12 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request: Dict = {
             'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
@@ -6478,7 +6549,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -6514,7 +6585,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6550,7 +6621,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6558,10 +6629,10 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode] as DepositAddress;
+        return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
-    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6585,7 +6656,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
+        const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
@@ -6609,7 +6680,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -6658,7 +6729,8 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     /**
@@ -6672,7 +6744,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -6719,10 +6791,11 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -6785,6 +6858,9 @@ export default class htx extends Exchange {
         }
         const networkId = this.safeString (transaction, 'chain');
         let txHash = this.safeString (transaction, 'tx-hash');
+        if (txHash === undefined) {
+            throw new ExchangeError (this.id + ' parseTransaction() missing txHash');
+        }
         if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
             txHash = '0x' + txHash;
         }
@@ -6855,7 +6931,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -6874,7 +6950,11 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
+        let amountPrecision = this.currencyToPrecision (code, amount, networkCode);
+        if (amountPrecision === undefined) {
+            amountPrecision = '0';
+        }
+        amount = parseFloat (amountPrecision);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
@@ -6892,9 +6972,21 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat (amountSubtractedString);
-            request['fee'] = parseFloat (feeString);
-            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
+            let amountSubtractedParsed = amountSubtractedString;
+            if (amountSubtractedParsed === undefined) {
+                amountSubtractedParsed = '0';
+            }
+            const amountSubtracted = parseFloat (amountSubtractedParsed);
+            let feeParsed = feeString;
+            if (feeParsed === undefined) {
+                feeParsed = '0';
+            }
+            request['fee'] = parseFloat (feeParsed);
+            let amountAfterFee = this.currencyToPrecision (code, amountSubtracted, networkCode);
+            if (amountAfterFee === undefined) {
+                amountAfterFee = '0';
+            }
+            amount = parseFloat (amountAfterFee);
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
@@ -6907,7 +6999,7 @@ export default class htx extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -6983,14 +7075,18 @@ export default class htx extends Exchange {
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
+        let transferAmount = this.currencyToPrecision (code, amount);
+        if (transferAmount === undefined) {
+            transferAmount = '0';
+        }
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'amount': parseFloat (transferAmount),
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
@@ -6998,15 +7094,15 @@ export default class htx extends Exchange {
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
         const fromCross = fromAccountId === 'cross';
-        const toIsolated = this.inArray (toAccountId, this.ids);
-        const fromIsolated = this.inArray (fromAccountId, this.ids);
+        const toIsolated = ((this.ids !== undefined) && this.inArray (toAccountId, this.ids));
+        const fromIsolated = ((this.ids !== undefined) && this.inArray (fromAccountId, this.ids));
         const fromSpot = fromAccountId === 'pro';
         const toSpot = toAccountId === 'pro';
         if (fromSpot && toSpot) {
             throw new BadRequest (this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
         }
         const fromOrToFuturesAccount = (fromAccountId === 'futures') || (toAccountId === 'futures');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (fromOrToFuturesAccount) {
             let type = fromAccountId + '-to-' + toAccountId;
             type = this.safeString (params, 'type', type);
@@ -7052,6 +7148,9 @@ export default class htx extends Exchange {
         //        "print-log": true
         //    }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseTransfer() returned empty response');
+        }
         return this.parseTransfer (response, currency);
     }
 
@@ -7070,7 +7169,7 @@ export default class htx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7124,7 +7223,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
+    override async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7162,7 +7261,7 @@ export default class htx extends Exchange {
         return this.parseIsolatedBorrowRates (data);
     }
 
-    parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
+    override parseIsolatedBorrowRate (info: Dict, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "1inchusdt",
@@ -7220,7 +7319,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -7238,7 +7337,7 @@ export default class htx extends Exchange {
         };
         if (market['linear']) {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min (limit, 100); // max 100
             }
             if (since !== undefined) {
                 request['start_time'] = since;
@@ -7250,7 +7349,7 @@ export default class htx extends Exchange {
                 request['page_size'] = 50; // max
             }
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
             //
@@ -7333,7 +7432,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // inverse swap
         //
@@ -7388,7 +7487,7 @@ export default class htx extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7409,7 +7508,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7417,7 +7516,7 @@ export default class htx extends Exchange {
         const request: Dict = {
             'contract_code': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate (this.extend (request, params));
             //
@@ -7476,12 +7575,12 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        const defaultSubType: SubType = 'linear';
         let subType: SubType = undefined;
         [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {
@@ -7493,7 +7592,7 @@ export default class htx extends Exchange {
         const request: Dict = {
             // 'contract_code': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (subType === 'linear') {
             throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
         } else if (subType === 'inverse') {
@@ -7536,7 +7635,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7551,7 +7650,7 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let market: Market = undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marginMode === 'isolated') {
             if (symbol !== undefined) {
                 market = this.market (symbol);
@@ -7592,7 +7691,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7652,11 +7751,11 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/';
         const isArrayParams = Array.isArray (params);
         let query: NullableDict = undefined;
@@ -7686,7 +7785,7 @@ export default class htx extends Exchange {
                     request = this.extend (request, query);
                 }
                 const sortedRequest = this.keysort (request);
-                let auth = this.urlencode (sortedRequest, true); // true is a go only requirment
+                let auth = this.urlencode (sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const content = [ method, this.hostname, url, auth ];
                 const payload = content.join ("\n"); // eslint-disable-line quotes
@@ -7710,7 +7809,7 @@ export default class htx extends Exchange {
                     };
                 }
             } else {
-                if (Object.keys (query).length) {
+                if ((query !== undefined) && Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -7724,7 +7823,7 @@ export default class htx extends Exchange {
             const access = this.safeString (api, 1);
             const levelOneNestedPath = this.safeString (api, 2);
             const levelTwoNestedPath = this.safeString (api, 3);
-            let hostname = undefined;
+            let hostname: Str = undefined;
             let hostnames = this.safeValue (this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
                 hostnames = this.safeValue (hostnames, levelOneNestedPath);
@@ -7735,7 +7834,7 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams (path, params);
             if (access === 'public') {
-                if (Object.keys (query).length) {
+                if ((query !== undefined) && Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (access === 'private') {
@@ -7767,9 +7866,9 @@ export default class htx extends Exchange {
                     'Timestamp': timestamp,
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
-                request = this.keysort (request) as any;
+                request = this.keysort (request);
                 if (method !== 'POST') {
-                    const sortedQuery = this.keysort (query) as any;
+                    const sortedQuery = this.keysort (query);
                     request = this.extend (request, sortedQuery);
                 }
                 let auth = this.urlencode (request, true).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
@@ -7800,14 +7899,14 @@ export default class htx extends Exchange {
                 }
             }
             const finalHostname = hostname; // java req
-            url = this.implodeParams (this.urls['api'][type], {
+            url = this.implodeParams (this.urls['api'][type as string], {
                 'hostname': finalHostname,
             }) + url;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -7860,12 +7959,12 @@ export default class htx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         let request: Dict = {
             'type': '30,31',
@@ -7878,7 +7977,7 @@ export default class htx extends Exchange {
                 request['start_date'] = since;
             }
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'swap') {
             if (market['linear']) {
                 let marginMode: Str = undefined;
@@ -7953,7 +8052,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7970,7 +8069,7 @@ export default class htx extends Exchange {
         } else {
             request['contract_code'] = market['id'];
         }
-        let response: NullableDict = undefined;
+        let response: Dict | undefined = undefined;
         if (market['linear']) {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
@@ -8014,10 +8113,13 @@ export default class htx extends Exchange {
             //     }
             //
         }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' setLeverage() returned empty response');
+        }
         return response;
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "id": "1667161118",
@@ -8058,7 +8160,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC",
@@ -8125,8 +8227,14 @@ export default class htx extends Exchange {
         const entryPrice = this.safeNumber2 (position, 'cost_open', 'open_avg_price');
         const initialMargin = this.safeString2 (position, 'position_margin', 'initial_margin');
         const rawSide = this.safeString (position, 'direction');
-        const rawPositionSide = (rawSide === 'buy') ? 'long' : 'short';
-        const side = this.safeString (position, 'position_side', rawPositionSide);
+        const directionSide = (rawSide === 'buy') ? 'long' : 'short';
+        const rawPositionSide = this.safeString (position, 'position_side');
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        let side = directionSide;
+        const isHedgedPositionSide = (rawPositionSide === 'long') || (rawPositionSide === 'short');
+        if (isHedgedPositionSide) {
+            side = rawPositionSide;
+        }
         const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
         let marginMode = this.safeString (position, 'margin_mode');
         const leverage = this.safeString (position, 'lever_rate');
@@ -8207,7 +8315,7 @@ export default class htx extends Exchange {
      * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8227,7 +8335,7 @@ export default class htx extends Exchange {
         if (marketType === 'spot') {
             marketType = 'future';
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPrivateGetV5TradePositionOpens (params);
             //
@@ -8347,7 +8455,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8365,7 +8473,7 @@ export default class htx extends Exchange {
             }
             request['contract_code'] = market['id'];
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['linear']) {
             response = await this.contractPrivateGetV5TradePositionOpens (this.extend (request, query));
             //
@@ -8511,7 +8619,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
@@ -8528,10 +8636,10 @@ export default class htx extends Exchange {
             'other-types': 'transfer',
             'rebate': 'rebate',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "accountId": 10000001,
@@ -8584,7 +8692,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8661,7 +8769,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8699,7 +8807,7 @@ export default class htx extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         const currencyId = this.safeString (info, 'trade_partition');
         const marketId = this.safeString (info, 'contract_code');
         const tiers: List = [];
@@ -8742,7 +8850,7 @@ export default class htx extends Exchange {
      * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
         }
@@ -8764,7 +8872,7 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['future']) {
             request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];  // currency code on coin-m futures
@@ -8856,7 +8964,7 @@ export default class htx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8874,7 +8982,7 @@ export default class htx extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'linear');
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenInterests', market, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'future') {
             response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, params));
             //
@@ -8932,7 +9040,7 @@ export default class htx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8946,7 +9054,7 @@ export default class htx extends Exchange {
         const request: Dict = {
             'contract_code': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['future']) {
             request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];
@@ -9029,7 +9137,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
@@ -9105,7 +9213,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9124,7 +9232,7 @@ export default class htx extends Exchange {
         //         "data": 1000
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -9142,7 +9250,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9160,7 +9268,7 @@ export default class htx extends Exchange {
         //         "data": null
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
@@ -9177,7 +9285,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9202,7 +9310,7 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'Data', []);
         const loan = this.safeValue (data, 0);
-        const transaction = this.parseMarginLoan (loan, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
@@ -9219,7 +9327,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9244,13 +9352,13 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'Data', []);
         const loan = this.safeValue (data, 0);
-        const transaction = this.parseMarginLoan (loan, currency);
+        const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
         //
         // borrowMargin cross
         //
@@ -9300,7 +9408,7 @@ export default class htx extends Exchange {
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
@@ -9322,7 +9430,7 @@ export default class htx extends Exchange {
             request['start_time'] = since;
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
                 response = await this.contractPublicGetV5MarketSettlementHistory (this.extend (request, params));
@@ -9421,7 +9529,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9466,7 +9574,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //            {
         //              "currency": "sxp",
@@ -9521,19 +9629,21 @@ export default class htx extends Exchange {
                     'percentage': true,
                 };
             }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
             result = this.assignDefaultDepositWithdrawFees (result, currency);
         }
         return result;
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9607,7 +9717,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9667,7 +9777,7 @@ export default class htx extends Exchange {
      * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9682,7 +9792,7 @@ export default class htx extends Exchange {
             request['start_time'] = since;
         }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['swap']) {
             if (market['linear']) {
                 request['contract_code'] = market['id'];
@@ -9747,7 +9857,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "query_id": 452057,
@@ -9803,7 +9913,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
      * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
      * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
      *
@@ -9813,7 +9923,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9829,7 +9939,7 @@ export default class htx extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['linear']) {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
@@ -9865,6 +9975,9 @@ export default class htx extends Exchange {
             const data = this.safeDict (response, 'data', {});
             return this.parseOrder (data, market);
         }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -9879,7 +9992,7 @@ export default class htx extends Exchange {
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9919,7 +10032,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9939,7 +10052,7 @@ export default class htx extends Exchange {
         if (marketType === 'spot') {
             marketType = 'future';
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPrivateGetV5TradePositionOpens (params);
             //
@@ -10064,7 +10177,7 @@ export default class htx extends Exchange {
         return this.parseADLRanks (data, symbols);
     }
 
-    parseADLRank (info: Dict, market: Market = undefined): ADL {
+    override parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
         // fetchPositionADLRank linear
         //

@@ -11,7 +11,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     if (market === undefined) {
         return;
     }
-    const format = {
+    let format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
@@ -109,8 +109,16 @@ function testMarket(exchange, skippedProperties, method, market) {
         emptyAllowedFor.push('base');
         emptyAllowedFor.push('quote');
     }
+    if (exchange.safeString(market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        format = exchange.omit(format, ['symbol']);
+    }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
-    testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
+    // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if (market['type'] !== 'prediction') {
+        testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
+    }
     const logText = testSharedMethods.logTemplate(exchange, method, market);
     // check taker/maker
     // todo: check not all to be within 0-1.0
@@ -118,8 +126,8 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'maker', '-100');
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'maker', '100');
-    // validate type
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
+    // validate type ('prediction' for prediction-market exchanges)
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     // validate subTypes
     const validSubTypes = ['linear', 'inverse', 'quanto', undefined];
@@ -152,7 +160,12 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'margin', [false, undefined]);
     }
     // check mutually exclusive fields
-    if (spot) {
+    const isPrediction = (market['type'] === 'prediction');
+    if (isPrediction) {
+        // prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert(!spot && !contract && !future && !swap && !option, 'for prediction market, none of spot/contract/future/swap/option should be set' + logText);
+    }
+    else if (spot) {
         assert(!contract && linear === undefined && inverse === undefined && !option && !swap && !future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
     }
     else {
@@ -265,8 +278,9 @@ function testMarket(exchange, skippedProperties, method, market) {
             }
         }
     }
-    // check currencies
-    if (!isInactiveMarket) {
+    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if (!isInactiveMarket && !isPrediction) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);

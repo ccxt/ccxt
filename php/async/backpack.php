@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class backpack extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -157,72 +159,72 @@ class backpack extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'api/v1/assets' => 1, // done
-                        'api/v1/collateral' => 1, // not used
-                        'api/v1/borrowLend/markets' => 1,
-                        'api/v1/borrowLend/markets/history' => 1,
-                        'api/v1/markets' => 1, // done
-                        'api/v1/market' => 1, // not used
-                        'api/v1/ticker' => 1, // done
-                        'api/v1/tickers' => 1, // done
-                        'api/v1/depth' => 1, // done
-                        'api/v1/klines' => 1, // done
-                        'api/v1/markPrices' => 1, // done
-                        'api/v1/openInterest' => 1, // done
-                        'api/v1/fundingRates' => 1, // done
-                        'api/v1/status' => 1, // done
-                        'api/v1/ping' => 1, // todo check if it is needed for ws
-                        'api/v1/time' => 1, // done
-                        'api/v1/wallets' => 1, // not used
-                        'api/v1/trades' => 1, // done
-                        'api/v1/trades/history' => 1, // done
+                        'api/v1/assets' => array( 'cost' => 1 ), // done
+                        'api/v1/collateral' => array( 'cost' => 1 ), // not used
+                        'api/v1/borrowLend/markets' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend/markets/history' => array( 'cost' => 1 ),
+                        'api/v1/markets' => array( 'cost' => 1 ), // done
+                        'api/v1/market' => array( 'cost' => 1 ), // not used
+                        'api/v1/ticker' => array( 'cost' => 1 ), // done
+                        'api/v1/tickers' => array( 'cost' => 1 ), // done
+                        'api/v1/depth' => array( 'cost' => 1 ), // done
+                        'api/v1/klines' => array( 'cost' => 1 ), // done
+                        'api/v1/markPrices' => array( 'cost' => 1 ), // done
+                        'api/v1/openInterest' => array( 'cost' => 1 ), // done
+                        'api/v1/fundingRates' => array( 'cost' => 1 ), // done
+                        'api/v1/status' => array( 'cost' => 1 ), // done
+                        'api/v1/ping' => array( 'cost' => 1 ), // todo check if it is needed for ws
+                        'api/v1/time' => array( 'cost' => 1 ), // done
+                        'api/v1/wallets' => array( 'cost' => 1 ), // not used
+                        'api/v1/trades' => array( 'cost' => 1 ), // done
+                        'api/v1/trades/history' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v1/account' => 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow' => 1, // not used
-                        'api/v1/account/limits/order' => 1, // not used
-                        'api/v1/account/limits/withdrawal' => 1, // not used
-                        'api/v1/borrowLend/positions' => 1, // todo fetchBorrowInterest
-                        'api/v1/capital' => 1, // done
-                        'api/v1/capital/collateral' => 1, // not used
-                        'wapi/v1/capital/deposits' => 1, // done
-                        'wapi/v1/capital/deposit/address' => 1, // done
-                        'wapi/v1/capital/withdrawals' => 1, // todo complete after withdrawal
-                        'api/v1/position' => 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend' => 1, // not used
-                        'wapi/v1/history/interest' => 1, // not used
-                        'wapi/v1/history/borrowLend/positions' => 1, // not used
-                        'wapi/v1/history/dust' => 1, // not used
-                        'wapi/v1/history/fills' => 1, // done
-                        'wapi/v1/history/funding' => 1, // done
-                        'wapi/v1/history/orders' => 1, // done
-                        'wapi/v1/history/rfq' => 1,
-                        'wapi/v1/history/quote' => 1,
-                        'wapi/v1/history/settlement' => 1,
-                        'wapi/v1/history/strategies' => 1,
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
+                        'api/v1/account' => array( 'cost' => 1 ), // todo fetchTradingFee
+                        'api/v1/account/limits/borrow' => array( 'cost' => 1 ), // not used
+                        'api/v1/account/limits/order' => array( 'cost' => 1 ), // not used
+                        'api/v1/account/limits/withdrawal' => array( 'cost' => 1 ), // not used
+                        'api/v1/borrowLend/positions' => array( 'cost' => 1 ), // todo fetchBorrowInterest
+                        'api/v1/capital' => array( 'cost' => 1 ), // done
+                        'api/v1/capital/collateral' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/capital/deposits' => array( 'cost' => 1 ), // done
+                        'wapi/v1/capital/deposit/address' => array( 'cost' => 1 ), // done
+                        'wapi/v1/capital/withdrawals' => array( 'cost' => 1 ), // todo complete after withdrawal
+                        'api/v1/position' => array( 'cost' => 1 ), // done but todo check if all is right
+                        'wapi/v1/history/borrowLend' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/interest' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/borrowLend/positions' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/dust' => array( 'cost' => 1 ), // not used
+                        'wapi/v1/history/fills' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/funding' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/orders' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/rfq' => array( 'cost' => 1 ),
+                        'wapi/v1/history/quote' => array( 'cost' => 1 ),
+                        'wapi/v1/history/settlement' => array( 'cost' => 1 ),
+                        'wapi/v1/history/strategies' => array( 'cost' => 1 ),
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
                     'post' => array(
-                        'api/v1/account/convertDust' => 1,
-                        'api/v1/borrowLend' => 1, // todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals' => 1, // todo complete after withdrawal
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
-                        'api/v1/rfq' => 1,
-                        'api/v1/rfq/accept' => 1,
-                        'api/v1/rfq/refresh' => 1,
-                        'api/v1/rfq/cancel' => 1,
-                        'api/v1/rfq/quote' => 1,
+                        'api/v1/account/convertDust' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend' => array( 'cost' => 1 ), // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals' => array( 'cost' => 1 ), // todo complete after withdrawal
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/rfq' => array( 'cost' => 1 ),
+                        'api/v1/rfq/accept' => array( 'cost' => 1 ),
+                        'api/v1/rfq/refresh' => array( 'cost' => 1 ),
+                        'api/v1/rfq/cancel' => array( 'cost' => 1 ),
+                        'api/v1/rfq/quote' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'api/v1/order' => 1, // done
-                        'api/v1/orders' => 1, // done
+                        'api/v1/order' => array( 'cost' => 1 ), // done
+                        'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
                     'patch' => array(
-                        'api/v1/account' => 1,
+                        'api/v1/account' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -405,7 +407,7 @@ class backpack extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'APT' => 'Aptos',
-                    'ARB' => 'Arbitrum',
+                    'ARBITRUM' => 'Arbitrum',
                     'AVAX' => 'Avalanche',
                     'BASE' => 'Base',
                     'BERA' => 'Berachain',
@@ -430,7 +432,7 @@ class backpack extends Exchange {
                 ),
                 'networksById' => array(
                     'aptos' => 'APT',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'avalanche' => 'AVAX',
                     'base' => 'BASE',
                     'berachain' => 'BERA',
@@ -499,41 +501,43 @@ class backpack extends Exchange {
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://docs.backpack.exchange/#tag/Assets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetApiV1Assets($params));
-            //
-            //     array(
-            //         {
-            //             "coingeckoId" => "jito-governance-token",
-            //             "displayName" => "Jito",
-            //             "symbol" => "JTO",
-            //             "tokens" => array(
-            //                 {
-            //                     "blockchain" => "Solana",
-            //                     "contractAddress" => "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-            //                     "depositEnabled" => true,
-            //                     "displayName" => "Jito",
-            //                     "maximumWithdrawal" => null,
-            //                     "minimumDeposit" => "0.28",
-            //                     "minimumWithdrawal" => "0.58",
-            //                     "withdrawEnabled" => true,
-            //                     "withdrawalFee" => "0.29"
-            //                 }
-            //             )
-            //         }
-            //         ...
-            //     )
-            //
-            return $this->parse_currencies($response);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://docs.backpack.exchange/#tag/Assets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetApiV1Assets($params));
+        //
+        //     array(
+        //         {
+        //             "coingeckoId" => "jito-governance-token",
+        //             "displayName" => "Jito",
+        //             "symbol" => "JTO",
+        //             "tokens" => array(
+        //                 {
+        //                     "blockchain" => "Solana",
+        //                     "contractAddress" => "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+        //                     "depositEnabled" => true,
+        //                     "displayName" => "Jito",
+        //                     "maximumWithdrawal" => null,
+        //                     "minimumDeposit" => "0.28",
+        //                     "minimumWithdrawal" => "0.58",
+        //                     "withdrawEnabled" => true,
+        //                     "withdrawalFee" => "0.29"
+        //                 }
+        //             )
+        //         }
+        //         ...
+        //     )
+        //
+        return $this->parse_currencies($response);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -546,26 +550,28 @@ class backpack extends Exchange {
             $networkId = $this->safe_string($network, 'blockchain');
             $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
             $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
-            $parsedNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'minimumWithdrawal'),
-                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'minimumWithdrawal'),
+                            'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($network, 'minimumDeposit'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($network, 'minimumDeposit'),
-                        'max' => null,
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($network, 'depositEnabled'),
-                'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
-                'fee' => $this->safe_number($network, 'withdrawalFee'),
-                'precision' => null,
-                'info' => $network,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($network, 'depositEnabled'),
+                    'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
+                    'fee' => $this->safe_number($network, 'withdrawalFee'),
+                    'precision' => null,
+                    'info' => $network,
+                );
+            }
         }
         $active = null;
         $deposit = null;
@@ -601,21 +607,23 @@ class backpack extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for bitbank
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            if ($this->options['adjustForTimeDifference']) {
-                Async\await($this->load_time_difference());
-            }
-            $response = Async\await($this->publicGetApiV1Markets($params));
-            return $this->parse_markets($response);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for bitbank
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        if ($this->options['adjustForTimeDifference']) {
+            Async\await($this->load_time_difference());
+        }
+        $response = Async\await($this->publicGetApiV1Markets($params));
+        return $this->parse_markets($response);
     }
 
     public function parse_market(array $market): array {
@@ -794,7 +802,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function parse_market_type($type) {
+    public function parse_market_type(mixed $type) {
         $types = array(
             'SPOT' => 'spot',
             'PERP' => 'swap',
@@ -808,47 +816,51 @@ class backpack extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
-             *
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $response = Async\await($this->publicGetApiV1Tickers($this->extend($request, $params)));
-            $tickers = $this->parse_tickers($response);
-            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
+         *
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $response = Async\await($this->publicGetApiV1Tickers($this->extend($request, $params)));
+        $tickers = $this->parse_tickers($response);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetApiV1Ticker($this->extend($request, $params)));
-            return $this->parse_ticker($response, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetApiV1Ticker($this->extend($request, $params)));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -877,9 +889,14 @@ class backpack extends Exchange {
         $low = $this->safe_string($ticker, 'low');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
-        $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        $percentage = null;
+        $percentageNumber = $this->safe_float($ticker, 'priceChangePercent');
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if ($percentageNumber !== null) {
+            $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
+        }
         $change = $this->safe_string($ticker, 'priceChange');
-        return $this->safe_ticker(array(
+        $parsedTicker = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -903,101 +920,110 @@ class backpack extends Exchange {
             'indexPrice' => null,
             'info' => $ticker,
         ), $market);
+        return $parsedTicker;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
-             * @param {array} [$params] extra parameters specific to the bitteam api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetApiV1Depth($this->extend($request, $params)));
-            //
-            //     {
-            //         "asks" => array(
-            //             ["118318.3","0.00633"],
-            //             ["118567.2","0.08450"]
-            //         ),
-            //         "bids" => array(
-            //             ["1.0","0.38647"],
-            //             ["12.9","1.00000"]
-            //         ),
-            //         "lastUpdateId":"1504999670",
-            //         "timestamp":1753102447307501
-            //     }
-            //
-            $microseconds = $this->safe_integer($response, 'timestamp');
-            $timestamp = $this->parse_to_int($microseconds / 1000);
-            $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
-            $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
-            return $orderbook;
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetApiV1Depth($this->extend($request, $params)));
+        //
+        //     {
+        //         "asks" => array(
+        //             ["118318.3","0.00633"],
+        //             ["118567.2","0.08450"]
+        //         ),
+        //         "bids" => array(
+        //             ["1.0","0.38647"],
+        //             ["12.9","1.00000"]
+        //         ),
+        //         "lastUpdateId":"1504999670",
+        //         "timestamp":1753102447307501
+        //     }
+        //
+        $microseconds = $this->safe_integer($response, 'timestamp');
+        if ($microseconds === null) {
+            throw new ExchangeError($this->id . ' fetchOrderBook() missing microseconds');
+        }
+        $timestamp = $this->parse_to_int($microseconds / 1000);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
+        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in seconds of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch (default 100)
-             * @param {array} [$params] extra parameters specific to the bitteam api endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'symbol' => $market['id'],
-                'interval' => $interval,
-            );
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
-            if ($until !== null) {
-                $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
-            }
-            $defaultLimit = 100;
-            if ($since === null) {
-                if ($limit === null) {
-                    $limit = $defaultLimit;
-                }
-                $duration = $this->parse_timeframe($timeframe);
-                $endTime = $until ? $this->parse_to_int($until / 1000) : $this->seconds();
-                $startTime = $endTime - ($limit * $duration);
-                $request['startTime'] = $startTime;
-            } else {
-                $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
-            }
-            $price = $this->safe_string($params, 'price');
-            if ($price !== null) {
-                $request['priceType'] = $this->capitalize($price);
-                $params = $this->omit($params, 'price');
-            }
-            $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in seconds of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch (default 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $interval,
+        );
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
+        }
+        $defaultLimit = 100;
+        if ($since === null) {
+            if ($limit === null) {
+                $limit = $defaultLimit;
+            }
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = $until ? $this->parse_to_int($until / 1000) : $this->seconds();
+            $startTime = $endTime - ($limit * $duration);
+            $request['startTime'] = $startTime;
+        } else {
+            $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+        }
+        $price = $this->safe_string($params, 'price');
+        if ($price !== null) {
+            $request['priceType'] = $this->capitalize($price);
+            $params = $this->omit($params, 'price');
+        }
+        $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         array(
@@ -1025,33 +1051,35 @@ class backpack extends Exchange {
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the current funding rate
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetApiV1MarkPrices($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 0, array());
-            return $this->parse_funding_rate($data, $market);
-        })();
+        return Async\async(self::do_fetch_funding_rate(...))($symbol, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    private function do_fetch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetApiV1MarkPrices($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 0, array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "fundingRate" => "0.0001",
@@ -1088,33 +1116,35 @@ class backpack extends Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * Retrieves the open $interest of a derivative trading pair
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
-             *
-             * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {array} [$params] exchange specific parameters
-             * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=$interest-history-structure)
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($market['spot']) {
-                throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetApiV1OpenInterest($this->extend($request, $params)));
-            $interest = $this->safe_dict($response, 0, array());
-            return $this->parse_open_interest($interest, $market);
-        })();
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * Retrieves the open $interest of a derivative trading pair
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
+         *
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=$interest-history-structure)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetApiV1OpenInterest($this->extend($request, $params)));
+        $interest = $this->safe_dict($response, 0, array());
+        return $this->parse_open_interest($interest, $market);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     array(
         //         {
@@ -1136,138 +1166,147 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding $rate prices
-             *
-             * @see https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
-             * @param {int} [$limit] the maximum amount of funding $rate structures
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding $rate prices
+         *
+         * @see https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
+         * @param {int} [$limit] the maximum amount of funding $rate structures
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000); // api maximum 1000
+        }
+        $response = Async\await($this->publicGetApiV1FundingRates($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "fundingRate" => "0.0001",
+        //             "intervalEndTimestamp" => "2025-07-22T00:00:00",
+        //             "symbol" => "BTC_USDC_PERP"
+        //         }
+        //     )
+        //
+        $rates = array();
+        $rawRates = $this->to_array($response);
+        for ($i = 0; $i < count($rawRates); $i++) {
+            $rate = $rawRates[$i];
+            $datetime = $this->safe_string($rate, 'intervalEndTimestamp');
+            $timestamp = $this->parse8601($datetime);
+            $rates[] = array(
+                'info' => $rate,
+                'symbol' => $market['symbol'],
+                'fundingRate' => $this->safe_number($rate, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $datetime,
             );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000); // api maximum 1000
-            }
-            $response = Async\await($this->publicGetApiV1FundingRates($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "fundingRate" => "0.0001",
-            //             "intervalEndTimestamp" => "2025-07-22T00:00:00",
-            //             "symbol" => "BTC_USDC_PERP"
-            //         }
-            //     )
-            //
-            $rates = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $rate = $response[$i];
-                $datetime = $this->safe_string($rate, 'intervalEndTimestamp');
-                $timestamp = $this->parse8601($datetime);
-                $rates[] = array(
-                    'info' => $rate,
-                    'symbol' => $market['symbol'],
-                    'fundingRate' => $this->safe_number($rate, 'fundingRate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $datetime,
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        })();
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
-             * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->offset] the number of trades to skip, default is 0
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 1000); // api maximum 1000
-            }
-            $response = null;
-            $offset = $this->safe_integer($params, 'offset');
-            if ($offset !== null) {
-                $response = Async\await($this->publicGetApiV1TradesHistory($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->publicGetApiV1Trades($this->extend($request, $params)));
-            }
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+         * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->offset] the number of trades to skip, default is 0
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 1000); // api maximum 1000
+        }
+        $response = null;
+        $offset = $this->safe_integer($params, 'offset');
+        if ($offset !== null) {
+            $response = Async\await($this->publicGetApiV1TradesHistory($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicGetApiV1Trades($this->extend($request, $params)));
+        }
+        $responseList = $this->to_array($response);
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve (default 100, max 1000)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {string} [$params->fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['from'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['to'] = $until;
-            }
-            $fillType = $this->safe_string($params, 'fillType');
-            if ($fillType === null) {
-                $request['fillType'] = 'User'; // default
-            }
-            $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve (default 100, max 1000)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {string} [$params->fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['to'] = $until;
+        }
+        $fillType = $this->safe_string($params, 'fillType');
+        if ($fillType === null) {
+            $request['fillType'] = 'User'; // default
+        }
+        $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
+        $responseList = $this->to_array($response);
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1347,71 +1386,80 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_status($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * the latest known information on the availability of the exchange API
-             *
-             * @see https://docs.backpack.exchange/#tag/System/operation/get_status
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
-             */
-            $response = Async\await($this->publicGetApiV1Status($params));
-            //
-            //     {
-            //         "message":null,
-            //         "status":"Ok"
-            //     }
-            //
-            $status = $this->safe_string($response, 'status');
-            return array(
-                'status' => strtolower($status),
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://docs.backpack.exchange/#tag/System/operation/get_status
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
+         */
+        $response = Async\await($this->publicGetApiV1Status($params));
+        //
+        //     {
+        //         "message":null,
+        //         "status":"Ok"
+        //     }
+        //
+        $status = $this->safe_string($response, 'status');
+        if ($status === null) {
+            throw new ExchangeError($this->id . ' fetchStatus() missing status');
+        }
+        return array(
+            'status' => strtolower($status),
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->publicGetApiV1Time($params));
-            //
-            //     1753131712992
-            //
-            return $this->safe_integer($response, 0, $this->milliseconds());
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->publicGetApiV1Time($params));
+        //
+        //     1753131712992
+        //
+        return $this->safe_integer($response, 0, $this->milliseconds());
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetApiV1Capital($params));
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance($response): array {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetApiV1Capital($params));
+        return $this->parse_balance($response);
+    }
+
+    public function parse_balance(mixed $response): array {
         //
         //     {
         //         "USDC" => {
@@ -1433,127 +1481,135 @@ class backpack extends Exchange {
             $used = Precise::string_add($locked, $staked);
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $used;
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposits
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-            );
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            if ($since !== null) {
-                $request['from'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 1000
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
-            if ($until !== null) {
-                $request['endTime'] = $until;
-            }
-            $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $params)));
-            return $this->parse_transactions($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposits
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 1000
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $params)));
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-             * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            if ($since !== null) {
-                $request['from'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
-            if ($until !== null) {
-                $request['to'] = $until;
-            }
-            $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params)));
-            return $this->parse_transactions($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        if ($until !== null) {
+            $request['to'] = $until;
+        }
+        $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params)));
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} $params->network the network to withdraw on (mandatory)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'symbol' => $currency['id'],
-                'quantity' => $this->number_to_string($amount),
-                'address' => $address,
-            );
-            if ($tag !== null) {
-                $request['clientId'] = $tag; // memo or $tag
-            }
-            list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
-            if ($networkId === null) {
-                throw new BadRequest($this->id . ' withdraw() requires a network parameter');
-            }
-            $request['blockchain'] = $networkId;
-            $response = Async\await($this->privatePostWapiV1CapitalWithdrawals($this->extend($request, $query)));
-            return $this->parse_transaction($response, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->network the network to withdraw on (mandatory)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'symbol' => $currency['id'],
+            'quantity' => $this->number_to_string($amount),
+            'address' => $address,
+        );
+        if ($tag !== null) {
+            $request['clientId'] = $tag; // memo or $tag
+        }
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        if ($networkId === null) {
+            throw new BadRequest($this->id . ' withdraw() requires a network parameter');
+        }
+        $request['blockchain'] = $networkId;
+        $response = Async\await($this->privatePostWapiV1CapitalWithdrawals($this->extend($request, $query)));
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     array(
@@ -1686,35 +1742,37 @@ class backpack extends Exchange {
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the deposit address for a $currency associated with this account
-             *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address
-             *
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->networkCode] the network to fetch the deposit address (mandatory)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $networkCode = null;
-            list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            if ($networkCode === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
-            );
-            $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params)));
-            return $this->parse_deposit_address($response, $currency);
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         *
+         * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->networkCode] the network to fetch the deposit address (mandatory)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+        );
+        $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params)));
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1733,80 +1791,90 @@ class backpack extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->cost] *$market orders only* the cost of the order in units of the quote currency (could be used instead of $amount)
-             * @param {int} [$params->clientOrderId] a unique id for the order
-             * @param {boolean} [$params->postOnly] true to place a post only order
-             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-             * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-             * @param {string} [$params->selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-             * @param {bool} [$params->autoLend] *spot margin only* if true then the order can lend
-             * @param {bool} [$params->autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-             * @param {bool} [$params->autoBorrow] *spot margin only* if true then the order can borrow
-             * @param {bool} [$params->autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-             * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at
-             * @param {array} [$params->takeProfit] *swap markets only - takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
-             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {float} [$params->takeProfit.price] take profit order $price (if not provided the order will be a $market order)
-             * @param {array} [$params->stopLoss] *swap markets only - stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
-             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-             * @param {float} [$params->stopLoss.price] stop loss order $price (if not provided the order will be a $market order)
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostApiV1Order($orderRequest));
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] *$market orders only* the cost of the order in units of the quote currency (could be used instead of $amount)
+         * @param {int} [$params->clientOrderId] a unique id for the order
+         * @param {boolean} [$params->postOnly] true to place a post only order
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+         * @param {string} [$params->selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+         * @param {bool} [$params->autoLend] *spot margin only* if true then the order can lend
+         * @param {bool} [$params->autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
+         * @param {bool} [$params->autoBorrow] *spot margin only* if true then the order can borrow
+         * @param {bool} [$params->autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
+         * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at
+         * @param {array} [$params->takeProfit] *swap markets only - takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {float} [$params->takeProfit.price] take profit order $price (if not provided the order will be a $market order)
+         * @param {array} [$params->stopLoss] *swap markets only - stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {float} [$params->stopLoss.price] stop loss order $price (if not provided the order will be a $market order)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = Async\await($this->privatePostApiV1Order($orderRequest));
+        return $this->parse_order($response, $market);
     }
 
     public function create_orders(array $orders, $params = array()) {
-        return Async\async(function () use ($orders, $params) {
-            /**
-             * create a list of trade $orders
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
-             *
-             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $ordersRequests = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
-                $type = $this->safe_string($rawOrder, 'type');
-                $side = $this->safe_string($rawOrder, 'side');
-                $amount = $this->safe_number($rawOrder, 'amount');
-                $price = $this->safe_number($rawOrder, 'price');
-                $orderParams = $this->safe_dict($rawOrder, 'params', array());
-                $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
-                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
-                $ordersRequests[] = $orderRequest;
-            }
-            $response = Async\await($this->privatePostApiV1Orders($ordersRequests));
-            return $this->parse_orders($response);
-        })();
+        return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    private function do_create_orders(array $orders, $params = array()) {
+        /**
+         * create a list of trade $orders
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $ordersRequests = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $response = Async\await($this->privatePostApiV1Orders($ordersRequests));
+        return $this->parse_orders($response);
+    }
+
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1882,7 +1950,7 @@ class backpack extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function encode_order_side($side) {
+    public function encode_order_side(mixed $side) {
         $sides = array(
             'buy' => 'Bid',
             'sell' => 'Ask',
@@ -1891,142 +1959,152 @@ class backpack extends Exchange {
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $response = Async\await($this->privateGetApiV1Orders($this->extend($request, $params)));
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetch an open order by it's $id
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol not used by hollaex fetchOpenOrder ()
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
-            }
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'orderId' => $id,
-            );
-            $response = Async\await($this->privateGetApiV1Order($this->extend($request, $params)));
-            return $this->parse_order($response);
-        })();
+            $request['symbol'] = $market['id'];
+        }
+        $response = Async\await($this->privateGetApiV1Orders($this->extend($request, $params)));
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetch an open order by it's $id
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol not used by fetchOpenOrder ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'orderId' => $id,
+        );
+        $response = Async\await($this->privateGetApiV1Order($this->extend($request, $params)));
+        return $this->parse_order($response);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'orderId' => $id,
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->privateDeleteApiV1Order($this->extend($request, $params)));
-            return $this->parse_order($response);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'orderId' => $id,
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->privateDeleteApiV1Order($this->extend($request, $params)));
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders
-             *
-             * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
-             *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->privateDeleteApiV1Orders($this->extend($request, $params)));
-            return $this->parse_orders($response, $market);
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+         *
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->privateDeleteApiV1Orders($this->extend($request, $params)));
+        return $this->parse_orders($response, $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-             * @param {array} [$params] extra parameters specific to the bitteam api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privateGetWapiV1HistoryOrders($this->extend($request, $params)));
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve (default 100, max 1000)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privateGetWapiV1HistoryOrders($this->extend($request, $params)));
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2193,27 +2271,29 @@ class backpack extends Exchange {
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open $positions
-             *
-             * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
-             *
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetApiV1Position($params));
-            $positions = $this->parse_positions($response);
-            if ($this->is_empty($symbols)) {
-                return $positions;
-            }
-            $symbols = $this->market_symbols($symbols);
-            return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open $positions
+         *
+         * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
+         *
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetApiV1Position($params));
+        $positions = $this->parse_positions($response);
+        if ($this->is_empty($symbols)) {
+            return $positions;
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2303,37 +2383,39 @@ class backpack extends Exchange {
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches the history of funding payments
-             *
-             * @see https://docs.backpack.exchange/#tag/History/operation/get_funding_payments
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
-             * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest trade to fetch (default now)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privateGetWapiV1HistoryFunding($this->extend($request, $params)));
-            return $this->parse_incomes($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the history of funding payments
+         *
+         * @see https://docs.backpack.exchange/#tag/History/operation/get_funding_payments
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+         * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest trade to fetch (default now)
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privateGetWapiV1HistoryFunding($this->extend($request, $params)));
+        return $this->parse_incomes($response, $market, $since, $limit);
+    }
+
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "fundingRate" => "0.0001",
@@ -2366,7 +2448,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $path;
         $url = $this->urls['api'][$api];
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
@@ -2412,7 +2494,7 @@ class backpack extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function generate_batch_payload($params, $ts, $recvWindow, $instruction) {
+    public function generate_batch_payload(mixed $params, mixed $ts, mixed $recvWindow, mixed $instruction) {
         $payload = '';
         for ($i = 0; $i < count($params); $i++) {
             $order = $this->safe_dict($params, $i, array());
@@ -2426,7 +2508,7 @@ class backpack extends Exchange {
         return $payload;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -55,10 +55,11 @@ class lbank extends lbank$1["default"] {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -85,8 +86,10 @@ class lbank extends lbank$1["default"] {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -123,82 +126,82 @@ class lbank extends lbank$1["default"] {
                 'spot': {
                     'public': {
                         'get': {
-                            'currencyPairs': 2.5,
-                            'accuracy': 2.5,
-                            'usdToCny': 2.5,
-                            'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
-                            'timestamp': 2.5,
-                            'ticker/24hr': 2.5,
-                            'ticker': 2.5,
-                            'depth': 2.5,
-                            'incrDepth': 2.5,
-                            'trades': 2.5,
-                            'kline': 2.5,
+                            'currencyPairs': { 'cost': 2.5 },
+                            'accuracy': { 'cost': 2.5 },
+                            'usdToCny': { 'cost': 2.5 },
+                            'assetConfigs': { 'cost': 2.5 },
+                            'withdrawConfigs': { 'cost': 2.5 * 1.5 }, // frequently rate-limits, so increase this endpoint RL
+                            'timestamp': { 'cost': 2.5 },
+                            'ticker/24hr': { 'cost': 2.5 },
+                            'ticker': { 'cost': 2.5 },
+                            'depth': { 'cost': 2.5 },
+                            'incrDepth': { 'cost': 2.5 },
+                            'trades': { 'cost': 2.5 },
+                            'kline': { 'cost': 2.5 },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
-                            'supplement/incrDepth': 2.5,
-                            'supplement/trades': 2.5,
-                            'supplement/ticker/price': 2.5,
-                            'supplement/ticker/bookTicker': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 },
+                            'supplement/incrDepth': { 'cost': 2.5 },
+                            'supplement/trades': { 'cost': 2.5 },
+                            'supplement/ticker/price': { 'cost': 2.5 },
+                            'supplement/ticker/bookTicker': { 'cost': 2.5 },
                         },
                         'post': {
-                            'supplement/system_status': 2.5,
+                            'supplement/system_status': { 'cost': 2.5 },
                         },
                     },
                     'private': {
                         'post': {
                             // account
-                            'user_info': 2.5,
-                            'subscribe/get_key': 2.5,
-                            'subscribe/refresh_key': 2.5,
-                            'subscribe/destroy_key': 2.5,
-                            'get_deposit_address': 2.5,
-                            'deposit_history': 2.5,
+                            'user_info': { 'cost': 2.5 },
+                            'subscribe/get_key': { 'cost': 2.5 },
+                            'subscribe/refresh_key': { 'cost': 2.5 },
+                            'subscribe/destroy_key': { 'cost': 2.5 },
+                            'get_deposit_address': { 'cost': 2.5 },
+                            'deposit_history': { 'cost': 2.5 },
                             // order
-                            'create_order': 1,
-                            'batch_create_order': 1,
-                            'cancel_order': 1,
-                            'cancel_clientOrders': 1,
-                            'orders_info': 2.5,
-                            'orders_info_history': 2.5,
-                            'order_transaction_detail': 2.5,
-                            'transaction_history': 2.5,
-                            'orders_info_no_deal': 2.5,
+                            'create_order': { 'cost': 1 },
+                            'batch_create_order': { 'cost': 1 },
+                            'cancel_order': { 'cost': 1 },
+                            'cancel_clientOrders': { 'cost': 1 },
+                            'orders_info': { 'cost': 2.5 },
+                            'orders_info_history': { 'cost': 2.5 },
+                            'order_transaction_detail': { 'cost': 2.5 },
+                            'transaction_history': { 'cost': 2.5 },
+                            'orders_info_no_deal': { 'cost': 2.5 },
                             // withdraw
-                            'withdraw': 2.5,
-                            'withdrawCancel': 2.5,
-                            'withdraws': 2.5,
-                            'supplement/user_info': 2.5,
-                            'supplement/withdraw': 2.5,
-                            'supplement/deposit_history': 2.5,
-                            'supplement/withdraws': 2.5,
-                            'supplement/get_deposit_address': 2.5,
-                            'supplement/asset_detail': 2.5,
-                            'supplement/customer_trade_fee': 2.5,
-                            'supplement/api_Restrictions': 2.5,
+                            'withdraw': { 'cost': 2.5 },
+                            'withdrawCancel': { 'cost': 2.5 },
+                            'withdraws': { 'cost': 2.5 },
+                            'supplement/user_info': { 'cost': 2.5 },
+                            'supplement/withdraw': { 'cost': 2.5 },
+                            'supplement/deposit_history': { 'cost': 2.5 },
+                            'supplement/withdraws': { 'cost': 2.5 },
+                            'supplement/get_deposit_address': { 'cost': 2.5 },
+                            'supplement/asset_detail': { 'cost': 2.5 },
+                            'supplement/customer_trade_fee': { 'cost': 2.5 },
+                            'supplement/api_Restrictions': { 'cost': 2.5 },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 },
                             // new order endpoints
-                            'supplement/create_order_test': 1,
-                            'supplement/create_order': 1,
-                            'supplement/cancel_order': 1,
-                            'supplement/cancel_order_by_symbol': 1,
-                            'supplement/orders_info': 2.5,
-                            'supplement/orders_info_no_deal': 2.5,
-                            'supplement/orders_info_history': 2.5,
-                            'supplement/user_info_account': 2.5,
-                            'supplement/transaction_history': 2.5,
+                            'supplement/create_order_test': { 'cost': 1 },
+                            'supplement/create_order': { 'cost': 1 },
+                            'supplement/cancel_order': { 'cost': 1 },
+                            'supplement/cancel_order_by_symbol': { 'cost': 1 },
+                            'supplement/orders_info': { 'cost': 2.5 },
+                            'supplement/orders_info_no_deal': { 'cost': 2.5 },
+                            'supplement/orders_info_history': { 'cost': 2.5 },
+                            'supplement/user_info_account': { 'cost': 2.5 },
+                            'supplement/transaction_history': { 'cost': 2.5 },
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'cfd/openApi/v1/pub/getTime': 2.5,
-                            'cfd/openApi/v1/pub/instrument': 2.5,
-                            'cfd/openApi/v1/pub/marketData': 2.5,
-                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                            'cfd/openApi/v1/pub/getTime': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/instrument': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/marketData': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/marketOrder': { 'cost': 2.5 },
                         },
                     },
                 },
@@ -468,26 +471,28 @@ class lbank extends lbank$1["default"] {
                 networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'minTransfer'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'minTransfer'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
-                'fee': this.safeNumber(networkEntry, 'fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
+                    'fee': this.safeNumber(networkEntry, 'fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -727,6 +732,7 @@ class lbank extends lbank$1["default"] {
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -738,7 +744,10 @@ class lbank extends lbank$1["default"] {
         //         "lastPrice": "29387.0"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp(ticker, 'lastTime');
+        }
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
@@ -905,7 +914,7 @@ class lbank extends lbank$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1325,7 +1334,9 @@ class lbank extends lbank$1["default"] {
                 const account = this.account();
                 account['used'] = this.safeString(used, currencyId);
                 account['free'] = this.safeString(free, currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -1339,7 +1350,9 @@ class lbank extends lbank$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(item, 'free');
                 account['used'] = this.safeString(item, 'locked');
-                result[codeInner] = account;
+                if (codeInner !== undefined) {
+                    result[codeInner] = account;
+                }
             }
             return this.safeBalance(result);
         }
@@ -1353,11 +1366,13 @@ class lbank extends lbank$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(item, 'usableAmt');
                 account['used'] = this.safeString(item, 'freezeAmt');
-                result[codeInner] = account;
+                if (codeInner !== undefined) {
+                    result[codeInner] = account;
+                }
             }
             return this.safeBalance(result);
         }
-        return undefined;
+        return this.safeBalance(result);
     }
     parseFundingRate(ticker, market = undefined) {
         // {
@@ -1524,7 +1539,12 @@ class lbank extends lbank$1["default"] {
         //        "code": 0
         //    }
         //
-        return this.parseBalance(response);
+        const balanceResponse = (response === undefined) ? {} : response;
+        const balanceResult = this.parseBalance(balanceResponse);
+        if (balanceResult === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchBalance() returned empty response');
+        }
+        return balanceResult;
     }
     parseTradingFee(fee, market = undefined) {
         //
@@ -2645,7 +2665,7 @@ class lbank extends lbank$1["default"] {
      * @name lbank#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -2717,13 +2737,19 @@ class lbank extends lbank$1["default"] {
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
             const networkList = this.safeValue(entry, 'networkList', []);
-            withdrawFees[code] = {};
+            if (code !== undefined) {
+                withdrawFees[code] = {};
+            }
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
                     const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);
-                    withdrawFees[code][networkCode] = fee;
+                    if (networkCode !== undefined) {
+                        if ((code !== undefined) && (networkCode !== undefined)) {
+                            withdrawFees[code][networkCode] = fee;
+                        }
+                    }
                 }
             }
         }
@@ -2781,10 +2807,14 @@ class lbank extends lbank$1["default"] {
                     network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (withdrawFees[codeInner] === undefined) {
-                    withdrawFees[codeInner] = {};
+                if (this.safeValue(withdrawFees, codeInner) === undefined) {
+                    if (codeInner !== undefined) {
+                        withdrawFees[codeInner] = {};
+                    }
                 }
-                withdrawFees[codeInner][network] = this.parseNumber(fee);
+                if ((codeInner !== undefined) && (network !== undefined)) {
+                    withdrawFees[codeInner][network] = this.parseNumber(fee);
+                }
             }
         }
         return {
@@ -2922,7 +2952,7 @@ class lbank extends lbank$1["default"] {
             if (canWithdraw === true) {
                 const currencyId = this.safeString(fee, 'assetCode');
                 const code = this.safeCurrencyCode(currencyId);
-                if (codes === undefined || this.inArray(code, codes)) {
+                if ((code !== undefined) && (codes === undefined || this.inArray(code, codes))) {
                     const withdrawFee = this.safeNumber(fee, 'fee');
                     if (withdrawFee !== undefined) {
                         const resultValue = this.safeValue(result, code);
@@ -3000,16 +3030,18 @@ class lbank extends lbank$1["default"] {
                         'percentage': undefined,
                     };
                 }
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': withdrawFee,
-                        'percentage': undefined,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': withdrawFee,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;
@@ -3097,7 +3129,7 @@ class lbank extends lbank$1["default"] {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return undefined;
+            throw new errors.NullResponse(this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue(response, 'result');
         if (success === 'false' || !success) {

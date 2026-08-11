@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/big"
 	random2 "math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -29,7 +30,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type Exchange struct {
+type BaseExchange struct {
+	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
 	MarketsMutex *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
@@ -78,6 +80,12 @@ type Exchange struct {
 	QuoteCurrencies        *sync.Map
 	ReloadingMarkets       bool
 	MarketsLoading         bool
+	Outcomes               any
+	Outcomes_by_id         any
+	Events                 any
+	Events_by_slug         any
+	ReloadingEvents        bool
+	EventsLoading          any
 	Symbols                []string
 	Codes                  []string
 	Ids                    []string
@@ -124,7 +132,8 @@ type Exchange struct {
 	WalletAddress interface{}
 	Twofa         interface{}
 
-	httpClient *http.Client
+	httpClient   *http.Client
+	lastProxyURL string
 
 	HttpProxy            interface{}
 	Http_proxy           interface{}
@@ -203,6 +212,14 @@ type Exchange struct {
 	idMutex sync.Mutex
 }
 
+// Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
+// embedded BaseExchange. Prediction-market exchanges (PredictionExchange) embed BaseExchange
+// as an independent sibling instead of embedding Exchange, so the two hierarchies stay
+// decoupled while sharing the same base via method promotion.
+type Exchange struct {
+	BaseExchange
+}
+
 const (
 	DECIMAL_PLACES     int = 2
 	SIGNIFICANT_DIGITS int = 3
@@ -218,7 +235,7 @@ const (
 
 // var ROUND int = 0
 
-func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
+func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
 	this.FetchHistoryCache = &ConcurrentListForRequests{}
 	if this.Options == nil {
@@ -277,7 +294,7 @@ func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[s
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
-	transport := &http.Transport{}
+	transport := newDualStackTransport()
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
@@ -285,7 +302,7 @@ func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[s
 	}
 }
 
-func (this *Exchange) Init(userConfig map[string]any) {
+func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
 		this.FetchHistoryCache = &ConcurrentListForRequests{}
 	}
@@ -299,13 +316,56 @@ func (this *Exchange) Init(userConfig map[string]any) {
 	// to do
 }
 
+
+// Dual-stack (IPv4 + IPv6) networking helpers for the hand-written Go base.
+// Every HTTP transport and WebSocket dialer constructed by the base exchange
+// must dial with network "tcp" so that Go's Happy Eyeballs (RFC 8305)
+// implementation can race IPv4 and IPv6 and pick whichever works. Hard-coding
+// a single-stack network like tcp4 (or leaving dialing to components that do)
+// breaks IPv6-only hosts, so these helpers centralize the dialer/transport
+// construction in one place (same file as the exchange HTTP client setup).
+
+// newDualStackDialer returns a *net.Dialer whose Dial/DialContext methods are
+// intended to be called with network "tcp" (the http.Transport and
+// websocket.Dialer defaults), which dials dual-stack via Happy Eyeballs.
+// The deprecated net.Dialer.DualStack field is intentionally not set: since
+// Go 1.20 dual-stack is always enabled when dialing "tcp".
+//
+// FallbackDelay controls Fast Fallback (Happy Eyeballs): a zero value means
+// the 300ms default, and a negative value disables Fast Fallback entirely.
+// 1ns is the smallest positive time.Duration, so it starts racing the other
+// address family as soon as possible. Never set this to a negative value.
+func newDualStackDialer() *net.Dialer {
+	return &net.Dialer{
+		Timeout:       30 * time.Second,
+		KeepAlive:     30 * time.Second,
+		FallbackDelay: 1 * time.Nanosecond,
+	}
+}
+
+// newDualStackTransport returns an *http.Transport with an explicit
+// dual-stack DialContext. Never dial with a single-stack network such as
+// tcp4 — always use "tcp".
+func newDualStackTransport() *http.Transport {
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		// network "tcp" → dual-stack Happy Eyeballs
+		DialContext:           newDualStackDialer().DialContext,
+		ForceAttemptHTTP2:     false, // keep HTTP/1.1 semantics of the previous bare Transport
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+}
+
 func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]any{})
 	return exchange
 }
 
-func (this *Exchange) WarmUpCache() {
+func (this *BaseExchange) WarmUpCache() {
 	// itf fields
 	if this.cacheLoaded {
 		return
@@ -337,7 +397,7 @@ func (this *Exchange) WarmUpCache() {
 	}
 }
 
-func (this *Exchange) InitThrottler() {
+func (this *BaseExchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
@@ -350,7 +410,7 @@ func (this *Exchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *Exchange) LoadMarkets(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
@@ -381,7 +441,7 @@ func (this *Exchange) LoadMarkets(params ...any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsHelper(params ...any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -432,6 +492,14 @@ func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
 		// Lock only for writing
 		this.MarketsMutex.Lock()
 		result := this.SetMarkets(markets, currencies)
+		// prediction exchanges build an outcome lookup from the loaded markets via the
+		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
+		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
+		// instance when it implements it (non-prediction exchanges do not, so they are
+		// unaffected). Mirrors the TS override that runs inside setMarkets.
+		if pred, ok := this.Itf.(interface{ SetOutcomesFromMarkets() }); ok {
+			pred.SetOutcomesFromMarkets()
+		}
 		this.MarketsMutex.Unlock()
 
 		ch <- result
@@ -439,7 +507,7 @@ func (this *Exchange) LoadMarketsHelper(params ...any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) Throttle(cost any) <-chan any {
+func (this *BaseExchange) Throttle(cost any) <-chan any {
 	// to do
 	ch := make(chan any)
 	go func() {
@@ -450,7 +518,7 @@ func (this *Exchange) Throttle(cost any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) FetchMarkets(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchMarkets(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		// defer close(ch)
@@ -461,7 +529,7 @@ func (this *Exchange) FetchMarkets(optionalArgs ...any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) FetchCurrencies(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchCurrencies(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -472,7 +540,7 @@ func (this *Exchange) FetchCurrencies(optionalArgs ...any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) Sleep(milliseconds any) <-chan bool {
+func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 	var duration time.Duration
 
 	// Type assertion to handle various types for milliseconds
@@ -498,12 +566,12 @@ func (this *Exchange) Sleep(milliseconds any) <-chan bool {
 	return ch
 }
 
-func (this *Exchange) Log(args ...any) {
+func (this *BaseExchange) Log(args ...any) {
 	// convert to str and print
 	fmt.Println(args...)
 }
 
-func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
+func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -525,7 +593,9 @@ func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
 			api := endPointData["api"]
 			var cost float64 = 1
 			if valCost, ok := endPointData["cost"]; ok {
-				cost = valCost.(float64)
+				if parsed, ok := toCost(valCost); ok {
+					cost = parsed
+				}
 			}
 			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
@@ -537,7 +607,7 @@ func (this *Exchange) callEndpoint(endpoint2 any, parameters any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) ConvertToBigInt(data any) any {
+func (this *BaseExchange) ConvertToBigInt(data any) any {
 	bigValue := parseStarknetBigInt(data)
 	if bigValue == nil {
 		return nil
@@ -545,7 +615,7 @@ func (this *Exchange) ConvertToBigInt(data any) any {
 	return bigValue.String()
 }
 
-func (this *Exchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
+func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
 	// Create a new sync.Map to hold the safe dictionary
 	return &sync.Map{}
 }
@@ -561,7 +631,9 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("[ccxtError]::[%s]::[%s]\nStack:\n%s", e.Type, e.Message, e.Stack)
+	// the goroutine dump stays in e.Stack — appending it here buries the actual message
+	// under ~40 lines of runtime frames on every error a user prints
+	return fmt.Sprintf("[ccxtError]::[%s]::[%s]", e.Type, e.Message)
 }
 
 func NewError(errType any, message ...any) error {
@@ -570,7 +642,14 @@ func NewError(errType any, message ...any) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		// ReturnPanicError appends "\nStack trace:\n<goroutine dump>" to the recovered
+		// message (and the old Error() format appended "]\nStack:") — strip any such tail
+		// out of Message; the dump still reaches the Stack field via the second vararg
 		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
+		msgParts = strings.Split(msg, "]\nStack trace:")
+		msg = msgParts[0]
+		msgParts = strings.Split(msg, "\nStack trace:")
 		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])
@@ -627,7 +706,7 @@ func ToSafeFloat(v any) (float64, error) {
 }
 
 // json converts an object to a JSON string
-func (this *Exchange) Json(object any) any {
+func (this *BaseExchange) Json(object any) any {
 	jsonBytes, err := j.Marshal(object)
 	if err != nil {
 		return nil
@@ -635,7 +714,7 @@ func (this *Exchange) Json(object any) any {
 	return string(jsonBytes)
 }
 
-func (this *Exchange) ParseNumber(v any, a ...any) any {
+func (this *BaseExchange) ParseNumber(v any, a ...any) any {
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {
@@ -650,7 +729,7 @@ func (this *Exchange) ParseNumber(v any, a ...any) any {
 	return nil
 }
 
-func (this *Exchange) ValueIsDefined(v any) bool {
+func (this *BaseExchange) ValueIsDefined(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -665,24 +744,24 @@ func (this *Exchange) ValueIsDefined(v any) bool {
 	return true
 }
 
-// func (this *Exchange) CreateSafeDictionary() any {
+// func (this *BaseExchange) CreateSafeDictionary() any {
 // 	return map[string]any{}
 // }
 
-func (this *Exchange) ConvertToSafeDictionary(data any) any {
+func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
-func (this *Exchange) callDynamically(name2 any, args ...any) <-chan any {
+func (this *BaseExchange) callDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
 
-func (this *Exchange) CallDynamically(name2 any, args ...any) <-chan any {
+func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
-func (this *Exchange) Clone(object any) any {
+func (this *BaseExchange) Clone(object any) any {
 	if object == nil {
 		return nil
 	}
@@ -693,7 +772,7 @@ func (this *Exchange) Clone(object any) any {
 	return result.Interface()
 }
 
-func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
+func (this *BaseExchange) DeepCopy(value reflect.Value) reflect.Value {
 	if !value.IsValid() {
 		// zero / invalid reflect.Value – preserve as-is (callers use IsValid to detect nil)
 		return value
@@ -737,7 +816,7 @@ type IArrayCache interface {
 	ToArray() []any
 }
 
-func (this *Exchange) ArraySlice(array any, first any, second ...any) any {
+func (this *BaseExchange) ArraySlice(array any, first any, second ...any) any {
 	// If the incoming object implements IArrayCache convert it first.
 	if cache, ok := array.(IArrayCache); ok {
 		return this.ArraySlice(cache.ToArray(), first, second...)
@@ -777,7 +856,7 @@ func (this *Exchange) ArraySlice(array any, first any, second ...any) any {
 	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
 
-func (this *Exchange) sliceToInterface(value reflect.Value) []any {
+func (this *BaseExchange) sliceToInterface(value reflect.Value) []any {
 	length := value.Len()
 	result := make([]any, length)
 	for i := 0; i < length; i++ {
@@ -795,7 +874,7 @@ func (e *exampleArrayCache) ToArray() []any {
 	return e.data
 }
 
-func (this *Exchange) ParseTimeframe(timeframe any) any {
+func (this *BaseExchange) ParseTimeframe(timeframe any) any {
 	str, ok := timeframe.(string)
 	if !ok {
 		return nil
@@ -839,13 +918,13 @@ func Totp(secret any) string {
 	return ""
 }
 
-func (this *Exchange) ParseJson(input any) any {
+func (this *BaseExchange) ParseJson(input any) any {
 	return ParseJSON(input)
 }
 
 // type Dict map[string]any
 
-func (this *Exchange) transformApiNew(api Dict, paths ...string) {
+func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 	if api == nil {
 		return
 	}
@@ -877,14 +956,14 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 					if config, ok := dictValue[endpoint]; ok {
 						if dictConfig, ok := config.(map[string]any); ok {
 							if rl, success := dictConfig["cost"]; success {
-								if rlFloat, ok := rl.(float64); ok {
-									cost = rlFloat
-								} else if rlString, ok := rl.(string); ok {
-									cost = parseCost(rlString)
+								if parsed, ok := toCost(rl); ok {
+									cost = parsed
 								}
 							}
 						} else if config != nil {
-							cost = parseCost(fmt.Sprintf("%v", config))
+							if parsed, ok := toCost(config); ok {
+								cost = parsed
+							}
 						}
 					}
 				}
@@ -946,7 +1025,30 @@ func parseCost(costStr string) float64 {
 	return cost
 }
 
-// func (this *Exchange) callInternal(name2 string, args ...any) any {
+// toCost reads an api-leaf rate limit cost, which reaches Go as whatever numeric
+// type the transpiler emitted for it: a bare `1` is an int, `0.1` a float64, and
+// a value carried through a map may arrive as a string. Type-asserting float64
+// alone silently fell back to a cost of 1 for every integer cost declared inside
+// an object leaf (e.g. binance dapiPublic depth {"cost": 2, "byLimit": ...}).
+func toCost(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int32:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case string:
+		return parseCost(typed), true
+	}
+	return 0, false
+}
+
+// func (this *BaseExchange) callInternal(name2 string, args ...any) any {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
 
@@ -998,18 +1100,18 @@ func parseCost(costStr string) float64 {
 // 	return nil
 // }
 
-func (this *Exchange) CheckRequiredDependencies() {
+func (this *BaseExchange) CheckRequiredDependencies() {
 	// to do
 }
 
-func (this *Exchange) FixStringifiedJsonMembers(a any) string {
+func (this *BaseExchange) FixStringifiedJsonMembers(a any) string {
 	aStr := a.(string)
 	aStr = strings.ReplaceAll(aStr, "\\", "")
 	aStr = strings.ReplaceAll(aStr, "\"{", "{")
 	aStr = strings.ReplaceAll(aStr, "}\"", "}")
 	return aStr
 }
-func (this *Exchange) IsEmpty(a any) bool {
+func (this *BaseExchange) IsEmpty(a any) bool {
 	if a == nil {
 		return true
 	}
@@ -1035,11 +1137,11 @@ func (this *Exchange) IsEmpty(a any) bool {
 	}
 }
 
-func (this *Exchange) CallInternal(name2 string, args ...any) <-chan any {
+func (this *BaseExchange) CallInternal(name2 string, args ...any) <-chan any {
 	return this.callInternal(name2, args...)
 }
 
-func (this *Exchange) callInternal(name2 string, args ...any) <-chan any {
+func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan any {
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
@@ -1063,11 +1165,11 @@ func (this *Exchange) callInternal(name2 string, args ...any) <-chan any {
 	return ch
 }
 
-func (this *Exchange) BinaryLength(binary any) int {
+func (this *BaseExchange) BinaryLength(binary any) int {
 	return this.binaryLength(binary)
 }
 
-func (this *Exchange) binaryLength(binary any) int {
+func (this *BaseExchange) binaryLength(binary any) int {
 	var length int
 
 	// Handle different types for the length parameter
@@ -1083,7 +1185,7 @@ func (this *Exchange) binaryLength(binary any) int {
 	return length
 }
 
-func (this *Exchange) RandomBytes(length any) string {
+func (this *BaseExchange) RandomBytes(length any) string {
 	var byteLength int
 
 	// Handle different types for the length parameter
@@ -1115,7 +1217,7 @@ func (this *Exchange) RandomBytes(length any) string {
 	return hex.EncodeToString(x)
 }
 
-func (this *Exchange) IsJsonEncodedObject(str any) bool {
+func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
 	// Attempt to assert the input to a string type
 	str2, ok := str.(string)
 	if !ok {
@@ -1129,7 +1231,7 @@ func (this *Exchange) IsJsonEncodedObject(str any) bool {
 	return false
 }
 
-func (this *Exchange) StringToCharsArray(value any) []string {
+func (this *BaseExchange) StringToCharsArray(value any) []string {
 	// Attempt to assert the input to a string type
 	str, ok := value.(string)
 	if !ok {
@@ -1147,7 +1249,7 @@ func (this *Exchange) StringToCharsArray(value any) []string {
 	return chars
 }
 
-func (this *Exchange) GetMarket(symbol string) MarketInterface {
+func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 	if this.Markets == nil {
 		panic("Markets not loaded, please call LoadMarkets() first")
 	}
@@ -1159,7 +1261,7 @@ func (this *Exchange) GetMarket(symbol string) MarketInterface {
 	return NewMarketInterface(market)
 }
 
-func (this *Exchange) GetMarketsList() []MarketInterface {
+func (this *BaseExchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
 	// for _, market := range this.Markets {
 	// 	markets = append(markets, NewMarketInterface(market))
@@ -1172,7 +1274,7 @@ func (this *Exchange) GetMarketsList() []MarketInterface {
 	return markets
 }
 
-func (this *Exchange) GetCurrency(currencyId string) Currency {
+func (this *BaseExchange) GetCurrency(currencyId string) Currency {
 	// market := this.Currencies[currency]
 	currency, ok := this.Currencies.Load(currencyId)
 	if !ok {
@@ -1181,7 +1283,7 @@ func (this *Exchange) GetCurrency(currencyId string) Currency {
 	return NewCurrency(currency)
 }
 
-func (this *Exchange) GetCurrenciesList() []Currency {
+func (this *BaseExchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
 	// for _, currency := range this.Currencies {
 	// 	currencies = append(currencies, NewCurrency(currency))
@@ -1194,7 +1296,7 @@ func (this *Exchange) GetCurrenciesList() []Currency {
 	return currencies
 }
 
-func (this *Exchange) SetProperty(obj any, property any, defaultValue any) {
+func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
@@ -1210,14 +1312,18 @@ func (this *Exchange) SetProperty(obj any, property any, defaultValue any) {
 
 	// Check if the field exists and is settable
 	if field.IsValid() && field.CanSet() {
-		// Set the field with the default value, casting it to the right type
-		field.Set(reflect.ValueOf(defaultValue))
+		// only set when the value is assignable to the field type — the test harness can pass a
+		// plain map for a typed field (e.g. Options *sync.Map) and reflect.Set panics on a mismatch
+		valueReflect := reflect.ValueOf(defaultValue)
+		if valueReflect.IsValid() && valueReflect.Type().AssignableTo(field.Type()) {
+			field.Set(valueReflect)
+		}
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
 }
 
-func (this *Exchange) ExceptionMessage(exc any, includeStack ...any) any {
+func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) any {
 	include := true
 	if len(includeStack) > 0 {
 		include = includeStack[0].(bool)
@@ -1239,7 +1345,7 @@ func (this *Exchange) ExceptionMessage(exc any, includeStack ...any) any {
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj any, property any, defaultValue ...any) any {
+func (this *BaseExchange) GetProperty(obj any, property any, defaultValue ...any) any {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
@@ -1269,7 +1375,7 @@ func (this *Exchange) GetProperty(obj any, property any, defaultValue ...any) an
 	}
 }
 
-func (this *Exchange) Unique(obj any) []any {
+func (this *BaseExchange) Unique(obj any) []any {
 	var list []any
 
 	switch v := obj.(type) {
@@ -1294,7 +1400,7 @@ func (this *Exchange) Unique(obj any) []any {
 	return uniqueList
 }
 
-// func (this *Exchange) callInternal(name2 string, args ...any) any {
+// func (this *BaseExchange) callInternal(name2 string, args ...any) any {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
 
@@ -1333,19 +1439,19 @@ func (this *Exchange) Unique(obj any) []any {
 // 	return nil
 // }
 
-func (this *Exchange) RetrieveStarkAccount(sig any, account any, hash any) any {
+func (this *BaseExchange) RetrieveStarkAccount(sig any, account any, hash any) any {
 	return nil // to do
 }
 
-func (this *Exchange) StarknetEncodeStructuredData(a any, b any, c any, d any) any {
+func (this *BaseExchange) StarknetEncodeStructuredData(a any, b any, c any, d any) any {
 	return nil // to do
 }
 
-func (this *Exchange) StarknetSign(a any, b any) any {
+func (this *BaseExchange) StarknetSign(a any, b any) any {
 	return nil // to do
 }
 
-func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
+func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
@@ -1358,11 +1464,11 @@ func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *Exchange) ExtendedStarknetGetSelectorFromName(a any) any {
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
 	return starkutils.GetSelectorFromName(ToString(a)).String()
 }
 
-func (this *Exchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
 	values, ok := a.([]any)
 	if !ok {
 		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
@@ -1429,7 +1535,7 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1447,7 +1553,7 @@ func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any
 	return ch
 }
 
-func (this *Exchange) GetZKTransferSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKTransferSignatureObj(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1465,7 +1571,7 @@ func (this *Exchange) GetZKTransferSignatureObj(seed any, params any) <-chan any
 	return ch
 }
 
-func (this *Exchange) LoadDydxProtos() <-chan any {
+func (this *BaseExchange) LoadDydxProtos() <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1481,15 +1587,15 @@ func (this *Exchange) LoadDydxProtos() <-chan any {
 	return ch
 }
 
-func (this *Exchange) ToDydxLong(numStr any) any {
+func (this *BaseExchange) ToDydxLong(numStr any) any {
 	return nil
 }
 
-func (this *Exchange) RetrieveDydxCredentials(entropy any) any {
+func (this *BaseExchange) RetrieveDydxCredentials(entropy any) any {
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxForSimulation(
+func (this *BaseExchange) EncodeDydxTxForSimulation(
 	message any,
 	memo any,
 	sequence any,
@@ -1497,7 +1603,7 @@ func (this *Exchange) EncodeDydxTxForSimulation(
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxForSigning(
+func (this *BaseExchange) EncodeDydxTxForSigning(
 	message any,
 	memo any,
 	chainId any,
@@ -1507,20 +1613,20 @@ func (this *Exchange) EncodeDydxTxForSigning(
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxRaw(signDoc any, signature any) any {
+func (this *BaseExchange) EncodeDydxTxRaw(signDoc any, signature any) any {
 	return nil
 }
 
-func (this *Exchange) ExtendExchangeOptions(options2 any) {
+func (this *BaseExchange) ExtendExchangeOptions(options2 any) {
 	options := options2.(map[string]any)
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)
 	this.Options = this.MapToSafeMap(extended)
 }
 
-// func (this *Exchange) Init(userConfig map[string]any) {
+// func (this *BaseExchange) Init(userConfig map[string]any) {
 // }
 
-func (this *Exchange) RandNumber(size any) int64 {
+func (this *BaseExchange) RandNumber(size any) int64 {
 	// Try casting any to int
 	intSize, ok := size.(int)
 	if !ok {
@@ -1545,7 +1651,7 @@ func (this *Exchange) RandNumber(size any) int64 {
 	return result
 }
 
-func (this *Exchange) UpdateProxySettings() {
+func (this *BaseExchange) UpdateProxySettings() {
 	proxyUrl := this.CheckProxyUrlSettings(nil, nil, nil, nil)
 	proxies := this.CheckProxySettings(nil, "", nil, nil)
 	httProxy := this.SafeString(proxies, 0)
@@ -1556,27 +1662,29 @@ func (this *Exchange) UpdateProxySettings() {
 	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
 
 	if hasHttProxyDefined {
-		proxyTransport := &http.Transport{
-			// MaxIdleConns:       100,
-			// IdleConnTimeout:    90 * time.Second,
-			// DisableCompression: false,
-			// DisableKeepAlives:  false,
-		}
-
 		proxyUrlStr := ""
 		if httProxy != nil {
 			proxyUrlStr = httProxy.(string)
 		} else {
 			proxyUrlStr = httpsProxy.(string)
 		}
-		proxyURLParsed, _ := url.Parse(proxyUrlStr)
-		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
-
-		this.httpClient.Transport = proxyTransport
+		// rebuild the transport only when the proxy URL changes, otherwise a
+		// fresh transport (and connection pool) is created on every request
+		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
+			proxyURLParsed, _ := url.Parse(proxyUrlStr)
+			this.httpClient.Transport = &http.Transport{
+				Proxy:               http.ProxyURL(proxyURLParsed),
+				DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
+				MaxConnsPerHost:     8,                                // hard ceiling per target host
+				MaxIdleConnsPerHost: 4,                                // reuse pool
+				IdleConnTimeout:     90 * time.Second,
+			}
+			this.lastProxyURL = proxyUrlStr
+		}
 	}
 }
 
-func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan any {
+func (this *BaseExchange) callEndpointAsync(endpointName string, args ...any) <-chan any {
 	parameters := GetArg(args, 0, nil)
 	ch := make(chan any)
 	go func() {
@@ -1592,6 +1700,13 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan
 	return ch
 }
 
+// CallEndpointAsync is the exported pass-through used by implicit-API files that are
+// generated into sibling packages (e.g. go/v4/prediction) and therefore cannot reach
+// the unexported callEndpointAsync
+func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
+	return this.callEndpointAsync(endpointName, args...)
+}
+
 // returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
 //
 // Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally
@@ -1600,7 +1715,7 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan
 //   - [message]      subscribe payload (optional)
 //   - [subscribeHash] key for "subscriptions" map (optional)
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
-func (this *Exchange) Watch(args ...any) <-chan any {
+func (this *BaseExchange) Watch(args ...any) <-chan any {
 
 	url, _ := args[0].(string)
 	messageHash, _ := args[1].(string)
@@ -1661,6 +1776,10 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -1707,7 +1826,7 @@ func (this *Exchange) Watch(args ...any) <-chan any {
 // ------------------- WS helper wrappers (parity with TS) ------------------
 
 // OrderBook returns a new mutable order-book using our Go implementation.
-func (this *Exchange) OrderBook(optionalArgs ...any) *WsOrderBook {
+func (this *BaseExchange) OrderBook(optionalArgs ...any) *WsOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, math.MaxInt32)
 	orderBook := NewWsOrderBook(snapshot, depth)
@@ -1715,21 +1834,21 @@ func (this *Exchange) OrderBook(optionalArgs ...any) *WsOrderBook {
 }
 
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
-func (this *Exchange) IndexedOrderBook(optionalArgs ...any) *IndexedOrderBook {
+func (this *BaseExchange) IndexedOrderBook(optionalArgs ...any) *IndexedOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewIndexedOrderBook(snapshot, depth)
 	return orderBook
 }
 
-func (this *Exchange) CountedOrderBook(optionalArgs ...any) *CountedOrderBook {
+func (this *BaseExchange) CountedOrderBook(optionalArgs ...any) *CountedOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]any{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewCountedOrderBook(snapshot, depth)
 	return orderBook
 }
 
-// func (this *Exchange) setOwner(cli *WSClient) {
+// func (this *BaseExchange) setOwner(cli *WSClient) {
 // 	if this.DerivedExchange != nil {
 // 		cli.Owner = this.DerivedExchange.(*Exchange)
 // 	} else {
@@ -1737,7 +1856,7 @@ func (this *Exchange) CountedOrderBook(optionalArgs ...any) *CountedOrderBook {
 // 	}
 // }
 
-func (this *Exchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy any) (any, error) {
+func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy any) (any, error) {
 	var transport *http.Transport
 
 	// Handle HTTP proxy
@@ -1747,7 +1866,8 @@ func (this *Exchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy a
 			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if httpsProxy != "" {
 		// Handle HTTPS proxy
@@ -1756,7 +1876,8 @@ func (this *Exchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy a
 			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if socksProxy != "" {
 		// Handle SOCKS proxy
@@ -1779,7 +1900,7 @@ func (this *Exchange) SetProxyAgents(httpProxy any, httpsProxy any, socksProxy a
 	return transport, nil
 }
 
-func (this *Exchange) GetHttpAgentIfNeeded(url string) (any, error) {
+func (this *BaseExchange) GetHttpAgentIfNeeded(url string) (any, error) {
 	// if isNode { // TODO: implement this
 	if len(url) >= 5 && url[:5] == "ws://" {
 		if this.HttpProxy == nil {
@@ -1791,20 +1912,20 @@ func (this *Exchange) GetHttpAgentIfNeeded(url string) (any, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *Exchange) Ping(client any) any {
+func (this *BaseExchange) Ping(client any) any {
 	return nil
 }
 
-func (this *Exchange) HandleMessage(client any, message any) {
+func (this *BaseExchange) HandleMessage(client any, message any) {
 	// stub to override
 }
 
-func (this *Exchange) OnConnected(client any, message any) {
+func (this *BaseExchange) OnConnected(client any, message any) {
 	// for user hooks
 	// fmt.Println('Connected to', client.url)
 }
 
-func (this *Exchange) OnError(client any, err any) {
+func (this *BaseExchange) OnError(client any, err any) {
 	this.WsClientsMu.Lock()
 	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
 		delete(this.Clients, client.(ClientInterface).GetUrl())
@@ -1813,7 +1934,7 @@ func (this *Exchange) OnError(client any, err any) {
 	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
 
-func (this *Exchange) OnClose(client any, err any) {
+func (this *BaseExchange) OnClose(client any, err any) {
 	if client.(*Client).Error != nil {
 		// connection closed due to an error, do nothing
 	} else {
@@ -1824,7 +1945,7 @@ func (this *Exchange) OnClose(client any, err any) {
 }
 
 // Client returns (and caches) a *WSClient for the given WS URL.
-func (this *Exchange) Client(url any) *WSClient {
+func (this *BaseExchange) Client(url any) *WSClient {
 	// TODO: what to do with errors
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
@@ -1878,7 +1999,7 @@ func (this *Exchange) Client(url any) *WSClient {
 	return client
 }
 
-func (this *Exchange) getWsProxy() string {
+func (this *BaseExchange) getWsProxy() string {
 	proxies := this.CheckWsProxySettings()
 	var proxyUrl string
 	if proxySlice, ok := proxies.([]any); ok {
@@ -1896,7 +2017,7 @@ func (this *Exchange) getWsProxy() string {
 	return proxyUrl
 }
 
-func (this *Exchange) WatchMultiple(args ...any) <-chan any {
+func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	url, _ := args[0].(string)
 	var messageHashes []string
 
@@ -1980,6 +2101,10 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
 	client.ConnectMu.Lock()
+	if !client.StartedConnecting {
+		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+		backoffDelay = this.CalculateWsBackoffDelay(url)
+	}
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
@@ -2028,7 +2153,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 	return future.Await()
 }
 
-// func (this *Exchange) Spawn(method any, args ...any) <-chan any {
+// func (this *BaseExchange) Spawn(method any, args ...any) <-chan any {
 // 	future := NewFuture()
 
 // 	go func() {
@@ -2042,7 +2167,7 @@ func (this *Exchange) WatchMultiple(args ...any) <-chan any {
 // 	return future.Await()
 // }
 
-func (this *Exchange) Spawn(method any, args ...any) *Future {
+func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 	future := NewFuture()
 
 	go func() {
@@ -2056,7 +2181,7 @@ func (this *Exchange) Spawn(method any, args ...any) *Future {
 	return future
 }
 
-func (this *Exchange) Delay(timeout any, method any, args ...any) {
+func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 	var timeoutMs int64
 	switch v := timeout.(type) {
 	case int:
@@ -2071,6 +2196,9 @@ func (this *Exchange) Delay(timeout any, method any, args ...any) {
 	})
 }
 
+// LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
+// 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
+// use it; prediction venues embed BaseExchange and never call it.
 func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
 	limit := GetArg(optionalArgs, 0, nil)
 	params := GetArg(optionalArgs, 1, map[string]any{})
@@ -2096,6 +2224,8 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
 		delete(this.Clients, client.(*Client).Url)
+		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
+		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
 		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
@@ -2108,7 +2238,7 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 	return nil
 }
 
-func (this *Exchange) Close(cleanInstanceData ...any) []error {
+func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
 	this.WsClientsMu.Lock()
@@ -2160,7 +2290,7 @@ func CallDynamically(fn any, args ...any) any {
 	return nil
 }
 
-func (this *Exchange) Crc32(str any, signed2 bool) int64 {
+func (this *BaseExchange) Crc32(str any, signed2 bool) int64 {
 	// signed := false
 	// if len(signed2) > 0 {
 	// 	if b, ok := signed2[0].(bool); ok {
@@ -2170,14 +2300,14 @@ func (this *Exchange) Crc32(str any, signed2 bool) int64 {
 	return Crc32(str.(string), signed2)
 }
 
-func (this *Exchange) IsBinaryMessage(message any) bool {
+func (this *BaseExchange) IsBinaryMessage(message any) bool {
 	if _, ok := message.([]byte); ok {
 		return true
 	}
 	return false
 }
 
-func (this *Exchange) DecodeProtoMsg(message any) any {
+func (this *BaseExchange) DecodeProtoMsg(message any) any {
 	var msg pb.PushDataV3ApiWrapper
 	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
@@ -2188,18 +2318,69 @@ func (this *Exchange) DecodeProtoMsg(message any) any {
 	return v
 }
 
-func (this *Exchange) Uuid5(namespace any, name any) string {
+func (this *BaseExchange) Uuid5(namespace any, name any) string {
 	return ""
 }
 
-func (this *Exchange) LockId() bool {
+func (this *BaseExchange) LockId() bool {
 	this.idMutex.Lock()
 	return true
 }
 
-func (this *Exchange) UnlockId() bool {
+func (this *BaseExchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
+}
+
+// FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
+// Prediction exchanges override it (kalshi resolves a single outcome on demand).
+func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		_ = outcomeSymbol
+		panic(NotSupported(Add(this.Id, " fetchOutcome() is not supported yet")))
+	}()
+	return ch
+}
+
+// FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
+// The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
+// kalshi/polymarket override it with batched by-id requests.
+func (this *BaseExchange) FetchOutcomes(outcomeSymbols any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		_ = outcomeSymbols
+		panic(NotSupported(Add(this.Id, " fetchOutcomes() is not supported yet")))
+	}()
+	return ch
+}
+
+// SignEvmTransaction is a default stub so every exchange satisfies IDerivedExchange.
+// EVM prediction exchanges (limitless, myriad) override it — it needs the noble crypto imports.
+func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
+	_ = tx
+	_ = privateKey
+	panic(NotSupported(Add(this.Id, " signEvmTransaction() is not supported yet")))
+}
+
+// FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
+// Prediction exchanges (PredictionExchange and its derivatives) override it.
+func (this *BaseExchange) FetchEvents(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		queries := GetArg(optionalArgs, 0, nil)
+		_ = queries
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+	}()
+	return ch
 }
 
 // ############ Requests data ############
@@ -2226,7 +2407,7 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 	return cp
 }
 
-func (e *Exchange) AddFetchCache(item any) {
+func (e *BaseExchange) AddFetchCache(item any) {
 
 	e.FetchHistoryCache.Lock()
 	defer e.FetchHistoryCache.Unlock()
@@ -2237,8 +2418,50 @@ func (e *Exchange) AddFetchCache(item any) {
 		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
 	}
 }
-func (e *Exchange) GetFetchCache() []any {
+func (e *BaseExchange) GetFetchCache() []any {
 	return e.FetchHistoryCache.GetAll()
 }
 
 // #########################################
+
+// CalculateWsBackoffDelay implements exponential reconnect backoff with rng-free jitter,
+// mirroring ts/src/base/Exchange.ts calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
+	if this.wsBackoffState == nil {
+		this.wsBackoffState = map[string][]int64{}
+	}
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
+	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
+	base := ParseInt(SafeInteger(backoff, "base", 1000))
+	factor := ParseInt(SafeInteger(backoff, "factor", 2))
+	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
+	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	now := this.Milliseconds()
+	state, ok := this.wsBackoffState[url]
+	if !ok {
+		state = []int64{0, 0} // attempts, lastAttempt
+	}
+	attempts := state[0]
+	lastAttempt := state[1]
+	if lastAttempt > 0 && (now-lastAttempt) > stableAfter {
+		attempts = 0 // the previous connection was healthy long enough, start fresh
+	}
+	this.wsBackoffState[url] = []int64{attempts + 1, now}
+	if attempts == 0 {
+		return 0 // first dial or recovered, connect immediately
+	}
+	delay := base
+	capped := attempts
+	if capped > 20 {
+		capped = 20 // overflow guard
+	}
+	for i := int64(1); i < capped; i++ {
+		delay = delay * factor
+	}
+	jitterMillis := now % 1000 // rng-free jitter
+	jittered := int64(float64(delay) * (0.8 + float64(jitterMillis)/2500.0)) // 0.8x .. 1.2x
+	if jittered > maxDelay {
+		jittered = maxDelay // the ceiling holds regardless of jitter
+	}
+	return int(jittered)
+}

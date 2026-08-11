@@ -1,6 +1,6 @@
 Every endpoint in `aster`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/aster) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `fapiPublicGetV1Ping`); the snake_case alias (`fapiPublic_get_v1_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`FapiPublicGetV1Ping`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `fapiPublicGetV1Ping`); the snake_case alias (`fapiPublic_get_v1_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`FapiPublicGetV1Ping`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -241,8 +241,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPrivatePostV3AssetWalletTransfer` | POST | `v3/asset/wallet/transfer` | 5 |
 | `sapiPrivatePostV3AsterUserWithdraw` | POST | `v3/aster/user-withdraw` | 1 |
 | `sapiPrivatePostV3ListenKey` | POST | `v3/listenKey` | 1 |
-| `sapiPrivatePutV1ListenKey` | PUT | `v1/listenKey` |  |
-| `sapiPrivatePutV3ListenKey` | PUT | `v3/listenKey` |  |
+| `sapiPrivatePutV1ListenKey` | PUT | `v1/listenKey` | 1 |
+| `sapiPrivatePutV3ListenKey` | PUT | `v3/listenKey` | 1 |
 | `sapiPrivateDeleteV1Order` | DELETE | `v1/order` | 1 |
 | `sapiPrivateDeleteV1AllOpenOrders` | DELETE | `v1/allOpenOrders` | 1 |
 | `sapiPrivateDeleteV1ListenKey` | DELETE | `v1/listenKey` | 1 |

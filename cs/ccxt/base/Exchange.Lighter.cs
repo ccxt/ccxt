@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Numerics;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public bool isLighterLibraryPathRequired()

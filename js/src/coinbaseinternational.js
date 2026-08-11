@@ -34,7 +34,7 @@ export default class coinbaseinternational extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
@@ -68,6 +68,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -113,6 +114,7 @@ export default class coinbaseinternational extends Exchange {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -140,53 +142,53 @@ export default class coinbaseinternational extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'assets/{assets}': { 'cost': 1 },
+                            'assets/{asset}/networks': { 'cost': 1 },
+                            'instruments': { 'cost': 1 },
+                            'instruments/{instrument}': { 'cost': 1 },
+                            'instruments/{instrument}/quote': { 'cost': 1 },
+                            'instruments/{instrument}/funding': { 'cost': 1 },
+                            'instruments/{instrument}/candles': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                            'portfolios/{portfolio}/detail': { 'cost': 1 },
+                            'portfolios/{portfolio}/summary': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 },
+                            'portfolios/fills': { 'cost': 1 },
+                            'portfolios/{portfolio}/fills': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
+                            'transfers/{transfer_uuid}': { 'cost': 1 },
+                        },
+                        'post': {
+                            'orders': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/margin': { 'cost': 1 },
+                            'portfolios/transfer': { 'cost': 1 },
+                            'transfers/withdraw': { 'cost': 1 },
+                            'transfers/address': { 'cost': 1 },
+                            'transfers/create-counterparty-id': { 'cost': 1 },
+                            'transfers/validate-counterparty-id': { 'cost': 1 },
+                            'transfers/withdraw/counterparty': { 'cost': 1 },
+                        },
+                        'put': {
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -526,8 +528,8 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
@@ -798,6 +800,9 @@ export default class coinbaseinternational extends Exchange {
             [networkId, params] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
+        if (method === undefined) {
+            throw new ArgumentsRequired(this.id + ' method is required');
+        }
         const response = await this[method](this.extend(request, params));
         //
         // v1PrivatePostTransfersAddress
@@ -934,7 +939,8 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        const response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        return response;
     }
     /**
      * @method
@@ -958,8 +964,8 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate = undefined;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
@@ -1413,7 +1419,10 @@ export default class coinbaseinternational extends Exchange {
         }
         const isLinear = isSpot ? undefined : (settleId === quoteId);
         const isInverse = isSpot ? undefined : (settleId !== quoteId);
-        return {
+        if (marketId === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
+        return this.safeMarketStructure({
             'id': marketId,
             'lowercaseId': marketId.toLowerCase(),
             'symbol': symbol,
@@ -1465,7 +1474,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'info': market,
             'created': undefined,
-        };
+        });
     }
     /**
      * @method
@@ -1537,8 +1546,12 @@ export default class coinbaseinternational extends Exchange {
         symbols = this.marketSymbols(symbols);
         const instruments = await this.v1PublicGetInstruments(params);
         const tickers = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows = [];
+        if (Array.isArray(instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = rows[i];
             const marketId = this.safeString(instrument, 'symbol');
             const symbol = this.safeSymbol(marketId);
             const quote = this.safeDict(instrument, 'quote', {});
@@ -1674,7 +1687,9 @@ export default class coinbaseinternational extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(rawBalance, 'quantity');
             account['used'] = this.safeString(rawBalance, 'hold');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1697,7 +1712,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
-            'ammount': amount,
+            'amount': amount,
             'from': fromAccount,
             'to': toAccount,
         };
@@ -1745,6 +1760,9 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderIdprefix = this.safeString(this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid();
         clientOrderId = clientOrderId.slice(0, 17);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase(),
@@ -1905,7 +1923,7 @@ export default class coinbaseinternational extends Exchange {
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1953,7 +1971,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2094,8 +2112,8 @@ export default class coinbaseinternational extends Exchange {
         [portfolio, params] = await this.handlePortfolioAndParams('fetchOpenOrders', params);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
@@ -2178,8 +2196,8 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = undefined;
-        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
         }
@@ -2201,7 +2219,7 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
         }
-        const until = this.safeStringN(params, ['until']);
+        const until = this.safeString(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['ref_datetime'] = this.iso8601(until);
@@ -2289,6 +2307,9 @@ export default class coinbaseinternational extends Exchange {
             'network_arn_id': networkId,
             'nonce': this.nonce(),
         };
+        if (method === undefined) {
+            throw new ArgumentsRequired(this.id + ' method is required');
+        }
         const response = await this[method](this.extend(request, params));
         //
         //    {

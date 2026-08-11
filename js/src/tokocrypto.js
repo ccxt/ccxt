@@ -114,8 +114,8 @@ export default class tokocrypto extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -175,56 +175,56 @@ export default class tokocrypto extends Exchange {
             'api': {
                 'binance': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
+                        'ping': { 'cost': 1 },
+                        'time': { 'cost': 1 },
                         'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]] },
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
+                        'trades': { 'cost': 1 },
+                        'aggTrades': { 'cost': 1 },
+                        'historicalTrades': { 'cost': 5 },
+                        'klines': { 'cost': 1 },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'exchangeInfo': 10,
+                        'exchangeInfo': { 'cost': 10 },
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 },
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 },
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 },
                     },
                 },
                 'public': {
                     'get': {
-                        'open/v1/common/time': 1,
-                        'open/v1/common/symbols': 1,
+                        'open/v1/common/time': { 'cost': 1 },
+                        'open/v1/common/symbols': { 'cost': 1 },
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': 1, // when symbol type is not 1
-                        'open/v1/market/trades': 1, // when symbol type is not 1
-                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
-                        'open/v1/market/klines': 1, // when symbol type is not 1
+                        'open/v1/market/depth': { 'cost': 1 }, // when symbol type is not 1
+                        'open/v1/market/trades': { 'cost': 1 }, // when symbol type is not 1
+                        'open/v1/market/agg-trades': { 'cost': 1 }, // when symbol type is not 1
+                        'open/v1/market/klines': { 'cost': 1 }, // when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': 1,
-                        'open/v1/orders': 1,
-                        'open/v1/account/spot': 1,
-                        'open/v1/account/spot/asset': 1,
-                        'open/v1/orders/trades': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/deposits': 1,
-                        'open/v1/deposits/address': 1,
+                        'open/v1/orders/detail': { 'cost': 1 },
+                        'open/v1/orders': { 'cost': 1 },
+                        'open/v1/account/spot': { 'cost': 1 },
+                        'open/v1/account/spot/asset': { 'cost': 1 },
+                        'open/v1/orders/trades': { 'cost': 1 },
+                        'open/v1/withdraws': { 'cost': 1 },
+                        'open/v1/deposits': { 'cost': 1 },
+                        'open/v1/deposits/address': { 'cost': 1 },
                     },
                     'post': {
-                        'open/v1/orders': 1,
-                        'open/v1/orders/cancel': 1,
-                        'open/v1/orders/oco': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/user-data-stream': 1,
+                        'open/v1/orders': { 'cost': 1 },
+                        'open/v1/orders/cancel': { 'cost': 1 },
+                        'open/v1/orders/oco': { 'cost': 1 },
+                        'open/v1/withdraws': { 'cost': 1 },
+                        'open/v1/user-data-stream': { 'cost': 1 },
                     },
                 },
             },
@@ -246,7 +246,7 @@ export default class tokocrypto extends Exchange {
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -896,7 +896,7 @@ export default class tokocrypto extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1204,7 +1204,8 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        const responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1305,6 +1306,12 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.binanceGetTicker24hr(params);
+        if (!Array.isArray(response)) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers([response], symbols);
+        }
         return this.parseTickers(response, symbols);
     }
     getMarketIdByType(market) {
@@ -1381,7 +1388,7 @@ export default class tokocrypto extends Exchange {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -1455,7 +1462,13 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeList(response, 'data', response);
+        let data = [];
+        if (Array.isArray(response)) {
+            data = response;
+        }
+        else {
+            data = this.safeList(response, 'data', []);
+        }
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     /**
@@ -1521,7 +1534,9 @@ export default class tokocrypto extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'free');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2596,7 +2611,7 @@ export default class tokocrypto extends Exchange {
             throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
@@ -2679,7 +2694,7 @@ export default class tokocrypto extends Exchange {
         }
         else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'];
+            const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

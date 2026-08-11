@@ -5,26 +5,26 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetOhlc (params?: {}): Promise<implicitReturnType>;
-    publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersTransactionsCrypto (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersTransactionsFiat (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
-    graphGetKlinesHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbook (params?: {}): Promise<Dict>;
+    publicGetTicker (params?: {}): Promise<Dict>;
+    publicGetTrades (params?: {}): Promise<Dict>;
+    publicGetOhlc (params?: {}): Promise<Dict>;
+    publicGetServerExchangeinfo (params?: {}): Promise<Dict>;
+    privateGetUsersBalances (params?: {}): Promise<Dict>;
+    privateGetOpenOrders (params?: {}): Promise<Dict>;
+    privateGetAllOrders (params?: {}): Promise<Dict>;
+    privateGetUsersTransactionsTrade (params?: {}): Promise<Dict>;
+    privatePostUsersTransactionsCrypto (params?: {}): Promise<Dict>;
+    privatePostUsersTransactionsFiat (params?: {}): Promise<Dict>;
+    privatePostOrder (params?: {}): Promise<Dict>;
+    privatePostCancelOrder (params?: {}): Promise<Dict>;
+    privateDeleteOrder (params?: {}): Promise<Dict>;
+    graphGetOhlcs (params?: {}): Promise<List>;
+    graphGetKlinesHistory (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

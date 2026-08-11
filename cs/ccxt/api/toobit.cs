@@ -11,299 +11,613 @@ public partial class toobit : Exchange
 {
     public toobit (object args = null): base(args) {}
 
-    public async Task<object> commonGetApiV1Time (object parameters = null)
+    /// <summary>Calls the commonGetApiV1Time endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetApiV1Time (object parameters = null)
     {
-        return await this.callAsync ("commonGetApiV1Time",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetApiV1Time",parameters);
     }
 
-    public async Task<object> commonGetApiV1Ping (object parameters = null)
+    /// <summary>Calls the commonGetApiV1Ping endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetApiV1Ping (object parameters = null)
     {
-        return await this.callAsync ("commonGetApiV1Ping",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetApiV1Ping",parameters);
     }
 
-    public async Task<object> commonGetApiV1ExchangeInfo (object parameters = null)
+    /// <summary>Calls the commonGetApiV1ExchangeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetApiV1ExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("commonGetApiV1ExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetApiV1ExchangeInfo",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1Depth (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1Depth endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1Depth (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1Depth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1Depth",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1DepthMerged (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1DepthMerged endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1DepthMerged (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1DepthMerged",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1DepthMerged",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1Trades (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1Trades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1Trades (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1Trades",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1Trades",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1Klines (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1Klines endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1Klines (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1Klines",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1Klines",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1IndexKlines (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1IndexKlines endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1IndexKlines (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1IndexKlines",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1IndexKlines",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1MarkPriceKlines (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1IndexPriceComponents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1IndexPriceComponents (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1MarkPriceKlines",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1IndexPriceComponents",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1MarkPrice (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1MarkPriceKlines endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1MarkPriceKlines (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1MarkPrice",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1MarkPriceKlines",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1Index (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1MarkPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1MarkPrice (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1Index",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1MarkPrice",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1Ticker24hr (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1Index endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1Index (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1Ticker24hr",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1Index",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1ContractTicker24hr (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1Ticker24hr endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1Ticker24hr (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1ContractTicker24hr",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1Ticker24hr",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1TickerPrice (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1ContractTicker24hr endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1ContractTicker24hr (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1TickerPrice",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1ContractTicker24hr",parameters);
     }
 
-    public async Task<object> commonGetQuoteV1TickerBookTicker (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1TickerPrice endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1TickerPrice (object parameters = null)
     {
-        return await this.callAsync ("commonGetQuoteV1TickerBookTicker",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1TickerPrice",parameters);
     }
 
-    public async Task<object> commonGetApiV1FuturesFundingRate (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1ContractTickerPrice endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1ContractTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("commonGetApiV1FuturesFundingRate",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1ContractTickerPrice",parameters);
     }
 
-    public async Task<object> commonGetApiV1FuturesHistoryFundingRate (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1TickerBookTicker endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1TickerBookTicker (object parameters = null)
     {
-        return await this.callAsync ("commonGetApiV1FuturesHistoryFundingRate",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1TickerBookTicker",parameters);
     }
 
-    public async Task<object> privateGetApiV1Account (object parameters = null)
+    /// <summary>Calls the commonGetQuoteV1ContractTickerBookTicker endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetQuoteV1ContractTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1Account",parameters);
+        return await this.callAsync<List<object>> ("commonGetQuoteV1ContractTickerBookTicker",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountCheckApiKey (object parameters = null)
+    /// <summary>Calls the commonGetApiV1FuturesFundingRate endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetApiV1FuturesFundingRate (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountCheckApiKey",parameters);
+        return await this.callAsync<List<object>> ("commonGetApiV1FuturesFundingRate",parameters);
     }
 
-    public async Task<object> privateGetApiV1SpotOrder (object parameters = null)
+    /// <summary>Calls the commonGetApiV1FuturesHistoryFundingRate endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetApiV1FuturesHistoryFundingRate (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1SpotOrder",parameters);
+        return await this.callAsync<List<object>> ("commonGetApiV1FuturesHistoryFundingRate",parameters);
     }
 
-    public async Task<object> privateGetApiV1SpotOpenOrders (object parameters = null)
+    /// <summary>Calls the commonGetApiV1FuturesRiskLimits endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> commonGetApiV1FuturesRiskLimits (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1SpotOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("commonGetApiV1FuturesRiskLimits",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesOpenOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1Account endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1Account (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1Account",parameters);
     }
 
-    public async Task<object> privateGetApiV1SpotTradeOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountCheckApiKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AccountCheckApiKey (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1SpotTradeOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AccountCheckApiKey",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesHistoryOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1SpotOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1SpotOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesHistoryOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1SpotOrder",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountTrades (object parameters = null)
+    /// <summary>Calls the privateGetApiV1SpotOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1SpotOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountTrades",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1SpotOpenOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountBalanceFlow (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountBalanceFlow",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesOpenOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountDepositOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1SpotTradeOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1SpotTradeOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountDepositOrders",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1SpotTradeOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountWithdrawOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesHistoryOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesHistoryOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountWithdrawOrders",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesHistoryOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1AccountDepositAddress (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AccountTrades (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1AccountDepositAddress",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1AccountTrades",parameters);
     }
 
-    public async Task<object> privateGetApiV1SubAccount (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountBalanceFlow endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AccountBalanceFlow (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1SubAccount",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1AccountBalanceFlow",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesAccountLeverage (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountDepositOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AccountDepositOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesAccountLeverage",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1AccountDepositOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesOrder (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountWithdrawOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AccountWithdrawOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesOrder",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1AccountWithdrawOrders",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesPositions (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AccountDepositAddress (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AccountDepositAddress",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesBalance (object parameters = null)
+    /// <summary>Calls the privateGetApiV1SubAccount endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1SubAccount (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesBalance",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1SubAccount",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesUserTrades (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountSubAccount endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AccountSubAccount (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesUserTrades",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1AccountSubAccount",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesBalanceFlow (object parameters = null)
+    /// <summary>Calls the privateGetApiV1SubAccountList endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1SubAccountList (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesBalanceFlow",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1SubAccountList",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesCommissionRate (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesAccountLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1FuturesAccountLeverage (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesCommissionRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1FuturesAccountLeverage",parameters);
     }
 
-    public async Task<object> privateGetApiV1FuturesTodayPnl (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1FuturesOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetApiV1FuturesTodayPnl",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1FuturesOrder",parameters);
     }
 
-    public async Task<object> privatePostApiV1SpotOrderTest (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesPositions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesPositions (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1SpotOrderTest",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesPositions",parameters);
     }
 
-    public async Task<object> privatePostApiV1SpotOrder (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesHistoryPositions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesHistoryPositions (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1SpotOrder",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesHistoryPositions",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesOrder (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesBalance endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesOrder",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesBalance",parameters);
     }
 
-    public async Task<object> privatePostApiV1SpotBatchOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesUserTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesUserTrades (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1SpotBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesUserTrades",parameters);
     }
 
-    public async Task<object> privatePostApiV1SubAccountTransfer (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesBalanceFlow endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1FuturesBalanceFlow (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1SubAccountTransfer",parameters);
+        return await this.callAsync<List<object>> ("privateGetApiV1FuturesBalanceFlow",parameters);
     }
 
-    public async Task<object> privatePostApiV1AccountWithdraw (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesCommissionRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1FuturesCommissionRate (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1AccountWithdraw",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1FuturesCommissionRate",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesMarginType (object parameters = null)
+    /// <summary>Calls the privateGetApiV1FuturesTodayPnl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1FuturesTodayPnl (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesMarginType",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1FuturesTodayPnl",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesLeverage (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AccountDownloadDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AccountDownloadDetail (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AccountDownloadDetail",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesBatchOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentInviteUserList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentInviteUserList (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesBatchOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentInviteUserList",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesPositionTradingStop (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentCommissionDataList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentCommissionDataList (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesPositionTradingStop",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentCommissionDataList",parameters);
     }
 
-    public async Task<object> privatePostApiV1FuturesPositionMargin (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentCommissionDataInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentCommissionDataInfo (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FuturesPositionMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentCommissionDataInfo",parameters);
     }
 
-    public async Task<object> privatePostApiV1UserDataStream (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentInviteRelationCheck endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentInviteRelationCheck (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1UserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentInviteRelationCheck",parameters);
     }
 
-    public async Task<object> privatePostApiV1ListenKey (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentDepositDetailList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentDepositDetailList (object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1ListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentDepositDetailList",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1SpotOrder (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentQuerySubAgentData endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentQuerySubAgentData (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1SpotOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentQuerySubAgentData",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1FuturesOrder (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentSpotOrdersList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentSpotOrdersList (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1FuturesOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentSpotOrdersList",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1SpotOpenOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentFuturesOrdersList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentFuturesOrdersList (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1SpotOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentFuturesOrdersList",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1FuturesBatchOrders (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentFuturesPositionsList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentFuturesPositionsList (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1FuturesBatchOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentFuturesPositionsList",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1SpotCancelOrderByIds (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentInviteCommissionDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentInviteCommissionDetail (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1SpotCancelOrderByIds",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentInviteCommissionDetail",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1FuturesCancelOrderByIds (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentUserExport endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentUserExport (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentUserExport",parameters);
     }
 
-    public async Task<object> privateDeleteApiV1ListenKey (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentExportList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentExportList (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteApiV1ListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentExportList",parameters);
     }
 
-    public async Task<object> privatePutApiV1ListenKey (object parameters = null)
+    /// <summary>Calls the privateGetApiV1AgentExportUrl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV1AgentExportUrl (object parameters = null)
     {
-        return await this.callAsync ("privatePutApiV1ListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentExportUrl",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1SpotOrderTest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1SpotOrderTest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1SpotOrderTest",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1SpotOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1SpotOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1SpotOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1SpotBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1SpotBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1SpotBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1SubAccountTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1SubAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1SubAccountTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1AccountWithdraw endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1AccountWithdraw (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1AccountWithdraw",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesMarginType endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesMarginType (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesMarginType",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesLeverage",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesPositionTradingStop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesPositionTradingStop (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesPositionTradingStop",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesPositionMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesPositionMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesPositionMargin",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesOrderUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesOrderUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesOrderUpdate",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesAutoAddMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesAutoAddMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesAutoAddMargin",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesFlashClose endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesFlashClose (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesFlashClose",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1FuturesReversePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1FuturesReversePosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1FuturesReversePosition",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1AccountDownloadApply endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1AccountDownloadApply (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1AccountDownloadApply",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1UserDataStream endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1UserDataStream",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV1ListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostApiV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1ListenKey",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1SpotOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1SpotOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotOrder",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1FuturesOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1FuturesOrder",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1SpotOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1SpotOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1FuturesBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1FuturesBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1SpotCancelOrderByIds endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1SpotCancelOrderByIds (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotCancelOrderByIds",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1FuturesCancelOrderByIds endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesCancelOrderByIds (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1FuturesCancelOrderByIds",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1UserDataStream endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1UserDataStream",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1ListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1ListenKey",parameters);
+    }
+
+    /// <summary>Calls the privatePutApiV1UserDataStream endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutApiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutApiV1UserDataStream",parameters);
+    }
+
+    /// <summary>Calls the privatePutApiV1ListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutApiV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutApiV1ListenKey",parameters);
     }
 
 }

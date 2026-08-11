@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.PSSParameterSpec;
+import java.security.spec.MGF1ParameterSpec;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -313,22 +315,46 @@ public final class Crypto {
     // ====================================================
 
     public static String Rsa(Object data, Object publicKeyPem, Object hash) {
-        byte[] sig = rsaSign(toString(data), toString(publicKeyPem), (hash == null ? "md5" : toString(hash)));
+        return Rsa(data, publicKeyPem, hash, "pkcs1");
+    }
+
+    public static String Rsa(Object data, Object publicKeyPem, Object hash, Object padding) {
+        byte[] sig = rsaSign(toString(data), toString(publicKeyPem), (hash == null ? "md5" : toString(hash)), (padding == null ? "pkcs1" : toString(padding)));
         return BinaryToBase64(sig);
     }
 
     private static byte[] rsaSign(String data, String pemPrivateKey, String hashAlgo) {
-        String jce = switch (hashAlgo) {
-            case "sha1"   -> "SHA1withRSA";
-            case "sha256" -> "SHA256withRSA";
-            case "sha384" -> "SHA384withRSA";
-            case "sha512" -> "SHA512withRSA";
-            case "md5"    -> "MD5withRSA";
-            default       -> throw new IllegalArgumentException("Invalid hash algorithm name: " + hashAlgo);
-        };
+        return rsaSign(data, pemPrivateKey, hashAlgo, "pkcs1");
+    }
 
+    private static byte[] rsaSign(String data, String pemPrivateKey, String hashAlgo, String padding) {
         try {
             PrivateKey key = readRSAPrivateKeyFromPem(pemPrivateKey);
+            if ("pss".equals(padding)) {
+                String mdName;
+                MGF1ParameterSpec mgf;
+                int saltLen;
+                switch (hashAlgo) {
+                    case "sha1"   -> { mdName = "SHA-1";   mgf = MGF1ParameterSpec.SHA1;   saltLen = 20; }
+                    case "sha256" -> { mdName = "SHA-256"; mgf = MGF1ParameterSpec.SHA256; saltLen = 32; }
+                    case "sha384" -> { mdName = "SHA-384"; mgf = MGF1ParameterSpec.SHA384; saltLen = 48; }
+                    case "sha512" -> { mdName = "SHA-512"; mgf = MGF1ParameterSpec.SHA512; saltLen = 64; }
+                    default       -> throw new IllegalArgumentException("Invalid PSS hash algorithm name: " + hashAlgo);
+                }
+                Signature sig = Signature.getInstance("RSASSA-PSS");
+                sig.setParameter(new PSSParameterSpec(mdName, "MGF1", mgf, saltLen, 1));
+                sig.initSign(key);
+                sig.update(toUtf8(data));
+                return sig.sign();
+            }
+            String jce = switch (hashAlgo) {
+                case "sha1"   -> "SHA1withRSA";
+                case "sha256" -> "SHA256withRSA";
+                case "sha384" -> "SHA384withRSA";
+                case "sha512" -> "SHA512withRSA";
+                case "md5"    -> "MD5withRSA";
+                default       -> throw new IllegalArgumentException("Invalid hash algorithm name: " + hashAlgo);
+            };
             Signature sig = Signature.getInstance(jce);
             sig.initSign(key);
             sig.update(toUtf8(data));

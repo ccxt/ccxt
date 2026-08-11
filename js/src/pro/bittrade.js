@@ -101,6 +101,9 @@ export default class bittrade extends bittradeRest {
         //
         const tick = this.safeValue(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -175,6 +178,9 @@ export default class bittrade extends bittradeRest {
         const tick = this.safeValue(message, 'tick', {});
         const data = this.safeValue(tick, 'data', {});
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -250,6 +256,9 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -275,7 +284,7 @@ export default class bittrade extends bittradeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
@@ -415,6 +424,9 @@ export default class bittrade extends bittradeRest {
         const tick = this.safeValue(message, 'tick', {});
         const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
+        if ((prevSeqNum === undefined) || (seqNum === undefined)) {
+            return orderbook;
+        }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);
@@ -466,6 +478,9 @@ export default class bittrade extends bittradeRest {
     }
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
@@ -484,6 +499,9 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const id = this.safeString(message, 'id');
+        if (id === undefined) {
+            return message;
+        }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
@@ -572,6 +590,9 @@ export default class bittrade extends bittradeRest {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
             const id = this.safeString(message, 'id');
+            if (id === undefined) {
+                return false;
+            }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
             const subscription = this.safeValue(subscriptionsById, id);
             if (subscription !== undefined) {

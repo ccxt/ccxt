@@ -7,6 +7,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer USDC between portfolios",
+                "method": "transfer",
+                "url": "https://api.coinbase.com/api/v3/brokerage/portfolios/move_funds",
+                "input": [
+                    "USDC",
+                    10,
+                    "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+                    "1f9a3c22-0a11-4b6d-9f2e-2b7d5e0a1c88"
+                ],
+                "output": "{\"funds\":{\"value\":\"10\",\"currency\":\"USDC\"},\"source_portfolio_uuid\":\"8bfc20d7-f7c6-4422-bf07-8243ca4169fe\",\"target_portfolio_uuid\":\"1f9a3c22-0a11-4b6d-9f2e-2b7d5e0a1c88\"}"
+            }
+        ],
         "fetchDepositAddresses": [
             {
                 "description": "fetch deposit addresses",

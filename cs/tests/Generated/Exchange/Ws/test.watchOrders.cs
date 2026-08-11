@@ -20,6 +20,10 @@ public partial class testMainClass : BaseTest
             try
             {
                 response = await exchange.watchOrders(symbol);
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -32,6 +36,10 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))

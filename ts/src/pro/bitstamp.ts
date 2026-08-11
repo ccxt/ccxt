@@ -11,7 +11,7 @@ import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitstamp extends bitstampRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -54,9 +54,9 @@ export default class bitstamp extends bitstampRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -76,7 +76,7 @@ export default class bitstamp extends bitstampRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -101,6 +101,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -108,6 +111,9 @@ export default class bitstamp extends bitstampRest {
         const nonce = this.safeValue (storedOrderBook, 'nonce');
         const delta = this.safeValue (message, 'data');
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+        if (deltaNonce === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -126,7 +132,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -139,19 +145,22 @@ export default class bitstamp extends bitstampRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide, bidAsks) {
+    handleBidAsks (bookSide: any, bidAsks: any) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    getCacheIndex (orderbook, deltas) {
+    override getCacheIndex (orderbook: any, deltas: any) {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
+        if (firstElementNonce === undefined) {
+            return -1;
+        }
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce < firstElementNonce) {
+        if ((nonce === undefined) || (nonce < firstElementNonce)) {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
@@ -174,7 +183,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -197,7 +206,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -212,11 +221,14 @@ export default class bitstamp extends bitstampRest {
         //         "price": 6294.77
         //     }
         //
-        const microtimestamp = this.safeInteger (trade, 'microtimestamp');
+        const microtimestamp = this.safeInteger (trade, 'microtimestamp', 0);
         const id = this.safeString (trade, 'id');
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
+        if (market === undefined) {
+            market = this.safeMarket (undefined, market);
+        }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
         const side = (sideRaw === 0) ? 'buy' : 'sell';
@@ -237,7 +249,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -259,6 +271,9 @@ export default class bitstamp extends bitstampRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
@@ -286,7 +301,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
@@ -310,7 +325,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         // {
         //     "data":{
@@ -344,7 +359,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -422,15 +437,18 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client: Client, message) {
+    handleOrderBookSubscription (client: Client, message: any) {
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "event": "bts:subscription_succeeded",
@@ -444,12 +462,15 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         if (channel.indexOf ('order_book') > -1) {
             this.handleOrderBookSubscription (client, message);
         }
     }
 
-    handleSubject (client: Client, message) {
+    handleSubject (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -488,6 +509,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const methods: Dict = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,
@@ -503,7 +527,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
@@ -519,7 +543,7 @@ export default class bitstamp extends bitstampRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -587,7 +611,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    async subscribePrivate (subscription, messageHash, params = {}) {
+    async subscribePrivate (subscription: any, messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
         messageHash += '-' + this.options['userId'];

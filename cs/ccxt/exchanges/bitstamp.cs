@@ -37,6 +37,7 @@ public partial class bitstamp : Exchange
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -56,8 +57,8 @@ public partial class bitstamp : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
-                { "fetchFundingRate", false },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRate", true },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
                 { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
@@ -148,275 +149,801 @@ public partial class bitstamp : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ohlc/{pair}/", 1 },
-                        { "order_book/{pair}/", 1 },
-                        { "ticker/", 1 },
-                        { "ticker_hour/{pair}/", 1 },
-                        { "ticker/{pair}/", 1 },
-                        { "transactions/{pair}/", 1 },
-                        { "trading-pairs-info/", 1 },
-                        { "markets/", 1 },
-                        { "currencies/", 1 },
-                        { "eur_usd/", 1 },
-                        { "travel_rule/vasps/", 1 },
-                        { "funding_rate/{market_symbol}/", 1 },
-                        { "funding_rate_history/{pair}/", 1 },
+                        { "ohlc/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_book/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_hour/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transactions/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trading-pairs-info/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eur_usd/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/vasps/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate/{market_symbol}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate_history/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "travel_rule/contacts/", 1 },
-                        { "contacts/{contact_uuid}/", 1 },
-                        { "earn/subscriptions/", 1 },
-                        { "earn/transactions/", 1 },
-                        { "trade_history/", 1 },
-                        { "trade_history/{pair}", 1 },
+                        { "travel_rule/contacts/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "contacts/{contact_uuid}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscriptions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_history/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_history/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "account_balances/", 1 },
-                        { "account_balances/{currency}/", 1 },
-                        { "balance/", 1 },
-                        { "balance/{pair}/", 1 },
-                        { "bch_withdrawal/", 1 },
-                        { "bch_address/", 1 },
-                        { "user_transactions/", 1 },
-                        { "user_transactions/{pair}/", 1 },
-                        { "crypto-transactions/", 1 },
-                        { "open_order", 1 },
-                        { "open_orders/all/", 1 },
-                        { "open_orders/{pair}/", 1 },
-                        { "replace_order/", 1 },
-                        { "order_status/", 1 },
-                        { "cancel_order/", 1 },
-                        { "cancel_all_orders/", 1 },
-                        { "cancel_all_orders/{pair}/", 1 },
-                        { "buy/{pair}/", 1 },
-                        { "buy/market/{pair}/", 1 },
-                        { "buy/instant/{pair}/", 1 },
-                        { "sell/{pair}/", 1 },
-                        { "sell/market/{pair}/", 1 },
-                        { "sell/instant/{pair}/", 1 },
-                        { "transfer-to-main/", 1 },
-                        { "transfer-from-main/", 1 },
-                        { "my_trading_pairs/", 1 },
-                        { "fees/trading/", 1 },
-                        { "fees/trading/{market_symbol}", 1 },
-                        { "fees/withdrawal/", 1 },
-                        { "fees/withdrawal/{currency}/", 1 },
-                        { "withdrawal-requests/", 1 },
-                        { "withdrawal/open/", 1 },
-                        { "withdrawal/status/", 1 },
-                        { "withdrawal/cancel/", 1 },
-                        { "liquidation_address/new/", 1 },
-                        { "liquidation_address/info/", 1 },
-                        { "btc_unconfirmed/", 1 },
-                        { "websockets_token/", 1 },
-                        { "revoke_all_api_keys/", 1 },
-                        { "get_max_order_amount/", 1 },
-                        { "btc_withdrawal/", 1 },
-                        { "btc_address/", 1 },
-                        { "ripple_withdrawal/", 1 },
-                        { "ripple_address/", 1 },
-                        { "ltc_withdrawal/", 1 },
-                        { "ltc_address/", 1 },
-                        { "eth_withdrawal/", 1 },
-                        { "eth_address/", 1 },
-                        { "xrp_withdrawal/", 1 },
-                        { "xrp_address/", 1 },
-                        { "xlm_withdrawal/", 1 },
-                        { "xlm_address/", 1 },
-                        { "pax_withdrawal/", 1 },
-                        { "pax_address/", 1 },
-                        { "link_withdrawal/", 1 },
-                        { "link_address/", 1 },
-                        { "usdc_withdrawal/", 1 },
-                        { "usdc_address/", 1 },
-                        { "omg_withdrawal/", 1 },
-                        { "omg_address/", 1 },
-                        { "dai_withdrawal/", 1 },
-                        { "dai_address/", 1 },
-                        { "knc_withdrawal/", 1 },
-                        { "knc_address/", 1 },
-                        { "mkr_withdrawal/", 1 },
-                        { "mkr_address/", 1 },
-                        { "zrx_withdrawal/", 1 },
-                        { "zrx_address/", 1 },
-                        { "gusd_withdrawal/", 1 },
-                        { "gusd_address/", 1 },
-                        { "aave_withdrawal/", 1 },
-                        { "aave_address/", 1 },
-                        { "bat_withdrawal/", 1 },
-                        { "bat_address/", 1 },
-                        { "uma_withdrawal/", 1 },
-                        { "uma_address/", 1 },
-                        { "snx_withdrawal/", 1 },
-                        { "snx_address/", 1 },
-                        { "uni_withdrawal/", 1 },
-                        { "uni_address/", 1 },
-                        { "yfi_withdrawal/", 1 },
-                        { "yfi_address/", 1 },
-                        { "audio_withdrawal/", 1 },
-                        { "audio_address/", 1 },
-                        { "crv_withdrawal/", 1 },
-                        { "crv_address/", 1 },
-                        { "algo_withdrawal/", 1 },
-                        { "algo_address/", 1 },
-                        { "comp_withdrawal/", 1 },
-                        { "comp_address/", 1 },
-                        { "grt_withdrawal/", 1 },
-                        { "grt_address/", 1 },
-                        { "usdt_withdrawal/", 1 },
-                        { "usdt_address/", 1 },
-                        { "eurt_withdrawal/", 1 },
-                        { "eurt_address/", 1 },
-                        { "matic_withdrawal/", 1 },
-                        { "matic_address/", 1 },
-                        { "sushi_withdrawal/", 1 },
-                        { "sushi_address/", 1 },
-                        { "chz_withdrawal/", 1 },
-                        { "chz_address/", 1 },
-                        { "enj_withdrawal/", 1 },
-                        { "enj_address/", 1 },
-                        { "alpha_withdrawal/", 1 },
-                        { "alpha_address/", 1 },
-                        { "ftt_withdrawal/", 1 },
-                        { "ftt_address/", 1 },
-                        { "storj_withdrawal/", 1 },
-                        { "storj_address/", 1 },
-                        { "axs_withdrawal/", 1 },
-                        { "axs_address/", 1 },
-                        { "sand_withdrawal/", 1 },
-                        { "sand_address/", 1 },
-                        { "hbar_withdrawal/", 1 },
-                        { "hbar_address/", 1 },
-                        { "rgt_withdrawal/", 1 },
-                        { "rgt_address/", 1 },
-                        { "fet_withdrawal/", 1 },
-                        { "fet_address/", 1 },
-                        { "skl_withdrawal/", 1 },
-                        { "skl_address/", 1 },
-                        { "cel_withdrawal/", 1 },
-                        { "cel_address/", 1 },
-                        { "sxp_withdrawal/", 1 },
-                        { "sxp_address/", 1 },
-                        { "ada_withdrawal/", 1 },
-                        { "ada_address/", 1 },
-                        { "slp_withdrawal/", 1 },
-                        { "slp_address/", 1 },
-                        { "ftm_withdrawal/", 1 },
-                        { "ftm_address/", 1 },
-                        { "perp_withdrawal/", 1 },
-                        { "perp_address/", 1 },
-                        { "dydx_withdrawal/", 1 },
-                        { "dydx_address/", 1 },
-                        { "gala_withdrawal/", 1 },
-                        { "gala_address/", 1 },
-                        { "shib_withdrawal/", 1 },
-                        { "shib_address/", 1 },
-                        { "amp_withdrawal/", 1 },
-                        { "amp_address/", 1 },
-                        { "sgb_withdrawal/", 1 },
-                        { "sgb_address/", 1 },
-                        { "avax_withdrawal/", 1 },
-                        { "avax_address/", 1 },
-                        { "wbtc_withdrawal/", 1 },
-                        { "wbtc_address/", 1 },
-                        { "ctsi_withdrawal/", 1 },
-                        { "ctsi_address/", 1 },
-                        { "cvx_withdrawal/", 1 },
-                        { "cvx_address/", 1 },
-                        { "imx_withdrawal/", 1 },
-                        { "imx_address/", 1 },
-                        { "nexo_withdrawal/", 1 },
-                        { "nexo_address/", 1 },
-                        { "ust_withdrawal/", 1 },
-                        { "ust_address/", 1 },
-                        { "ant_withdrawal/", 1 },
-                        { "ant_address/", 1 },
-                        { "gods_withdrawal/", 1 },
-                        { "gods_address/", 1 },
-                        { "rad_withdrawal/", 1 },
-                        { "rad_address/", 1 },
-                        { "band_withdrawal/", 1 },
-                        { "band_address/", 1 },
-                        { "inj_withdrawal/", 1 },
-                        { "inj_address/", 1 },
-                        { "rly_withdrawal/", 1 },
-                        { "rly_address/", 1 },
-                        { "rndr_withdrawal/", 1 },
-                        { "rndr_address/", 1 },
-                        { "vega_withdrawal/", 1 },
-                        { "vega_address/", 1 },
-                        { "1inch_withdrawal/", 1 },
-                        { "1inch_address/", 1 },
-                        { "ens_withdrawal/", 1 },
-                        { "ens_address/", 1 },
-                        { "mana_withdrawal/", 1 },
-                        { "mana_address/", 1 },
-                        { "lrc_withdrawal/", 1 },
-                        { "lrc_address/", 1 },
-                        { "ape_withdrawal/", 1 },
-                        { "ape_address/", 1 },
-                        { "mpl_withdrawal/", 1 },
-                        { "mpl_address/", 1 },
-                        { "euroc_withdrawal/", 1 },
-                        { "euroc_address/", 1 },
-                        { "sol_withdrawal/", 1 },
-                        { "sol_address/", 1 },
-                        { "dot_withdrawal/", 1 },
-                        { "dot_address/", 1 },
-                        { "near_withdrawal/", 1 },
-                        { "near_address/", 1 },
-                        { "doge_withdrawal/", 1 },
-                        { "doge_address/", 1 },
-                        { "flr_withdrawal/", 1 },
-                        { "flr_address/", 1 },
-                        { "dgld_withdrawal/", 1 },
-                        { "dgld_address/", 1 },
-                        { "ldo_withdrawal/", 1 },
-                        { "ldo_address/", 1 },
-                        { "travel_rule/contacts/", 1 },
-                        { "earn/subscribe/", 1 },
-                        { "earn/subscriptions/setting/", 1 },
-                        { "earn/unsubscribe", 1 },
-                        { "wecan_withdrawal/", 1 },
-                        { "wecan_address/", 1 },
-                        { "trac_withdrawal/", 1 },
-                        { "trac_address/", 1 },
-                        { "eurcv_withdrawal/", 1 },
-                        { "eurcv_address/", 1 },
-                        { "pyusd_withdrawal/", 1 },
-                        { "pyusd_address/", 1 },
-                        { "lmwr_withdrawal/", 1 },
-                        { "lmwr_address/", 1 },
-                        { "pepe_withdrawal/", 1 },
-                        { "pepe_address/", 1 },
-                        { "blur_withdrawal/", 1 },
-                        { "blur_address/", 1 },
-                        { "vext_withdrawal/", 1 },
-                        { "vext_address/", 1 },
-                        { "cspr_withdrawal/", 1 },
-                        { "cspr_address/", 1 },
-                        { "vchf_withdrawal/", 1 },
-                        { "vchf_address/", 1 },
-                        { "veur_withdrawal/", 1 },
-                        { "veur_address/", 1 },
-                        { "truf_withdrawal/", 1 },
-                        { "truf_address/", 1 },
-                        { "wif_withdrawal/", 1 },
-                        { "wif_address/", 1 },
-                        { "smt_withdrawal/", 1 },
-                        { "smt_address/", 1 },
-                        { "sui_withdrawal/", 1 },
-                        { "sui_address/", 1 },
-                        { "jup_withdrawal/", 1 },
-                        { "jup_address/", 1 },
-                        { "ondo_withdrawal/", 1 },
-                        { "ondo_address/", 1 },
-                        { "boba_withdrawal/", 1 },
-                        { "boba_address/", 1 },
-                        { "pyth_withdrawal/", 1 },
-                        { "pyth_address/", 1 },
+                        { "account_balances/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account_balances/{currency}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bch_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bch_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_transactions/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_orders/all/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_orders/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replace_order/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_status/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_order/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_orders/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_orders/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/market/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/instant/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/market/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/instant/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer-to-main/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer-from-main/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my_trading_pairs/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/trading/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/trading/{market_symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/withdrawal/{currency}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal-requests/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/open/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/status/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/cancel/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidation_address/new/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidation_address/info/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_unconfirmed/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "websockets_token/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "revoke_all_api_keys/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_max_order_amount/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ripple_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ripple_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ltc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ltc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eth_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eth_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xrp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xrp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xlm_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xlm_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pax_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pax_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "link_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "link_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "omg_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "omg_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dai_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dai_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "knc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "knc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mkr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mkr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "zrx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "zrx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gusd_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gusd_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aave_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aave_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bat_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bat_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uma_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uma_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "snx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "snx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uni_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uni_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "yfi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "yfi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "audio_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "audio_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crv_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crv_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "comp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "comp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "grt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "grt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "matic_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "matic_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sushi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sushi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chz_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chz_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "enj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "enj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "alpha_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "alpha_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "storj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "storj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "axs_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "axs_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sand_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sand_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "hbar_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "hbar_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rgt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rgt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fet_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fet_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "skl_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "skl_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cel_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cel_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sxp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sxp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ada_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ada_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "slp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "slp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftm_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftm_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dydx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dydx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gala_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gala_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "shib_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "shib_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "amp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "amp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sgb_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sgb_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "avax_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "avax_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wbtc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wbtc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ctsi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ctsi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cvx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cvx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "imx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "imx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nexo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nexo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ust_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ust_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ant_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ant_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gods_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gods_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rad_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rad_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "band_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "band_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "inj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "inj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rly_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rly_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rndr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rndr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vega_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vega_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1inch_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1inch_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ens_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ens_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mana_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mana_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lrc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lrc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ape_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ape_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mpl_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mpl_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "euroc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "euroc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sol_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sol_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dot_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dot_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "near_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "near_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "doge_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "doge_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "flr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "flr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dgld_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dgld_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ldo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ldo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/contacts/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscribe/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscriptions/setting/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/unsubscribe", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wecan_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wecan_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trac_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trac_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurcv_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurcv_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyusd_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyusd_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lmwr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lmwr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pepe_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pepe_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blur_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blur_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vext_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vext_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cspr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cspr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vchf_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vchf_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "veur_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "veur_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "truf_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "truf_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wif_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wif_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "smt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "smt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sui_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sui_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "jup_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "jup_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ondo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ondo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "boba_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "boba_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyth_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyth_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -832,23 +1359,37 @@ public partial class bitstamp : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object description = this.safeString(market, "description");
+        if (isTrue(isEqual(description, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing description")) ;
+        }
         var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
         var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
         var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
         object minimumOrder = this.safeString(market, "minimum_order_value");
+        if (isTrue(isEqual(minimumOrder, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing minimumOrder")) ;
+        }
         object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
         object cost = getValue(parts, 0);
-        if (!isTrue((inOp(existing, bs))))
+        if (isTrue(isTrue((isEqual(bs, null))) || !isTrue((inOp(existing, bs)))))
         {
             object baseDecimals = this.safeInteger(market, "base_decimals");
-            ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            if (isTrue(!isEqual(bs, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            }
         }
-        if (!isTrue((inOp(existing, quote))))
+        if (isTrue(isTrue((isEqual(quote, null))) || !isTrue((inOp(existing, quote)))))
         {
             object counterDecimals = this.safeInteger(market, "counter_decimals");
-            ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+            if (isTrue(!isEqual(quote, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+            }
         }
-        return getValue(getValue(this.options, "_temp_currencies_result"), quote);
+        return this.safeValue(getValue(this.options, "_temp_currencies_result"), quote);
     }
 
     /**
@@ -859,7 +1400,7 @@ public partial class bitstamp : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -890,6 +1431,10 @@ public partial class bitstamp : Exchange
         //     }
         //
         object microtimestamp = this.safeInteger(response, "microtimestamp");
+        if (isTrue(isEqual(microtimestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microtimestamp")) ;
+        }
         object timestamp = this.parseToInt(divide(microtimestamp, 1000));
         object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
@@ -1069,12 +1614,12 @@ public partial class bitstamp : Exchange
         if (isTrue(isEqual(numCurrencyIds, 2)))
         {
             object marketId = add(getValue(currencyIds, 0), getValue(currencyIds, 1));
-            if (isTrue(inOp(this.markets_by_id, marketId)))
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 return this.safeMarket(marketId);
             }
             marketId = add(getValue(currencyIds, 1), getValue(currencyIds, 0));
-            if (isTrue(inOp(this.markets_by_id, marketId)))
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 return this.safeMarket(marketId);
             }
@@ -1395,7 +1940,10 @@ public partial class bitstamp : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
-            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1467,6 +2015,10 @@ public partial class bitstamp : Exchange
         //
         object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
         object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        if (isTrue(isEqual(tradingFee, null)))
+        {
+            tradingFee = new Dictionary<string, object>() {};
+        }
         return this.parseTradingFee(tradingFee, market);
     }
 
@@ -1493,7 +2045,10 @@ public partial class bitstamp : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            }
         }
         return result;
     }
@@ -1576,11 +2131,14 @@ public partial class bitstamp : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "withdraw_fee", this.safeNumber(fees, "fee") },
-                { "deposit", new Dictionary<string, object>() {} },
-                { "info", this.safeDict(currencies, id) },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "withdraw_fee", this.safeNumber(fees, "fee") },
+                    { "deposit", new Dictionary<string, object>() {} },
+                    { "info", this.safeDict(currencies, id) },
+                };
+            }
         }
         return result;
     }
@@ -1630,16 +2188,19 @@ public partial class bitstamp : Exchange
                 { "fee", withdrawFee },
                 { "percentage", null },
             };
-            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "fee", withdrawFee },
-                    { "percentage", null },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                } },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", withdrawFee },
+                        { "percentage", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
         }
         return result;
     }
@@ -1711,7 +2272,8 @@ public partial class bitstamp : Exchange
                 response = await this.privatePostSellPair(this.extend(request, parameters));
             }
         }
-        object order = this.parseOrder(response, market);
+        object orderResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        object order = this.parseOrder(orderResponse, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return order;
     }
@@ -1799,7 +2361,7 @@ public partial class bitstamp : Exchange
      * @description cancel all open orders
      * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
      * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2410,7 +2972,7 @@ public partial class bitstamp : Exchange
             { "2", "trade" },
             { "14", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2818,7 +3380,11 @@ public partial class bitstamp : Exchange
         //    { status: 'ok' }
         //
         object status = this.safeString(transfer, "status");
-        return new Dictionary<string, object>() {
+        if (isTrue(isEqual(currency, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseTransfer() could not resolve currency")) ;
+        }
+        object result = new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
             { "timestamp", null },
@@ -2829,6 +3395,7 @@ public partial class bitstamp : Exchange
             { "toAccount", null },
             { "status", this.parseTransferStatus(status) },
         };
+        return result;
     }
 
     public virtual object parseTransferStatus(object status)

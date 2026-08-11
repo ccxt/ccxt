@@ -5,13 +5,13 @@ import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList } from '../base/types.js';
+import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bingx extends bingxRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -108,7 +108,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType as string));
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -149,7 +149,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -160,7 +160,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType as string));
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -192,7 +192,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -205,7 +205,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // swap
         //
@@ -275,7 +275,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsTicker (message, market: Market = undefined) {
+    parseWsTicker (message: any, market: Market = undefined) {
         //
         //     {
         //         "e": "24hTicker",
@@ -365,7 +365,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -377,7 +377,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType as string));
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -395,7 +395,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -420,7 +420,7 @@ export default class bingx extends bingxRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -433,7 +433,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // spot: first snapshot
         //
@@ -551,9 +551,9 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -564,7 +564,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBook', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType as string));
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -596,7 +596,7 @@ export default class bingx extends bingxRest {
                 'params': params,
             };
         }
-        const orderbook = await this.watch ((url as string), messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 
@@ -611,7 +611,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -625,13 +625,13 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat2 (delta, 0, 'p');
         const amount = this.safeFloat2 (delta, 1, 'a');
         bookside.store (price, amount);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // spot
         //
@@ -713,7 +713,7 @@ export default class bingx extends bingxRest {
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[(subscriptionHash as string)];
+            const subscription = client.subscriptions[subscriptionHash];
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             const limit = this.safeInteger (subscription, 'limit', 100);
@@ -740,7 +740,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "c": "28909.0",
@@ -768,7 +768,7 @@ export default class bingx extends bingxRest {
         ];
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // spot:
         //
@@ -860,7 +860,7 @@ export default class bingx extends bingxRest {
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[(subscriptionHash as string)];
+            const subscription = client.subscriptions[subscriptionHash];
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -897,7 +897,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -908,7 +908,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCV', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType as string));
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -954,7 +954,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -984,7 +984,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1010,12 +1010,12 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request = undefined;
+        let request: NullableDict = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
             }
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1049,7 +1049,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1080,7 +1080,7 @@ export default class bingx extends bingxRest {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchMyTrades is not supported for inverse swap markets yet');
             }
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1111,7 +1111,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1127,7 +1127,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request = undefined;
+        let request: NullableDict = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {
@@ -1136,7 +1136,7 @@ export default class bingx extends bingxRest {
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1161,7 +1161,7 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
-    setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
+    setBalanceCache (client: Client, type: any, subType: any, subscriptionHash: any, params: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -1177,7 +1177,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type, subType) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, subType: any) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -1199,7 +1199,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1223,7 +1223,7 @@ export default class bingx extends bingxRest {
         }
         const subscriptionHash = 'swap:private';
         messageHash = 'swap:positions' + messageHash;
-        const baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
+        const baseUrl = this.safeString (this.urls['api']['ws'], subType);
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
@@ -1247,7 +1247,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1263,7 +1263,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1282,7 +1282,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "s": "LINK-USDT",     // Symbol
@@ -1338,7 +1338,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1394,7 +1394,7 @@ export default class bingx extends bingxRest {
         client.resolve (newPositions, 'swap:positions');
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
@@ -1461,7 +1461,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async pong (client, message) {
+    async pong (client: Client, message: any) {
         //
         // spot
         // {
@@ -1488,7 +1488,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: any, message: any) {
         //
         //     {
         //         "code": 0,
@@ -1589,7 +1589,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash + ':' + symbol);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //
         //      {
@@ -1667,7 +1667,7 @@ export default class bingx extends bingxRest {
         client.resolve (cachedTrades, messageHash + ':' + symbol);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -1722,13 +1722,15 @@ export default class bingx extends bingxRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'lk');
             account['free'] = this.safeString (balance, 'wb');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1787,7 +1789,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "code": 0,
@@ -1798,7 +1800,7 @@ export default class bingx extends bingxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, (id as string), {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);

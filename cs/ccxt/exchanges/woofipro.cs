@@ -40,6 +40,7 @@ public partial class woofipro : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", false },
@@ -50,6 +51,7 @@ public partial class woofipro : Exchange
                 { "createTrailingAmountOrder", false },
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchAllGreeks", false },
                 { "fetchBalance", true },
@@ -88,7 +90,9 @@ public partial class woofipro : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
@@ -102,8 +106,8 @@ public partial class woofipro : Exchange
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -145,7 +149,7 @@ public partial class woofipro : Exchange
                     { "private", "https://testnet-api-evm.orderly.org" },
                 } },
                 { "www", "https://dex.woo.org" },
-                { "doc", new List<object>() {"https://orderly.network/docs/build-on-omnichain/building-on-evm"} },
+                { "doc", new List<object>() {"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"} },
                 { "fees", new List<object>() {"https://dex.woo.org/en/orderly"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://dex.woo.org/en/trade?ref=CCXT" },
@@ -156,133 +160,363 @@ public partial class woofipro : Exchange
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "public/volume/stats", 1 },
-                            { "public/broker/name", 1 },
-                            { "public/chain_info/{broker_id}", 1 },
-                            { "public/system_info", 1 },
-                            { "public/vault_balance", 1 },
-                            { "public/insurancefund", 1 },
-                            { "public/chain_info", 1 },
-                            { "faucet/usdc", 1 },
-                            { "public/account", 1 },
-                            { "get_account", 1 },
-                            { "registration_nonce", 1 },
-                            { "get_orderly_key", 1 },
-                            { "public/liquidation", 1 },
-                            { "public/liquidated_positions", 1 },
-                            { "public/config", 1 },
-                            { "public/campaign/ranking", 10 },
-                            { "public/campaign/stats", 10 },
-                            { "public/campaign/user", 10 },
-                            { "public/campaign/stats/details", 10 },
-                            { "public/campaigns", 10 },
-                            { "public/points/leaderboard", 1 },
-                            { "client/points", 1 },
-                            { "public/points/epoch", 1 },
-                            { "public/points/epoch_dates", 1 },
-                            { "public/referral/check_ref_code", 1 },
-                            { "public/referral/verify_ref_code", 1 },
-                            { "referral/admin_info", 1 },
-                            { "referral/info", 1 },
-                            { "referral/referee_info", 1 },
-                            { "referral/referee_rebate_summary", 1 },
-                            { "referral/referee_history", 1 },
-                            { "referral/referral_history", 1 },
-                            { "referral/rebate_summary", 1 },
-                            { "client/distribution_history", 1 },
-                            { "tv/config", 1 },
-                            { "tv/history", 1 },
-                            { "tv/symbol_info", 1 },
-                            { "public/funding_rate_history", 1 },
-                            { "public/funding_rate/{symbol}", 0.33 },
-                            { "public/funding_rates", 1 },
-                            { "public/info", 1 },
-                            { "public/info/{symbol}", 1 },
-                            { "public/market_trades", 1 },
-                            { "public/token", 1 },
-                            { "public/futures", 1 },
-                            { "public/futures/{symbol}", 1 },
+                            { "public/volume/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/broker/name", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info/{broker_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/system_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/vault_balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/insurancefund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/chain_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "faucet/usdc", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "registration_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "get_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/liquidated_positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/campaign/ranking", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/user", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaign/stats/details", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/campaigns", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "public/points/leaderboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/points", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/epoch_dates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/check_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/referral/verify_ref_code", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/admin_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referee_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/referral_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/rebate_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/distribution_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "tv/symbol_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/funding_rate/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 0.33 },
+                            } },
+                            { "public/funding_rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/info/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/market_trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/futures/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "register_account", 1 },
+                            { "register_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "client/key_info", 6 },
-                            { "client/orderly_key_ip_restriction", 6 },
-                            { "order/{oid}", 1 },
-                            { "client/order/{client_order_id}", 1 },
-                            { "algo/order/{oid}", 1 },
-                            { "algo/client/order/{client_order_id}", 1 },
-                            { "orders", 1 },
-                            { "algo/orders", 1 },
-                            { "trade/{tid}", 1 },
-                            { "trades", 1 },
-                            { "order/{oid}/trades", 1 },
-                            { "client/liquidator_liquidations", 1 },
-                            { "liquidations", 1 },
-                            { "asset/history", 60 },
-                            { "client/holding", 1 },
-                            { "withdraw_nonce", 1 },
-                            { "settle_nonce", 1 },
-                            { "pnl_settlement/history", 1 },
-                            { "volume/user/daily", 60 },
-                            { "volume/user/stats", 60 },
-                            { "client/statistics", 60 },
-                            { "client/info", 60 },
-                            { "client/statistics/daily", 60 },
-                            { "positions", 3.33 },
-                            { "position/{symbol}", 3.33 },
-                            { "funding_fee/history", 30 },
-                            { "notification/inbox/notifications", 60 },
-                            { "notification/inbox/unread", 60 },
-                            { "volume/broker/daily", 60 },
-                            { "broker/fee_rate/default", 10 },
-                            { "broker/user_info", 10 },
-                            { "orderbook/{symbol}", 1 },
-                            { "kline", 1 },
+                            { "client/key_info", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order/{oid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order/{client_order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade/{tid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/{oid}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/liquidator_liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "asset/history", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/holding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "pnl_settlement/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "volume/user/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/user/stats", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/info", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/statistics/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "positions", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "position/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 3.33 },
+                            } },
+                            { "funding_fee/history", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
+                            { "notification/inbox/notifications", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/unread", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "volume/broker/daily", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/user_info", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "orderbook/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "orderly_key", 1 },
-                            { "client/set_orderly_key_ip_restriction", 6 },
-                            { "client/reset_orderly_key_ip_restriction", 6 },
-                            { "order", 1 },
-                            { "batch-order", 10 },
-                            { "algo/order", 1 },
-                            { "liquidation", 1 },
-                            { "claim_insurance_fund", 1 },
-                            { "withdraw_request", 1 },
-                            { "settle_pnl", 1 },
-                            { "notification/inbox/mark_read", 60 },
-                            { "notification/inbox/mark_read_all", 60 },
-                            { "client/leverage", 120 },
-                            { "client/maintenance_config", 60 },
-                            { "delegate_signer", 10 },
-                            { "delegate_orderly_key", 10 },
-                            { "delegate_settle_pnl", 10 },
-                            { "delegate_withdraw_request", 10 },
-                            { "broker/fee_rate/set", 10 },
-                            { "broker/fee_rate/set_default", 10 },
-                            { "broker/fee_rate/default", 10 },
-                            { "referral/create", 10 },
-                            { "referral/update", 10 },
-                            { "referral/bind", 10 },
-                            { "referral/edit_split", 10 },
+                            { "orderly_key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/set_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "client/reset_orderly_key_ip_restriction", new Dictionary<string, object>() {
+                                { "cost", 6 },
+                            } },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "liquidation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "claim_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "notification/inbox/mark_read", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "notification/inbox/mark_read_all", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "client/leverage", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/maintenance_config", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "delegate_signer", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_orderly_key", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_settle_pnl", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "delegate_withdraw_request", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "broker/fee_rate/default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/create", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/bind", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/edit_split", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "order", 1 },
-                            { "algo/order", 1 },
-                            { "client/order", 1 },
-                            { "algo/client/order", 1 },
-                            { "algo/orders", 1 },
-                            { "orders", 1 },
-                            { "batch-order", 1 },
-                            { "client/batch-order", 1 },
+                            { "order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/client/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "algo/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -437,7 +671,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -480,7 +714,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -531,6 +765,10 @@ public partial class woofipro : Exchange
         //   }
         //
         object marketId = this.safeString(market, "symbol");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
         object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketType = "swap";
         object baseId = this.safeString(parts, 1);
@@ -540,7 +778,7 @@ public partial class woofipro : Exchange
         object settleId = this.safeString(parts, 2);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -588,14 +826,14 @@ public partial class woofipro : Exchange
             } },
             { "created", this.safeInteger(market, "created_time") },
             { "info", market },
-        };
+        });
     }
 
     /**
      * @method
      * @name woofipro#fetchMarkets
      * @description retrieves data on all markets for woofipro
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -647,8 +885,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -695,6 +933,10 @@ public partial class woofipro : Exchange
                 { "_token", token },
                 { "_indexedChains", indexedChains },
             });
+            if (isTrue(isEqual(parsed, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+            }
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
         }
         return result;
@@ -713,31 +955,34 @@ public partial class woofipro : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "chain_id");
             object networkRow = this.safeDict(indexedChains, networkId);
-            object networkName = this.safeString(networkRow, "name");
+            object networkName = this.safeString(networkRow, "name", networkId);
             object networkCode = this.networkIdToCode(networkName, code);
-            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                    { "info", new Dictionary<string, object>() {
+                        { "network", networkEntry },
+                        { "networkRow", networkRow },
                     } },
-                } },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
-                { "info", new Dictionary<string, object>() {
-                    { "network", networkEntry },
-                    { "networkRow", networkRow },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -818,7 +1063,7 @@ public partial class woofipro : Exchange
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
         object feeCost = this.safeString(fee, "cost");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(feeCost, null)))))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
@@ -852,7 +1097,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -954,7 +1199,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -969,7 +1214,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1009,7 +1254,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1045,11 +1290,294 @@ public partial class woofipro : Exchange
         return this.parseFundingRates(rows, symbols);
     }
 
+    public override object parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeString(ticker, "24h_high") },
+            { "low", this.safeString(ticker, "24h_low") },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", this.safeString(ticker, "24h_open") },
+            { "close", this.safeString(ticker, "24h_close") },
+            { "last", this.safeString(ticker, "24h_close") },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", null },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "24h_volume") },
+            { "quoteVolume", this.safeString(ticker, "24h_amount") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return this.parseTicker(data, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            object ticker = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(interest, "timestamp");
+        object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "openInterestAmount", amount },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return this.parseOpenInterest(data, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            object interest = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseOpenInterest(interest));
+        }
+        return this.filterByArray(result, "symbol", symbols);
+    }
+
     /**
      * @method
      * @name woofipro#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1165,7 +1693,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1242,7 +1770,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1285,9 +1813,10 @@ public partial class woofipro : Exchange
         object maker = this.safeString(data, "futures_maker_fee_rate");
         object taker = this.safeString(data, "futures_taker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1304,11 +1833,11 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1357,7 +1886,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1473,9 +2002,9 @@ public partial class woofipro : Exchange
             status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
         }
         object side = this.safeStringLower(order, "side");
-        object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        object filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
+        object remaining = Precise.stringSub(amount, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
@@ -1571,22 +2100,34 @@ public partial class woofipro : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name woofipro#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name woofipro#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         object orderType = ((string)type).ToUpper();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
@@ -1647,17 +2188,11 @@ public partial class woofipro : Exchange
         } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
-            object outterOrder = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-                { "reduce_only", false },
-                { "algo_type", "POSITIONAL_TP_SL" },
-                { "child_orders", new List<object>() {} },
-            };
-            object childOrders = getValue(outterOrder, "child_orders");
+            object childOrders = new List<object>() {};
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(hasStopLoss))
             {
-                object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
                 object stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1669,7 +2204,7 @@ public partial class woofipro : Exchange
             }
             if (isTrue(hasTakeProfit))
             {
-                object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
                 object takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
@@ -1677,8 +2212,14 @@ public partial class woofipro : Exchange
                     { "type", "LIMIT" },
                     { "reduce_only", true },
                 };
-                ((IList<object>)outterOrder).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
+            object outterOrder = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "reduce_only", false },
+                { "algo_type", "POSITIONAL_TP_SL" },
+                { "child_orders", childOrders },
+            };
             ((IDictionary<string,object>)request)["child_orders"] = new List<object>() {outterOrder};
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});
@@ -1689,8 +2230,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1739,7 +2280,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1802,8 +2343,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1845,6 +2386,10 @@ public partial class woofipro : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
         object response = null;
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a side argument")) ;
+        }
         if (isTrue(isConditional))
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
@@ -1896,10 +2441,10 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#cancelOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1985,7 +2530,8 @@ public partial class woofipro : Exchange
         }
         if (isTrue(trigger))
         {
-            return this.extend(this.parseOrder(response), extendParams);
+            object parsedResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+            return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseOrder(data), extendParams);
@@ -1995,8 +2541,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2040,10 +2586,10 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2094,10 +2640,10 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2174,15 +2720,16 @@ public partial class woofipro : Exchange
         // }
         //
         object orders = this.safeDict(response, "data", response);
-        return this.parseOrder(orders, market);
+        object parsedOrders = ((bool) isTrue((isEqual(orders, null)))) ? new Dictionary<string, object>() {} : orders;
+        return this.parseOrder(parsedOrders, market);
     }
 
     /**
      * @method
      * @name woofipro#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2288,8 +2835,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2318,8 +2865,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2348,7 +2895,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2401,7 +2948,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2491,8 +3038,11 @@ public partial class woofipro : Exchange
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
-            ((IDictionary<string,object>)account)["frozen"] = this.safeString(balance, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2501,7 +3051,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -2625,14 +3175,14 @@ public partial class woofipro : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
      * @method
      * @name woofipro#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2701,7 +3251,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2721,7 +3271,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2741,7 +3291,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2766,7 +3316,12 @@ public partial class woofipro : Exchange
         //         "success":true
         //     }
         //
-        return this.parseTransactions(rows, currency, since, limit, parameters);
+        object rowsList = new List<object>() {};
+        if (isTrue(!isEqual(rows, null)))
+        {
+            rowsList = rows;
+        }
+        return this.parseTransactions(rowsList, currency, since, limit, parameters);
     }
 
     public async virtual Task<object> getWithdrawNonce(object parameters = null)
@@ -2809,7 +3364,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2923,7 +3478,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -2972,7 +3527,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3072,7 +3627,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchPosition
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3116,7 +3671,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parsePosition(data, market);
     }
 
@@ -3124,7 +3679,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}

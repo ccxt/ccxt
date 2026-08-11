@@ -266,7 +266,7 @@ public partial class bydfi : ccxt.bydfi
                     {
                         continue;
                     }
-                    object marketId = this.marketId(((string)symbol));
+                    object marketId = this.marketId(symbol);
                     ((IList<object>)channels).Add(add(marketId, channel));
                 }
             }
@@ -385,20 +385,17 @@ public partial class bydfi : ccxt.bydfi
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
+        await this.loadMarkets();
         object channels = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object marketId = this.safeString(symbolAndTimeframe, 0);
-            object market = this.market(((string)marketId));
+            object market = this.market(marketId);
             object tf = this.safeString(symbolAndTimeframe, 1);
             object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-            object interval = this.safeString(timeframes, ((string)tf), tf);
+            object interval = this.safeString(timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), interval));
         }
@@ -431,19 +428,16 @@ public partial class bydfi : ccxt.bydfi
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
+        await this.loadMarkets();
         object channels = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object marketId = this.safeString(symbolAndTimeframe, 0);
-            object market = this.market(((string)marketId));
+            object market = this.market(marketId);
             object tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, ((string)tf), tf);
+            object interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", getValue(market, "symbol")), "::"), interval));
         }
@@ -535,7 +529,7 @@ public partial class bydfi : ccxt.bydfi
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -666,7 +660,7 @@ public partial class bydfi : ccxt.bydfi
         {
             symbols = new List<object>() {symbol};
         }
-        return await this.watchOrdersForSymbols((IList<string>)(symbols), since, limit, parameters);
+        return await this.watchOrdersForSymbols(symbols, since, limit, parameters);
     }
 
     /**
@@ -1114,7 +1108,10 @@ public partial class bydfi : ccxt.bydfi
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "wb");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "tfm");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             object parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
@@ -1132,7 +1129,7 @@ public partial class bydfi : ccxt.bydfi
         //
         object id = this.safeString(message, "id");
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeDict(subscriptionsById, ((string)id), new Dictionary<string, object>() {});
+        object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isUnSubMessage))
         {

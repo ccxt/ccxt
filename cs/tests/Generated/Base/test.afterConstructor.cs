@@ -96,7 +96,7 @@ public partial class BaseTest
                     { "BTC/USD", sampleMarket },
                 } },
             });
-            Assert(!isEqual(getValue(exchange2.markets, "BTC/USD"), null));
+            Assert(isTrue((!isEqual(exchange2.markets, null))) && isTrue((!isEqual(getValue(exchange2.markets, "BTC/USD"), null))));
         }
         public void helperTestProperties()
         {
@@ -306,7 +306,7 @@ public partial class BaseTest
             // common props
             //
             Assert(isEqual(exchange.markets, null), "markets should be undefined");
-            Assert(isEqual(exchange.symbols, null), "symbols should be undefined");
+            Assert(isEqual(getArrayLength(exchange.symbols), 0), "symbols should be an empty array");
             Assert(isEqual(exchange.markets_by_id, null), "markets_by_id should be undefined");
             Assert(isEqual(exchange.ids, null), "ids should be undefined");
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "currencies", exchange.currencies, new Dictionary<string, object>() {});

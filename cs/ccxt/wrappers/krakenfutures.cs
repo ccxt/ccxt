@@ -342,6 +342,12 @@ public partial class krakenfutures
     /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : Unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// dict : Exchange specific params
@@ -467,7 +473,8 @@ public partial class krakenfutures
     /// Gets all closed orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-history/get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-history/get-trigger-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

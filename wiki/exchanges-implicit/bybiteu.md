@@ -1,6 +1,6 @@
 Every endpoint in `bybiteu`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bybiteu) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetSpotV3PublicSymbols`); the snake_case alias (`public_get_spot_v3_public_symbols`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetSpotV3PublicSymbols`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetSpotV3PublicSymbols`); the snake_case alias (`public_get_spot_v3_public_symbols`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetSpotV3PublicSymbols`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bybiteu API documentation:** [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/inverse/) · [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/linear/) · [github.com](https://github.com/bybit-exchange)
 
-> 403 implicit endpoints across 2 access groups.
+> 404 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -274,6 +274,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV5AffiliateAffUserList` | GET | `v5/affiliate/aff-user-list` | 5 |
 | `privateGetV5AffiliateAffiliateSubList` | GET | `v5/affiliate/affiliate-sub-list` | 5 |
 | `privateGetV5SpotLeverTokenOrderRecord` | GET | `v5/spot-lever-token/order-record` | 1 |
+| `privateGetV5SpotMarginTradeFlexibleAvailableInventory` | GET | `v5/spot-margin-trade/flexible-available-inventory` | 5 |
 | `privateGetV5SpotMarginTradeInterestRateHistory` | GET | `v5/spot-margin-trade/interest-rate-history` | 5 |
 | `privateGetV5SpotMarginTradeState` | GET | `v5/spot-margin-trade/state` | 5 |
 | `privateGetV5SpotMarginTradeMaxBorrowable` | GET | `v5/spot-margin-trade/max-borrowable` | 5 |

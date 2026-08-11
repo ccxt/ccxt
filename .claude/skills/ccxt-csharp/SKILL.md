@@ -929,6 +929,30 @@ Console.WriteLine(exchange.LastHttpResponse);
 Console.WriteLine(exchange.LastJsonResponse);
 ```
 
+## Prediction Markets
+
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) under a dedicated `ccxt.prediction` namespace. They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
+
+```csharp
+using ccxt;
+
+var exchange = new ccxt.prediction.polymarket();
+await exchange.loadMarkets();
+// discover events -> markets -> outcomes (each outcome has: outcome (handle),
+// outcomeId, market, label); also fetchEvents / fetchEvent are available
+var events = await exchange.fetchEvents(new Dictionary<string, object>() {{ "query", "Trump" }});
+// an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
+string handle = "TRUMP_OUT_PRESIDENT_2027:YES";
+var ticker = await exchange.fetchTicker(handle);
+var book = await exchange.fetchOrderBook(handle);
+// limit buy 5 YES shares @ 0.40 USDC (price is 0..1 per share)
+var order = await exchange.createOrder(handle, "limit", "buy", 5, 0.40);
+await exchange.cancelOrder(exchange.safeString(order, "id"), handle);
+```
+
+- Price/trade methods (`fetchTicker`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, `cancelOrder`, …) take an **outcome handle or outcomeId** (the `outcome` / `outcomes` parameter), not `symbol`.
+- Check support with `exchange.has["prediction"]`; discover markets via `fetchEvents` / `fetchEvent` (or `loadMarkets`).
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

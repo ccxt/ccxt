@@ -130,7 +130,7 @@ export default class bydfi extends bydfiRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -196,7 +196,7 @@ export default class bydfi extends bydfiRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     fetchBalanceSnapshot(client: Client): void;
-    loadBalanceSnapshot(client: any, messageHash: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;

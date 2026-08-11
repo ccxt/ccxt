@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -125,48 +125,48 @@ class coincheck(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'exchange/orders/rate',
-                        'exchange_status',
-                        'order_books',
-                        'rate/{pair}',
-                        'ticker',
-                        'trades',
-                    ],
+                    'get': {
+                        'exchange/orders/rate': {'cost': 1},
+                        'exchange_status': {'cost': 1},
+                        'order_books': {'cost': 1},
+                        'rate/{pair}': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'trades': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/balance',
-                        'accounts/leverage_balance',
-                        'bank_accounts',
-                        'deposit_money',
-                        'exchange/orders/{id}',
-                        'exchange/orders/opens',
-                        'exchange/orders/cancel_status',
-                        'exchange/orders/transactions',
-                        'exchange/orders/transactions_pagination',
-                        'exchange/leverage/positions',
-                        'lending/borrows/matches',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'post': [
-                        'bank_accounts',
-                        'deposit_money/{id}/fast',
-                        'exchange/orders',
-                        'exchange/transfers/to_leverage',
-                        'exchange/transfers/from_leverage',
-                        'lending/borrows',
-                        'lending/borrows/{id}/repay',
-                        'send_money',
-                        'withdraws',
-                    ],
-                    'delete': [
-                        'bank_accounts/{id}',
-                        'exchange/orders/{id}',
-                        'withdraws/{id}',
-                    ],
+                    'get': {
+                        'accounts': {'cost': 1},
+                        'accounts/balance': {'cost': 1},
+                        'accounts/leverage_balance': {'cost': 1},
+                        'bank_accounts': {'cost': 1},
+                        'deposit_money': {'cost': 1},
+                        'exchange/orders/{id}': {'cost': 1},
+                        'exchange/orders/opens': {'cost': 1},
+                        'exchange/orders/cancel_status': {'cost': 1},
+                        'exchange/orders/transactions': {'cost': 1},
+                        'exchange/orders/transactions_pagination': {'cost': 1},
+                        'exchange/leverage/positions': {'cost': 1},
+                        'lending/borrows/matches': {'cost': 1},
+                        'send_money': {'cost': 1},
+                        'withdraws': {'cost': 1},
+                    },
+                    'post': {
+                        'bank_accounts': {'cost': 1},
+                        'deposit_money/{id}/fast': {'cost': 1},
+                        'exchange/orders': {'cost': 1},
+                        'exchange/transfers/to_leverage': {'cost': 1},
+                        'exchange/transfers/from_leverage': {'cost': 1},
+                        'lending/borrows': {'cost': 1},
+                        'lending/borrows/{id}/repay': {'cost': 1},
+                        'send_money': {'cost': 1},
+                        'withdraws': {'cost': 1},
+                    },
+                    'delete': {
+                        'bank_accounts/{id}': {'cost': 1},
+                        'exchange/orders/{id}': {'cost': 1},
+                        'withdraws/{id}': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -268,7 +268,7 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -283,7 +283,7 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_status(self, params={}) -> dict:
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -424,7 +424,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -759,7 +759,7 @@ class coincheck(Exchange, ImplicitAPI):
         https://coincheck.com/documents/exchange/api#order-cancel
 
         :param str id: order id
-        :param str symbol: not used by coincheck cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -949,7 +949,7 @@ class coincheck(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -975,7 +975,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         #

@@ -159,72 +159,72 @@ export default class backpack extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1, // done
-                        'api/v1/collateral': 1, // not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1, // done
-                        'api/v1/market': 1, // not used
-                        'api/v1/ticker': 1, // done
-                        'api/v1/tickers': 1, // done
-                        'api/v1/depth': 1, // done
-                        'api/v1/klines': 1, // done
-                        'api/v1/markPrices': 1, // done
-                        'api/v1/openInterest': 1, // done
-                        'api/v1/fundingRates': 1, // done
-                        'api/v1/status': 1, // done
-                        'api/v1/ping': 1, // todo check if it is needed for ws
-                        'api/v1/time': 1, // done
-                        'api/v1/wallets': 1, // not used
-                        'api/v1/trades': 1, // done
-                        'api/v1/trades/history': 1, // done
+                        'api/v1/assets': { 'cost': 1 }, // done
+                        'api/v1/collateral': { 'cost': 1 }, // not used
+                        'api/v1/borrowLend/markets': { 'cost': 1 },
+                        'api/v1/borrowLend/markets/history': { 'cost': 1 },
+                        'api/v1/markets': { 'cost': 1 }, // done
+                        'api/v1/market': { 'cost': 1 }, // not used
+                        'api/v1/ticker': { 'cost': 1 }, // done
+                        'api/v1/tickers': { 'cost': 1 }, // done
+                        'api/v1/depth': { 'cost': 1 }, // done
+                        'api/v1/klines': { 'cost': 1 }, // done
+                        'api/v1/markPrices': { 'cost': 1 }, // done
+                        'api/v1/openInterest': { 'cost': 1 }, // done
+                        'api/v1/fundingRates': { 'cost': 1 }, // done
+                        'api/v1/status': { 'cost': 1 }, // done
+                        'api/v1/ping': { 'cost': 1 }, // todo check if it is needed for ws
+                        'api/v1/time': { 'cost': 1 }, // done
+                        'api/v1/wallets': { 'cost': 1 }, // not used
+                        'api/v1/trades': { 'cost': 1 }, // done
+                        'api/v1/trades/history': { 'cost': 1 }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1, // not used
-                        'api/v1/account/limits/order': 1, // not used
-                        'api/v1/account/limits/withdrawal': 1, // not used
-                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
-                        'api/v1/capital': 1, // done
-                        'api/v1/capital/collateral': 1, // not used
-                        'wapi/v1/capital/deposits': 1, // done
-                        'wapi/v1/capital/deposit/address': 1, // done
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/position': 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1, // not used
-                        'wapi/v1/history/interest': 1, // not used
-                        'wapi/v1/history/borrowLend/positions': 1, // not used
-                        'wapi/v1/history/dust': 1, // not used
-                        'wapi/v1/history/fills': 1, // done
-                        'wapi/v1/history/funding': 1, // done
-                        'wapi/v1/history/orders': 1, // done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/account': { 'cost': 1 }, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': { 'cost': 1 }, // not used
+                        'api/v1/account/limits/order': { 'cost': 1 }, // not used
+                        'api/v1/account/limits/withdrawal': { 'cost': 1 }, // not used
+                        'api/v1/borrowLend/positions': { 'cost': 1 }, // todo fetchBorrowInterest
+                        'api/v1/capital': { 'cost': 1 }, // done
+                        'api/v1/capital/collateral': { 'cost': 1 }, // not used
+                        'wapi/v1/capital/deposits': { 'cost': 1 }, // done
+                        'wapi/v1/capital/deposit/address': { 'cost': 1 }, // done
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 }, // todo complete after withdrawal
+                        'api/v1/position': { 'cost': 1 }, // done but todo check if all is right
+                        'wapi/v1/history/borrowLend': { 'cost': 1 }, // not used
+                        'wapi/v1/history/interest': { 'cost': 1 }, // not used
+                        'wapi/v1/history/borrowLend/positions': { 'cost': 1 }, // not used
+                        'wapi/v1/history/dust': { 'cost': 1 }, // not used
+                        'wapi/v1/history/fills': { 'cost': 1 }, // done
+                        'wapi/v1/history/funding': { 'cost': 1 }, // done
+                        'wapi/v1/history/orders': { 'cost': 1 }, // done
+                        'wapi/v1/history/rfq': { 'cost': 1 },
+                        'wapi/v1/history/quote': { 'cost': 1 },
+                        'wapi/v1/history/settlement': { 'cost': 1 },
+                        'wapi/v1/history/strategies': { 'cost': 1 },
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/account/convertDust': { 'cost': 1 },
+                        'api/v1/borrowLend': { 'cost': 1 }, // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 }, // todo complete after withdrawal
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
+                        'api/v1/rfq': { 'cost': 1 },
+                        'api/v1/rfq/accept': { 'cost': 1 },
+                        'api/v1/rfq/refresh': { 'cost': 1 },
+                        'api/v1/rfq/cancel': { 'cost': 1 },
+                        'api/v1/rfq/quote': { 'cost': 1 },
                     },
                     'delete': {
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': { 'cost': 1 },
                     },
                 },
             },
@@ -407,7 +407,7 @@ export default class backpack extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -432,7 +432,7 @@ export default class backpack extends Exchange {
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
@@ -544,26 +544,28 @@ export default class backpack extends Exchange {
             const networkId = this.safeString(network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
             const networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'minimumWithdrawal'),
-                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'minimumWithdrawal'),
+                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'minimumDeposit'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(network, 'minimumDeposit'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(network, 'depositEnabled'),
-                'withdraw': this.safeBool(network, 'withdrawEnabled'),
-                'fee': this.safeNumber(network, 'withdrawalFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(network, 'depositEnabled'),
+                    'withdraw': this.safeBool(network, 'withdrawEnabled'),
+                    'fee': this.safeNumber(network, 'withdrawalFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         let active = undefined;
         let deposit = undefined;
@@ -864,9 +866,14 @@ export default class backpack extends Exchange {
         const low = this.safeString(ticker, 'low');
         const baseVolume = this.safeString(ticker, 'volume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = undefined;
+        const percentageNumber = this.safeFloat(ticker, 'priceChangePercent');
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (percentageNumber !== undefined) {
+            percentage = Precise.stringMul(this.safeString(ticker, 'priceChangePercent'), '100');
+        }
         const change = this.safeString(ticker, 'priceChange');
-        return this.safeTicker({
+        const parsedTicker = this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -890,6 +897,7 @@ export default class backpack extends Exchange {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+        return parsedTicker;
     }
     /**
      * @method
@@ -898,8 +906,8 @@ export default class backpack extends Exchange {
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -925,6 +933,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const microseconds = this.safeInteger(response, 'timestamp');
+        if (microseconds === undefined) {
+            throw new ExchangeError(this.id + ' fetchOrderBook() missing microseconds');
+        }
         const timestamp = this.parseToInt(microseconds / 1000);
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
@@ -939,7 +950,7 @@ export default class backpack extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -976,7 +987,8 @@ export default class backpack extends Exchange {
             params = this.omit(params, 'price');
         }
         const response = await this.publicGetApiV1Klines(this.extend(request, params));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1144,8 +1156,9 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const rate = response[i];
+        const rawRates = this.toArray(response);
+        for (let i = 0; i < rawRates.length; i++) {
+            const rate = rawRates[i];
             const datetime = this.safeString(rate, 'intervalEndTimestamp');
             const timestamp = this.parse8601(datetime);
             rates.push({
@@ -1191,7 +1204,8 @@ export default class backpack extends Exchange {
         else {
             response = await this.publicGetApiV1Trades(this.extend(request, params));
         }
-        return this.parseTrades(response, market, since, limit);
+        const responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -1232,7 +1246,8 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
-        return this.parseTrades(response, market, since, limit);
+        const responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1328,6 +1343,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const status = this.safeString(response, 'status');
+        if (status === undefined) {
+            throw new ExchangeError(this.id + ' fetchStatus() missing status');
+        }
         return {
             'status': status.toLowerCase(),
             'updated': undefined,
@@ -1388,7 +1406,9 @@ export default class backpack extends Exchange {
             const used = Precise.stringAdd(locked, staked);
             account['free'] = this.safeString(balance, 'available');
             account['used'] = used;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1739,6 +1759,12 @@ export default class backpack extends Exchange {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1854,7 +1880,7 @@ export default class backpack extends Exchange {
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1926,10 +1952,10 @@ export default class backpack extends Exchange {
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

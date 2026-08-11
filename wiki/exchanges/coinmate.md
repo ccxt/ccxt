@@ -25,10 +25,10 @@
 <a name="fetchTime" id="fetchtime"></a>
 
 ### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the bingx server
+fetches the current integer timestamp in milliseconds from the exchange server
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the bingx server
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
 **See**: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get  
 
@@ -88,7 +88,7 @@ coinmate.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get  
 
@@ -384,7 +384,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by coinmate cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchMarginMode(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchMarginMode(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchMarginMode";
-        object marginMode = await exchange.fetchMarginMode(symbol);
+        object marginMode = await ((dynamic)exchange).fetchMarginMode(symbol);
         testMarginMode(exchange, skippedProperties, method, marginMode);
         return true;
     }

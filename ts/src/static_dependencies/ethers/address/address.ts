@@ -2,7 +2,7 @@
 // TODO: unify address functions in other language? or remove it?
 import { keccak_256 as keccak256 } from '@noble/hashes/sha3.js';
 
-import { getBytes, assertArgument } from "../utils/index.js";
+import { assertArgument } from "../utils/index.js";
 
 
 const BN_0 = BigInt(0);

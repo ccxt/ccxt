@@ -10,6 +10,12 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_order_book($exchange, $skipped_properties, $method, $orderbook, $symbol) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $skipped_properties = $exchange->extend(array(
+            'symbol' => true,
+        ), $skipped_properties);
+    }
     $format = array(
         'symbol' => 'ETH/BTC',
         'asks' => [[$exchange->parse_number('1.24'), $exchange->parse_number('0.453')], [$exchange->parse_number('1.25'), $exchange->parse_number('0.157')]],
@@ -19,8 +25,6 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
         'nonce' => 134234234,
     );
     $empty_allowed_for = ['nonce'];
-    // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    $orderbook = $exchange->deep_extend(array(), $orderbook);
     assert_structure($exchange, $skipped_properties, $method, $orderbook, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $orderbook);
     assert_symbol($exchange, $skipped_properties, $method, $orderbook, 'symbol', $symbol);

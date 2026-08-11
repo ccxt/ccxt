@@ -30,7 +30,7 @@ export default class cryptocom extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -159,167 +159,167 @@ export default class cryptocom extends Exchange {
                 'base': {
                     'public': {
                         'get': {
-                            'v1/public/get-announcements': 1, // no description of rate limit
+                            'v1/public/get-announcements': { 'cost': 1 }, // no description of rate limit
                         },
                     },
                 },
                 'v1': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
-                            'public/get-announcements': 1,
-                            'public/get-risk-parameters': 1,
+                            'public/auth': { 'cost': 10 / 3 },
+                            'public/get-instruments': { 'cost': 10 / 3 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/get-tickers': { 'cost': 1 },
+                            'public/get-valuations': { 'cost': 1 },
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 },
+                            'public/get-insurance': { 'cost': 1 },
+                            'public/get-announcements': { 'cost': 1 },
+                            'public/get-risk-parameters': { 'cost': 1 },
                         },
                         'post': {
-                            'public/staking/get-conversion-rate': 2,
+                            'public/staking/get-conversion-rate': { 'cost': 2 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3, // no description of rate limit
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-fee-rate': 2,
-                            'private/get-instrument-fee-rate': 2,
-                            'private/fiat/fiat-deposit-info': 10 / 3,
-                            'private/fiat/fiat-deposit-history': 10 / 3,
-                            'private/fiat/fiat-withdraw-history': 10 / 3,
-                            'private/fiat/fiat-create-withdraw': 10 / 3,
-                            'private/fiat/fiat-transaction-quota': 10 / 3,
-                            'private/fiat/fiat-transaction-limit': 10 / 3,
-                            'private/fiat/fiat-get-bank-accounts': 10 / 3,
-                            'private/staking/stake': 2,
-                            'private/staking/unstake': 2,
-                            'private/staking/get-staking-position': 2,
-                            'private/staking/get-staking-instruments': 2,
-                            'private/staking/get-open-stake': 2,
-                            'private/staking/get-stake-history': 2,
-                            'private/staking/get-reward-history': 2,
-                            'private/staking/convert': 2,
-                            'private/staking/get-open-convert': 2,
-                            'private/staking/get-convert-history': 2,
-                            'private/create-isolated-margin-transfer': 10 / 3,
-                            'private/change-isolated-margin-leverage': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/user-balance': { 'cost': 10 / 3 },
+                            'private/user-balance-history': { 'cost': 10 / 3 },
+                            'private/get-positions': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/amend-order': { 'cost': 4 / 3 }, // no description of rate limit
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/close-position': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 100 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/change-account-leverage': { 'cost': 10 / 3 },
+                            'private/get-transactions': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/get-order-list': { 'cost': 10 / 3 },
+                            'private/create-withdrawal': { 'cost': 10 / 3 },
+                            'private/get-currency-networks': { 'cost': 10 / 3 },
+                            'private/get-deposit-address': { 'cost': 10 / 3 },
+                            'private/get-accounts': { 'cost': 10 / 3 },
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 },
+                            'private/get-deposit-history': { 'cost': 10 / 3 },
+                            'private/get-fee-rate': { 'cost': 2 },
+                            'private/get-instrument-fee-rate': { 'cost': 2 },
+                            'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-create-withdraw': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-transaction-quota': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-transaction-limit': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-get-bank-accounts': { 'cost': 10 / 3 },
+                            'private/staking/stake': { 'cost': 2 },
+                            'private/staking/unstake': { 'cost': 2 },
+                            'private/staking/get-staking-position': { 'cost': 2 },
+                            'private/staking/get-staking-instruments': { 'cost': 2 },
+                            'private/staking/get-open-stake': { 'cost': 2 },
+                            'private/staking/get-stake-history': { 'cost': 2 },
+                            'private/staking/get-reward-history': { 'cost': 2 },
+                            'private/staking/convert': { 'cost': 2 },
+                            'private/staking/get-open-convert': { 'cost': 2 },
+                            'private/staking/get-convert-history': { 'cost': 2 },
+                            'private/create-isolated-margin-transfer': { 'cost': 10 / 3 },
+                            'private/change-isolated-margin-leverage': { 'cost': 10 / 3 },
                         },
                     },
                 },
                 'v2': {
                     'public': {
                         'get': {
-                            'public/auth': 1,
-                            'public/get-instruments': 1,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-ticker': 1,
-                            'public/get-trades': 1,
-                            'public/margin/get-transfer-currencies': 1,
-                            'public/margin/get-load-currenices': 1,
-                            'public/respond-heartbeat': 1,
+                            'public/auth': { 'cost': 1 },
+                            'public/get-instruments': { 'cost': 1 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-ticker': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/margin/get-transfer-currencies': { 'cost': 1 },
+                            'public/margin/get-load-currenices': { 'cost': 1 },
+                            'public/respond-heartbeat': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/export/create-export-request': 10 / 3,
-                            'private/export/get-export-requests': 10 / 3,
-                            'private/export/download-export-output': 10 / 3,
-                            'private/get-account-summary': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/get-order-history': 10 / 3,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/otc/get-otc-user': 10 / 3,
-                            'private/otc/get-instruments': 10 / 3,
-                            'private/otc/request-quote': 100,
-                            'private/otc/accept-quote': 100,
-                            'private/otc/get-quote-history': 10 / 3,
-                            'private/otc/get-trade-history': 10 / 3,
-                            'private/otc/create-order': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/create-withdrawal': { 'cost': 10 / 3 },
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 },
+                            'private/get-currency-networks': { 'cost': 10 / 3 },
+                            'private/get-deposit-history': { 'cost': 10 / 3 },
+                            'private/get-deposit-address': { 'cost': 10 / 3 },
+                            'private/export/create-export-request': { 'cost': 10 / 3 },
+                            'private/export/get-export-requests': { 'cost': 10 / 3 },
+                            'private/export/download-export-output': { 'cost': 10 / 3 },
+                            'private/get-account-summary': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 10 / 3 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/get-accounts': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/otc/get-otc-user': { 'cost': 10 / 3 },
+                            'private/otc/get-instruments': { 'cost': 10 / 3 },
+                            'private/otc/request-quote': { 'cost': 100 },
+                            'private/otc/accept-quote': { 'cost': 100 },
+                            'private/otc/get-quote-history': { 'cost': 10 / 3 },
+                            'private/otc/get-trade-history': { 'cost': 10 / 3 },
+                            'private/otc/create-order': { 'cost': 10 / 3 },
                         },
                     },
                 },
                 'derivatives': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
+                            'public/auth': { 'cost': 10 / 3 },
+                            'public/get-instruments': { 'cost': 10 / 3 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/get-tickers': { 'cost': 1 },
+                            'public/get-valuations': { 'cost': 1 },
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 },
+                            'public/get-insurance': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/convert-collateral': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/user-balance': { 'cost': 10 / 3 },
+                            'private/user-balance-history': { 'cost': 10 / 3 },
+                            'private/get-positions': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/close-position': { 'cost': 10 / 3 },
+                            'private/convert-collateral': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 100 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/change-account-leverage': { 'cost': 10 / 3 },
+                            'private/get-transactions': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/get-order-list': { 'cost': 10 / 3 },
                         },
                     },
                 },
@@ -372,6 +372,7 @@ export default class cryptocom extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },
@@ -631,22 +632,24 @@ export default class cryptocom extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network_id');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -1170,7 +1173,7 @@ export default class cryptocom extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1220,7 +1223,9 @@ export default class cryptocom extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1341,6 +1346,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1574,6 +1585,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrders(result);
     }
     createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1756,7 +1773,7 @@ export default class cryptocom extends Exchange {
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-     * @param {string} symbol unified market symbol of the orders to cancel
+     * @param {string} [symbol] unified market symbol of the orders to cancel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2133,13 +2150,15 @@ export default class cryptocom extends Exchange {
             this.checkAddress(address);
             const networkId = this.safeString(value, 'network');
             const network = this.networkIdToCode(networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result;
     }
@@ -2155,7 +2174,8 @@ export default class cryptocom extends Exchange {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeStringUpper(params, 'network');
         params = this.omit(params, ['network']);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddresses = depositAddressesRaw;
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
@@ -2322,7 +2342,6 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
-        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -2343,7 +2362,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
+            'quoteVolume': (market['quote'] === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -2713,10 +2732,12 @@ export default class cryptocom extends Exchange {
                 const networkId = this.safeString(networkInfo, 'network_id');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;
@@ -3419,7 +3440,7 @@ export default class cryptocom extends Exchange {
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET

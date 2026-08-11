@@ -21,10 +21,10 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -156,7 +156,7 @@ public partial class woo
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -176,7 +176,7 @@ public partial class woo
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -196,7 +196,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -225,7 +225,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -342,10 +342,8 @@ public partial class woo
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#edit-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -357,6 +355,18 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order to edit, used instead of the id argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
     /// </description>
     /// </item>
     /// <item>
@@ -436,9 +446,15 @@ public partial class woo
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol"/>  <br/>
     /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, cancels orders in all markets when omitted
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -448,7 +464,7 @@ public partial class woo
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a trigger/algo order
+    /// boolean : set to true to cancel only trigger/algo orders
     /// </description>
     /// </item>
     /// </list>
@@ -715,7 +731,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -861,7 +877,7 @@ public partial class woo
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-current-holding-get-balance-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1049,7 +1065,7 @@ public partial class woo
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1109,7 +1125,7 @@ public partial class woo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#token-withdraw-v3"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1559,7 +1575,7 @@ public partial class woo
     /// fetches the auto deleveraging rank and risk percentage for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-all-position-info-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

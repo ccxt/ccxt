@@ -55,10 +55,10 @@ class binanceusdm(binance, ImplicitAPI):
             },
         })
 
-    def transfer_in(self, code: str, amount, params={}):
+    def transfer_in(self, code: str, amount: Any, params={}):
         # transfer from spot wallet to usdm futures wallet
         return self.futuresTransfer(code, amount, 1, params)
 
-    def transfer_out(self, code: str, amount, params={}):
+    def transfer_out(self, code: str, amount: Any, params={}):
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)

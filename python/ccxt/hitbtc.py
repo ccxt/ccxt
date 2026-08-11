@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OrderBooks, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -48,7 +48,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'closePosition': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -150,129 +150,129 @@ class hitbtc(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'public/currency': 10,
-                        'public/currency/{currency}': 10,
-                        'public/symbol': 10,
-                        'public/symbol/{symbol}': 10,
-                        'public/ticker': 10,
-                        'public/ticker/{symbol}': 10,
-                        'public/price/rate': 10,
-                        'public/price/history': 10,
-                        'public/price/ticker': 10,
-                        'public/price/ticker/{symbol}': 10,
-                        'public/trades': 10,
-                        'public/trades/{symbol}': 10,
-                        'public/orderbook': 10,
-                        'public/orderbook/{symbol}': 10,
-                        'public/candles': 10,
-                        'public/candles/{symbol}': 10,
-                        'public/converted/candles': 10,
-                        'public/converted/candles/{symbol}': 10,
-                        'public/futures/info': 10,
-                        'public/futures/info/{symbol}': 10,
-                        'public/futures/history/funding': 10,
-                        'public/futures/history/funding/{symbol}': 10,
-                        'public/futures/candles/index_price': 10,
-                        'public/futures/candles/index_price/{symbol}': 10,
-                        'public/futures/candles/mark_price': 10,
-                        'public/futures/candles/mark_price/{symbol}': 10,
-                        'public/futures/candles/premium_index': 10,
-                        'public/futures/candles/premium_index/{symbol}': 10,
-                        'public/futures/candles/open_interest': 10,
-                        'public/futures/candles/open_interest/{symbol}': 10,
+                        'public/currency': {'cost': 10},
+                        'public/currency/{currency}': {'cost': 10},
+                        'public/symbol': {'cost': 10},
+                        'public/symbol/{symbol}': {'cost': 10},
+                        'public/ticker': {'cost': 10},
+                        'public/ticker/{symbol}': {'cost': 10},
+                        'public/price/rate': {'cost': 10},
+                        'public/price/history': {'cost': 10},
+                        'public/price/ticker': {'cost': 10},
+                        'public/price/ticker/{symbol}': {'cost': 10},
+                        'public/trades': {'cost': 10},
+                        'public/trades/{symbol}': {'cost': 10},
+                        'public/orderbook': {'cost': 10},
+                        'public/orderbook/{symbol}': {'cost': 10},
+                        'public/candles': {'cost': 10},
+                        'public/candles/{symbol}': {'cost': 10},
+                        'public/converted/candles': {'cost': 10},
+                        'public/converted/candles/{symbol}': {'cost': 10},
+                        'public/futures/info': {'cost': 10},
+                        'public/futures/info/{symbol}': {'cost': 10},
+                        'public/futures/history/funding': {'cost': 10},
+                        'public/futures/history/funding/{symbol}': {'cost': 10},
+                        'public/futures/candles/index_price': {'cost': 10},
+                        'public/futures/candles/index_price/{symbol}': {'cost': 10},
+                        'public/futures/candles/mark_price': {'cost': 10},
+                        'public/futures/candles/mark_price/{symbol}': {'cost': 10},
+                        'public/futures/candles/premium_index': {'cost': 10},
+                        'public/futures/candles/premium_index/{symbol}': {'cost': 10},
+                        'public/futures/candles/open_interest': {'cost': 10},
+                        'public/futures/candles/open_interest/{symbol}': {'cost': 10},
                     },
                 },
                 'private': {
                     'get': {
-                        'spot/balance': 15,
-                        'spot/balance/{currency}': 15,
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'spot/fee': 15,
-                        'spot/fee/{symbol}': 15,
-                        'spot/history/order': 15,
-                        'spot/history/trade': 15,
-                        'margin/account': 1,
-                        'margin/account/isolated/{symbol}': 1,
-                        'margin/account/cross/{currency}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'margin/config': 15,
-                        'margin/history/order': 15,
-                        'margin/history/trade': 15,
-                        'margin/history/positions': 15,
-                        'margin/history/clearing': 15,
-                        'futures/balance': 15,
-                        'futures/balance/{currency}': 15,
-                        'futures/account': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'futures/config': 15,
-                        'futures/fee': 15,
-                        'futures/fee/{symbol}': 15,
-                        'futures/history/order': 15,
-                        'futures/history/trade': 15,
-                        'futures/history/positions': 15,
-                        'futures/history/clearing': 15,
-                        'wallet/balance': 30,
-                        'wallet/balance/{currency}': 30,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/address/recent-deposit': 30,
-                        'wallet/crypto/address/recent-withdraw': 30,
-                        'wallet/crypto/address/check-mine': 30,
-                        'wallet/transactions': 30,
-                        'wallet/transactions/{tx_id}': 30,
-                        'wallet/crypto/fee/estimate': 30,
-                        'wallet/airdrops': 30,
-                        'wallet/amount-locks': 30,
-                        'sub-account': 15,
-                        'sub-account/acl': 15,
-                        'sub-account/balance/{subAccID}': 15,
-                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                        'spot/balance': {'cost': 15},
+                        'spot/balance/{currency}': {'cost': 15},
+                        'spot/order': {'cost': 1},
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'spot/fee': {'cost': 15},
+                        'spot/fee/{symbol}': {'cost': 15},
+                        'spot/history/order': {'cost': 15},
+                        'spot/history/trade': {'cost': 15},
+                        'margin/account': {'cost': 1},
+                        'margin/account/isolated/{symbol}': {'cost': 1},
+                        'margin/account/cross/{currency}': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'margin/config': {'cost': 15},
+                        'margin/history/order': {'cost': 15},
+                        'margin/history/trade': {'cost': 15},
+                        'margin/history/positions': {'cost': 15},
+                        'margin/history/clearing': {'cost': 15},
+                        'futures/balance': {'cost': 15},
+                        'futures/balance/{currency}': {'cost': 15},
+                        'futures/account': {'cost': 1},
+                        'futures/account/isolated/{symbol}': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
+                        'futures/config': {'cost': 15},
+                        'futures/fee': {'cost': 15},
+                        'futures/fee/{symbol}': {'cost': 15},
+                        'futures/history/order': {'cost': 15},
+                        'futures/history/trade': {'cost': 15},
+                        'futures/history/positions': {'cost': 15},
+                        'futures/history/clearing': {'cost': 15},
+                        'wallet/balance': {'cost': 30},
+                        'wallet/balance/{currency}': {'cost': 30},
+                        'wallet/crypto/address': {'cost': 30},
+                        'wallet/crypto/address/recent-deposit': {'cost': 30},
+                        'wallet/crypto/address/recent-withdraw': {'cost': 30},
+                        'wallet/crypto/address/check-mine': {'cost': 30},
+                        'wallet/transactions': {'cost': 30},
+                        'wallet/transactions/{tx_id}': {'cost': 30},
+                        'wallet/crypto/fee/estimate': {'cost': 30},
+                        'wallet/airdrops': {'cost': 30},
+                        'wallet/amount-locks': {'cost': 30},
+                        'sub-account': {'cost': 15},
+                        'sub-account/acl': {'cost': 15},
+                        'sub-account/balance/{subAccID}': {'cost': 15},
+                        'sub-account/crypto/address/{subAccID}/{currency}': {'cost': 15},
                     },
                     'post': {
-                        'spot/order': 1,
-                        'spot/order/list': 1,
-                        'margin/order': 1,
-                        'margin/order/list': 1,
-                        'futures/order': 1,
-                        'futures/order/list': 1,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/withdraw': 30,
-                        'wallet/convert': 30,
-                        'wallet/transfer': 30,
-                        'wallet/internal/withdraw': 30,
-                        'wallet/crypto/check-offchain-available': 30,
-                        'wallet/crypto/fees/estimate': 30,
-                        'wallet/airdrops/{id}/claim': 30,
-                        'sub-account/freeze': 15,
-                        'sub-account/activate': 15,
-                        'sub-account/transfer': 15,
-                        'sub-account/acl': 15,
+                        'spot/order': {'cost': 1},
+                        'spot/order/list': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/list': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/list': {'cost': 1},
+                        'wallet/crypto/address': {'cost': 30},
+                        'wallet/crypto/withdraw': {'cost': 30},
+                        'wallet/convert': {'cost': 30},
+                        'wallet/transfer': {'cost': 30},
+                        'wallet/internal/withdraw': {'cost': 30},
+                        'wallet/crypto/check-offchain-available': {'cost': 30},
+                        'wallet/crypto/fees/estimate': {'cost': 30},
+                        'wallet/airdrops/{id}/claim': {'cost': 30},
+                        'sub-account/freeze': {'cost': 15},
+                        'sub-account/activate': {'cost': 15},
+                        'sub-account/transfer': {'cost': 15},
+                        'sub-account/acl': {'cost': 15},
                     },
                     'patch': {
-                        'spot/order/{client_order_id}': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/order/{client_order_id}': 1,
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
                     },
                     'delete': {
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'margin/position': 1,
-                        'margin/position/isolated/{symbol}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/position': 1,
-                        'futures/position/{margin_mode}/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'spot/order': {'cost': 1},
+                        'spot/order/{client_order_id}': {'cost': 1},
+                        'margin/position': {'cost': 1},
+                        'margin/position/isolated/{symbol}': {'cost': 1},
+                        'margin/order': {'cost': 1},
+                        'margin/order/{client_order_id}': {'cost': 1},
+                        'futures/position': {'cost': 1},
+                        'futures/position/{margin_mode}/{symbol}': {'cost': 1},
+                        'futures/order': {'cost': 1},
+                        'futures/order/{client_order_id}': {'cost': 1},
+                        'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                     'put': {
-                        'margin/account/isolated/{symbol}': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'margin/account/isolated/{symbol}': {'cost': 1},
+                        'futures/account/isolated/{symbol}': {'cost': 1},
+                        'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                 },
             },
@@ -974,7 +974,7 @@ class hitbtc(Exchange, ImplicitAPI):
         enhancedArray = self.add_key_in_array_items(response, '_coin_id')
         return self.parse_currencies(enhancedArray)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = currency['_coin_id']
         code = self.safe_currency_code(currencyId)
         entry = currency
@@ -985,22 +985,23 @@ class hitbtc(Exchange, ImplicitAPI):
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
             networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'payout_fee'),
-                'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
-                'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
-                'precision': self.safe_number(rawNetwork, 'precision_payout'),
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'payout_fee'),
+                    'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
+                    'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
+                    'precision': self.safe_number(rawNetwork, 'precision_payout'),
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': entry,
             'code': code,
@@ -1097,7 +1098,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             entry = response[i]
@@ -1106,7 +1107,8 @@ class hitbtc(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'reserved')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1219,7 +1221,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketId = keys[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            entry = response[marketId]
+            entry = self.safe_dict(response, marketId, {})
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
@@ -1297,7 +1299,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketInner = self.market(marketId)
-            rawTrades = response[marketId]
+            rawTrades = self.safe_list(response, marketId, [])
             parsed = self.parse_trades(rawTrades, marketInner)
             trades = self.array_concat(trades, parsed)
         return trades
@@ -1449,7 +1451,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_transactions_helper(self, types, code, since, limit, params):
+    def fetch_transactions_helper(self, types: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
@@ -1502,7 +1504,7 @@ class hitbtc(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -1659,10 +1661,10 @@ class hitbtc(Exchange, ImplicitAPI):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            orderbook = response[marketId]
+            orderbook = self.safe_dict(response, marketId, {})
             symbol = self.safe_symbol(marketId)
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp, 'bid', 'ask')
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp, 'bid', 'ask')
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1674,7 +1676,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1850,9 +1852,10 @@ class hitbtc(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # Spot and Swap
         #
@@ -2137,7 +2140,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
@@ -2187,7 +2190,7 @@ class hitbtc(Exchange, ImplicitAPI):
         https://api.hitbtc.com/#cancel-futures-orders
         https://api.hitbtc.com/#cancel-all-margin-orders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for canceling margin orders
@@ -2333,7 +2336,7 @@ class hitbtc(Exchange, ImplicitAPI):
             response = self.privatePostSpotOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, marginMode: Str = None, params={}):
+    def create_order_request(self, market: dict, marketType: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, marginMode: Str = None, params={}):
         isLimit = (type == 'limit')
         reduceOnly = self.safe_value(params, 'reduceOnly')
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2582,7 +2585,7 @@ class hitbtc(Exchange, ImplicitAPI):
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         return {
             'info': marginMode,
@@ -2649,7 +2652,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def convert_currency_network(self, code: str, amount, fromNetwork, toNetwork, params):
+    def convert_currency_network(self, code: str, amount: Any, fromNetwork: Any, toNetwork: Any, params: Any):
         if self.markets is None:
             self.load_markets()
         if code != 'USDT':
@@ -2833,7 +2836,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(contracts)):
             marketId = contracts[i]
             marketInner = self.safe_market(marketId)
-            fundingRateData = response[marketId]
+            fundingRateData = self.safe_list(response, marketId, [])
             for j in range(0, len(fundingRateData)):
                 entry = fundingRateData[j]
                 symbolInner = self.safe_symbol(marketInner['symbol'])
@@ -2856,7 +2859,7 @@ class hitbtc(Exchange, ImplicitAPI):
         https://api.hitbtc.com/#get-futures-margin-accounts
         https://api.hitbtc.com/#get-all-margin-accounts
 
-        :param str[]|None symbols: not used by hitbtc fetchPositions()
+        :param str[]|None symbols: not used by fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if self is set
         :param bool [params.margin]: True for fetching spot-margin positions
@@ -3071,7 +3074,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "contract_type": "perpetual",
@@ -3139,7 +3142,8 @@ class hitbtc(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             marketId = markets[i]
             marketInner = self.safe_market(marketId)
-            results.append(self.parse_open_interest(response[marketId], marketInner))
+            openInterest = self.safe_dict(response, marketId, {})
+            results.append(self.parse_open_interest(openInterest, marketInner))
         return self.filter_by_array(results, 'symbol', symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -3214,7 +3218,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "contract_type": "perpetual",
@@ -3253,7 +3257,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3457,7 +3461,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -3489,7 +3493,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -3529,7 +3533,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #    {
         #         "full_name": "ConnectWealth",
@@ -3587,7 +3591,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
         :param str symbol: unified ccxt market symbol
         :param str side: 'buy' or 'sell'
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: *required* unified market symbol
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -3619,7 +3623,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3635,7 +3639,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 marginMode = 'isolated'
         return [marginMode, params]
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         #
         #     {
         #       "error": {
@@ -3662,7 +3666,7 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + implodedPath

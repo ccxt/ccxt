@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -207,104 +207,104 @@ class coinsph(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
-                        'openapi/v1/user/ip': 1,
+                        'openapi/v1/ping': {'cost': 1},
+                        'openapi/v1/time': {'cost': 1},
+                        'openapi/v1/user/ip': {'cost': 1},
                         # cost 1 if 'symbol' param defined(one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         # cost 20 if 'symbols' param is a list of 21-100 market symbols
-                        # cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        # cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/24hr': {'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [[101, 40], [21, 20], [0, 1]]},
                         # cost 1 if 'symbol' param defined(one market symbol)
-                        # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/price': {'cost': 1, 'noSymbol': 2},
                         # cost 1 if 'symbol' param defined(one market symbol)
-                        # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                        'openapi/v1/exchangeInfo': 10,
+                        'openapi/v1/exchangeInfo': {'cost': 10},
                         # cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': {'cost': 1, 'byLimit': [[101, 5], [0, 1]]},
-                        'openapi/quote/v1/klines': 1,  # default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1,  # default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        'openapi/v1/pairs': 1,
-                        'openapi/quote/v1/avgPrice': 1,
+                        'openapi/quote/v1/klines': {'cost': 1},  # default limit 500; max 1000.
+                        'openapi/quote/v1/trades': {'cost': 1},  # default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/v1/pairs': {'cost': 1},
+                        'openapi/quote/v1/avgPrice': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/check-sys-status': 1,
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
-                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
-                        'openapi/v1/account': 10,
-                        'openapi/v1/api-keys': 1,
+                        'openapi/v1/check-sys-status': {'cost': 1},
+                        'openapi/wallet/v1/config/getall': {'cost': 10},
+                        'openapi/wallet/v1/deposit/address': {'cost': 10},
+                        'openapi/wallet/v1/deposit/history': {'cost': 1},
+                        'openapi/wallet/v1/withdraw/history': {'cost': 1},
+                        'openapi/wallet/v1/withdraw/address-whitelist': {'cost': 1},
+                        'openapi/v1/account': {'cost': 10},
+                        'openapi/v1/api-keys': {'cost': 1},
                         # cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': {'cost': 3, 'noSymbol': 40},
-                        'openapi/v1/asset/tradeFee': 1,
-                        'openapi/v1/order': 2,
+                        'openapi/v1/asset/tradeFee': {'cost': 1},
+                        'openapi/v1/order': {'cost': 2},
                         # cost 10 with symbol, 40 when the symbol parameter is omitted
                         'openapi/v1/historyOrders': {'cost': 10, 'noSymbol': 40},
-                        'openapi/v1/myTrades': 10,
-                        'openapi/v1/capital/deposit/history': 1,
-                        'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v3/payment-request/get-payment-request': 1,
-                        'merchant-api/v1/get-invoices': 1,
-                        'openapi/account/v3/crypto-accounts': 1,
-                        'openapi/transfer/v3/transfers/{id}': 1,
-                        'openapi/v1/sub-account/list': 10,
-                        'openapi/v1/sub-account/asset': 10,
-                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
-                        'openapi/v1/sub-account/transfer/sub-history': 10,
-                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
-                        'openapi/v1/sub-account/wallet/deposit/address': 1,
-                        'openapi/v1/sub-account/wallet/deposit/history': 1,
-                        'openapi/v1/fund-collect/get-fund-record': 1,
-                        'openapi/v1/asset/transaction/history': 20,
+                        'openapi/v1/myTrades': {'cost': 10},
+                        'openapi/v1/capital/deposit/history': {'cost': 1},
+                        'openapi/v1/capital/withdraw/history': {'cost': 1},
+                        'openapi/v3/payment-request/get-payment-request': {'cost': 1},
+                        'merchant-api/v1/get-invoices': {'cost': 1},
+                        'openapi/account/v3/crypto-accounts': {'cost': 1},
+                        'openapi/transfer/v3/transfers/{id}': {'cost': 1},
+                        'openapi/v1/sub-account/list': {'cost': 10},
+                        'openapi/v1/sub-account/asset': {'cost': 10},
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': {'cost': 10},
+                        'openapi/v1/sub-account/transfer/sub-history': {'cost': 10},
+                        'openapi/v1/sub-account/apikey/ip-restriction': {'cost': 10},
+                        'openapi/v1/sub-account/wallet/deposit/address': {'cost': 1},
+                        'openapi/v1/sub-account/wallet/deposit/history': {'cost': 1},
+                        'openapi/v1/fund-collect/get-fund-record': {'cost': 1},
+                        'openapi/v1/asset/transaction/history': {'cost': 20},
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
-                        'openapi/v1/order/test': 1,
-                        'openapi/v1/order': 1,
-                        'openapi/v1/order/cancelReplace': 1,
-                        'openapi/v1/capital/withdraw/apply': 1,
-                        'openapi/v1/capital/deposit/apply': 1,
-                        'openapi/v3/payment-request/payment-requests': 1,
-                        'openapi/v3/payment-request/delete-payment-request': 1,
-                        'openapi/v3/payment-request/payment-request-reminder': 1,
-                        'openapi/v1/userDataStream': 1,
-                        'merchant-api/v1/invoices': 1,
-                        'merchant-api/v1/invoices-cancel': 1,
-                        'openapi/convert/v1/get-supported-trading-pairs': 1,
-                        'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accept-quote': 1,
-                        'openapi/convert/v1/query-order-history': 1,
-                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
-                        'openapi/otc-trade/v1/create-rfq': 1,
-                        'openapi/otc-trade/v1/accept-rfq': 1,
-                        'openapi/otc-trade/v1/manual-settle': 1,
-                        'openapi/otc-trade/v1/query-order-history': 1,
-                        'openapi/fiat/v1/support-channel': 1,
-                        'openapi/fiat/v1/cash-out': 1,
-                        'openapi/fiat/v1/history': 1,
-                        'openapi/migration/v4/sellorder': 1,
-                        'openapi/migration/v4/validate-field': 1,
-                        'openapi/transfer/v3/transfers': 1,
-                        'openapi/transfer/v4/transfers': 1,
-                        'openapi/v1/sub-account/create': 30,
-                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
-                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
-                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
-                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
-                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                        'openapi/wallet/v1/withdraw/apply': {'cost': 600},
+                        'openapi/v1/order/test': {'cost': 1},
+                        'openapi/v1/order': {'cost': 1},
+                        'openapi/v1/order/cancelReplace': {'cost': 1},
+                        'openapi/v1/capital/withdraw/apply': {'cost': 1},
+                        'openapi/v1/capital/deposit/apply': {'cost': 1},
+                        'openapi/v3/payment-request/payment-requests': {'cost': 1},
+                        'openapi/v3/payment-request/delete-payment-request': {'cost': 1},
+                        'openapi/v3/payment-request/payment-request-reminder': {'cost': 1},
+                        'openapi/v1/userDataStream': {'cost': 1},
+                        'merchant-api/v1/invoices': {'cost': 1},
+                        'merchant-api/v1/invoices-cancel': {'cost': 1},
+                        'openapi/convert/v1/get-supported-trading-pairs': {'cost': 1},
+                        'openapi/convert/v1/get-quote': {'cost': 1},
+                        'openapi/convert/v1/accept-quote': {'cost': 1},
+                        'openapi/convert/v1/query-order-history': {'cost': 1},
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': {'cost': 1},
+                        'openapi/otc-trade/v1/create-rfq': {'cost': 1},
+                        'openapi/otc-trade/v1/accept-rfq': {'cost': 1},
+                        'openapi/otc-trade/v1/manual-settle': {'cost': 1},
+                        'openapi/otc-trade/v1/query-order-history': {'cost': 1},
+                        'openapi/fiat/v1/support-channel': {'cost': 1},
+                        'openapi/fiat/v1/cash-out': {'cost': 1},
+                        'openapi/fiat/v1/history': {'cost': 1},
+                        'openapi/migration/v4/sellorder': {'cost': 1},
+                        'openapi/migration/v4/validate-field': {'cost': 1},
+                        'openapi/transfer/v3/transfers': {'cost': 1},
+                        'openapi/transfer/v4/transfers': {'cost': 1},
+                        'openapi/v1/sub-account/create': {'cost': 30},
+                        'openapi/v1/sub-account/transfer/universal-transfer': {'cost': 100},
+                        'openapi/v1/sub-account/transfer/sub-to-master': {'cost': 100},
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': {'cost': 30},
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': {'cost': 30},
+                        'openapi/v1/fund-collect/collect-from-sub-account': {'cost': 1},
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/userDataStream': {'cost': 1},
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
-                        'openapi/v1/openOrders': 1,
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/order': {'cost': 1},
+                        'openapi/v1/openOrders': {'cost': 1},
+                        'openapi/v1/userDataStream': {'cost': 1},
                     },
                 },
             },
@@ -373,7 +373,7 @@ class coinsph(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                 },
             },
             'features': {
@@ -642,7 +642,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
         isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
@@ -652,26 +652,27 @@ class coinsph(Exchange, ImplicitAPI):
             networkItem = networkList[j]
             network = self.safe_string(networkItem, 'network')
             networkCode = self.network_id_to_code(network, code)
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_bool(networkItem, 'depositEnable'),
-                'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
-                'fee': self.safe_number(networkItem, 'withdrawFee'),
-                'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkItem, 'withdrawMin'),
-                        'max': self.safe_number(networkItem, 'withdrawMax'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                    'fee': self.safe_number(networkItem, 'withdrawFee'),
+                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkItem, 'withdrawMin'),
+                            'max': self.safe_number(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
@@ -688,7 +689,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
@@ -696,21 +697,21 @@ class coinsph(Exchange, ImplicitAPI):
         elif ('byNumberOfSymbols' in config) and ('symbols' in params):
             symbols = params['symbols']
             symbolsAmount = len(symbols)
-            byNumberOfSymbols = config['byNumberOfSymbols']
+            byNumberOfSymbols = self.safe_list(config, 'byNumberOfSymbols', [])
             for i in range(0, len(byNumberOfSymbols)):
                 entry = byNumberOfSymbols[i]
                 if symbolsAmount >= entry[0]:
                     return entry[1]
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            byLimit = config['byLimit']
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit >= entry[0]:
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1030,7 +1031,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1118,9 +1119,10 @@ class coinsph(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1336,7 +1338,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {
             'info': response,
@@ -1350,7 +1352,8 @@ class coinsph(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1467,7 +1470,7 @@ class coinsph(Exchange, ImplicitAPI):
         https://docs.coins.ph/rest-api/#query-order-user_data
 
         :param int|str id: order id
-        :param str symbol: not used by coinsph fetchOrder()
+        :param str symbol: not used by fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1541,7 +1544,7 @@ class coinsph(Exchange, ImplicitAPI):
         https://docs.coins.ph/rest-api/#cancel-order-trade
 
         :param str id: order id
-        :param str symbol: not used by coinsph cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1680,7 +1683,7 @@ class coinsph(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status):
+    def parse_order_side(self, status: Any):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1689,7 +1692,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_side(self, status):
+    def encode_order_side(self, status: Any):
         statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1698,7 +1701,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1712,7 +1715,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_type(self, status):
+    def encode_order_type(self, status: Any):
         statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1739,7 +1742,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status):
+    def parse_order_time_in_force(self, status: Any):
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1805,8 +1808,9 @@ class coinsph(Exchange, ImplicitAPI):
         #     ]
         #
         result = {}
-        for i in range(0, len(response)):
-            fee = self.parse_trading_fee(response[i])
+        fees = self.to_array(response)
+        for i in range(0, len(fees)):
+            fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
             if symbol is not None:
                 result[symbol] = fee
@@ -1840,7 +1844,7 @@ class coinsph(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
-        :param str address: not used by coinsph withdraw()
+        :param str address: not used by withdraw()
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
@@ -2115,7 +2119,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "ETH",
@@ -2133,7 +2137,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'addressTag'),
         }
 
-    def url_encode_query(self, query={}):
+    def url_encode_query(self, query: dict = {}):
         encodedArrayParams = ''
         keys = list(query.keys())
         for i in range(0, len(keys)):
@@ -2151,14 +2155,14 @@ class coinsph(Exchange, ImplicitAPI):
         else:
             return encodedArrayParams
 
-    def parse_array_param(self, array, key):
+    def parse_array_param(self, array: Any, key: Any):
         stringifiedArray = self.json(array)
         stringifiedArray = stringifiedArray.replace('[', '%5B')
         stringifiedArray = stringifiedArray.replace(']', '%5D')
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
@@ -2183,7 +2187,7 @@ class coinsph(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

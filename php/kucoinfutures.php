@@ -26,6 +26,7 @@ class kucoinfutures extends kucoin {
                 'future' => true,
                 'option' => null,
                 'fetchBidsAsks' => true,
+                'transfer' => true,
             ),
             'options' => array(
                 'fetchMarkets' => array(
@@ -121,7 +122,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer_type($transferType) {
+    public function parse_transfer_type(mixed $transferType) {
         $transferTypes = array(
             'spot' => 'TRADE',
             'funding' => 'MAIN',

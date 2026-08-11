@@ -174,7 +174,7 @@ public partial class blofin : ccxt.blofin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -192,7 +192,7 @@ public partial class blofin : ccxt.blofin
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -364,14 +364,14 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object symbolsList = (IList<string>)(symbols);
+        object symbolsList = symbols;
         object firstMarket = this.market(getValue(symbolsList, 0));
         object channel = "tickers";
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
@@ -551,7 +551,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "account" },
         };
         object request = this.getSubscriptionRequest(new List<object>() {sub});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -759,7 +759,7 @@ public partial class blofin : ccxt.blofin
             { "instId", getValue(market, "id") },
         };
         object request = this.getSubscriptionRequest(new List<object>() {requestParams});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -866,7 +866,7 @@ public partial class blofin : ccxt.blofin
         }
         object request = this.getSubscriptionRequest(rawSubscriptions);
         object privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
@@ -959,7 +959,7 @@ public partial class blofin : ccxt.blofin
 }} },
         };
         object marketType = "swap"; // for now
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 }

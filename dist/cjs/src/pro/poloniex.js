@@ -156,8 +156,12 @@ class poloniex extends poloniex$1["default"] {
             marketIds.push('all');
         }
         else {
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
+            }
             messageHash = messageHash + '::' + symbols.join(',');
-            marketIds = this.marketIds(symbols);
+            const ids = this.marketIds(symbols);
+            marketIds = (ids === undefined) ? [] : ids;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
@@ -193,7 +197,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK
      * @param {string} [params.clientOrderId] Maximum 64-character length.*
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -212,6 +216,9 @@ class poloniex extends poloniex$1["default"] {
         await this.authenticate();
         const market = this.market(symbol);
         let uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase();
         const isPostOnly = this.isPostOnly(uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
@@ -264,7 +271,7 @@ class poloniex extends poloniex$1["default"] {
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -285,7 +292,7 @@ class poloniex extends poloniex$1["default"] {
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -305,7 +312,7 @@ class poloniex extends poloniex$1["default"] {
      * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
@@ -413,8 +420,8 @@ class poloniex extends poloniex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -465,7 +472,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -473,7 +480,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const watchOrderBookOptions = this.safeValue(this.options, 'watchOrderBook');
         let name = this.safeString(watchOrderBookOptions, 'name', 'book_lv2');
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'name', name);
         const orderbook = await this.subscribe(name, name, false, [symbol], params);
         return orderbook.limit();
     }
@@ -605,12 +612,14 @@ class poloniex extends poloniex$1["default"] {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append(parsed);
             client.resolve(stored, messageHash);
@@ -648,7 +657,9 @@ class poloniex extends poloniex$1["default"] {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new Cache.ArrayCache(tradesLimit);
-                    this.trades[symbol] = tradesArray;
+                    if (symbol !== undefined) {
+                        this.trades[symbol] = tradesArray;
+                    }
                 }
                 tradesArray.append(trade);
                 client.resolve(tradesArray, messageHash);
@@ -847,6 +858,13 @@ class poloniex extends poloniex$1["default"] {
                     const previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     const trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
+                    if (previousOrder === undefined) {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        const parsedOrder = this.parseWsOrder(order);
+                        orders.append(parsedOrder);
+                        marketIds.push(marketId);
+                        continue;
+                    }
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
                     }
@@ -1008,8 +1026,12 @@ class poloniex extends poloniex$1["default"] {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                newTickers[symbol] = ticker;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = ticker;
+                }
+                if (symbol !== undefined) {
+                    newTickers[symbol] = ticker;
+                }
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');
@@ -1176,7 +1198,9 @@ class poloniex extends poloniex$1["default"] {
             const newAccount = this.account();
             newAccount['free'] = this.safeString(balance, 'available');
             newAccount['used'] = this.safeString(balance, 'hold');
-            result[code] = newAccount;
+            if (code !== undefined) {
+                result[code] = newAccount;
+            }
         }
         return this.safeBalance(result);
     }

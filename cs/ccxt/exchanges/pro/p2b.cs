@@ -139,7 +139,7 @@ public partial class p2b : ccxt.p2b
         }
         object watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "name", name);
         name = ((IList<object>)nameparametersVariable)[0];
         parameters = ((IList<object>)nameparametersVariable)[1];
         object market = this.market(symbol);
@@ -172,14 +172,14 @@ public partial class p2b : ccxt.p2b
         symbols = this.marketSymbols(symbols, null, false);
         object watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", name);
         name = ((IList<object>)nameparametersVariable)[0];
         parameters = ((IList<object>)nameparametersVariable)[1];
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue((IList<string>)(symbols), i));
+            object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
             ((IList<object>)args).Add(getValue(market, "id"));
         }
@@ -264,7 +264,7 @@ public partial class p2b : ccxt.p2b
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -318,15 +318,15 @@ public partial class p2b : ccxt.p2b
         object symbol = this.safeString(market, "symbol");
         object messageHash = add(add(channel, "::"), symbol);
         object parsed = this.parseOHLCV(data, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, ((string)symbol), new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), ((string)timeframe));
+        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), timeframe);
         if (isTrue(!isEqual(symbol, null)))
         {
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, ((string)symbol)))[(string)((string)timeframe)] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -360,7 +360,7 @@ public partial class p2b : ccxt.p2b
         object marketId = this.safeString(data, 0);
         object market = this.safeMarket(marketId);
         object symbol = this.safeString(market, "symbol");
-        object tradesArray = this.safeValue(this.trades, ((string)symbol));
+        object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
             object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -460,6 +460,7 @@ public partial class p2b : ccxt.p2b
         //    }
         //
         object parameters = this.safeList(message, "params", new List<object>() {});
+        object isFullUpdate = this.safeBool(parameters, 0, false);
         object data = this.safeDict(parameters, 1);
         object asks = this.safeList(data, "asks");
         object bids = this.safeList(data, "bids");
@@ -474,6 +475,14 @@ public partial class p2b : ccxt.p2b
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             orderbook = getValue(this.orderbooks, symbol);
+        }
+        if (isTrue(isFullUpdate))
+        {
+            // the first parameter signals whether the message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
         }
         if (isTrue(!isEqual(bids, null)))
         {
@@ -521,7 +530,7 @@ public partial class p2b : ccxt.p2b
             { "state.update", this.handleTicker },
             { "deals.update", this.handleTrade },
         };
-        object endpoint = this.safeValue(methods, ((string)method));
+        object endpoint = this.safeValue(methods, method);
         if (isTrue(!isEqual(endpoint, null)))
         {
             DynamicInvoker.InvokeMethod(endpoint, new object[] { client, message});

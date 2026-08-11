@@ -1,6 +1,6 @@
 Every endpoint in `btcbox`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/btcbox) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepth`); the snake_case alias (`public_get_depth`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetDepth`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepth`); the snake_case alias (`public_get_depth`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetDepth`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -61,25 +61,25 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetDepth` | GET | `depth` |  |
-| `publicGetOrders` | GET | `orders` |  |
-| `publicGetTicker` | GET | `ticker` |  |
-| `publicGetTickers` | GET | `tickers` |  |
+| `publicGetDepth` | GET | `depth` | 1 |
+| `publicGetOrders` | GET | `orders` | 1 |
+| `publicGetTicker` | GET | `ticker` | 1 |
+| `publicGetTickers` | GET | `tickers` | 1 |
 
 ## private
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostBalance` | POST | `balance` |  |
-| `privatePostTradeAdd` | POST | `trade_add` |  |
-| `privatePostTradeCancel` | POST | `trade_cancel` |  |
-| `privatePostTradeList` | POST | `trade_list` |  |
-| `privatePostTradeView` | POST | `trade_view` |  |
-| `privatePostWallet` | POST | `wallet` |  |
+| `privatePostBalance` | POST | `balance` | 1 |
+| `privatePostTradeAdd` | POST | `trade_add` | 1 |
+| `privatePostTradeCancel` | POST | `trade_cancel` | 1 |
+| `privatePostTradeList` | POST | `trade_list` | 1 |
+| `privatePostTradeView` | POST | `trade_view` | 1 |
+| `privatePostWallet` | POST | `wallet` | 1 |
 
 ## webApi
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `webApiGetAjaxCoinCoinInfo` | GET | `ajax/coin/coinInfo` |  |
+| `webApiGetAjaxCoinCoinInfo` | GET | `ajax/coin/coinInfo` | 1 |
 

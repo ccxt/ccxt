@@ -79,7 +79,7 @@ bydfi.fetchMarkets (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/market#depth-information  
 
@@ -163,7 +163,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch (max 500) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 
 
@@ -580,7 +580,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | a unified market symbol |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch (default 500, max 500) |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days |
 | params.contractType | <code>string</code> | No | FUTURE or DELIVERY, default is FUTURE |
 | params.wallet | <code>string</code> | No | The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract |
@@ -606,7 +606,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch (default 500, max 500) |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days |
 | params.contractType | <code>string</code> | No | FUTURE or DELIVERY, default is FUTURE |
 | params.wallet | <code>string</code> | No | The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract |
@@ -677,7 +677,7 @@ set hedged to true or false for a market, hedged for bydfi is set identically fo
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | No | not used by bydfi setPositionMode () |
+| symbol | <code>string</code> | No | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.contractType | <code>string</code> | No | FUTURE or DELIVERY, default is FUTURE |
 | params.wallet | <code>string</code> | No | The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract |
@@ -1041,7 +1041,7 @@ bydfi.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 

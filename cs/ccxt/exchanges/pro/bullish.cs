@@ -300,7 +300,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -490,7 +490,8 @@ public partial class bullish : ccxt.bullish
         {
             rawOrders = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of orders
         }
-        if (isTrue(isGreaterThan(getArrayLength(rawOrders), 0)))
+        object numRawOrders = getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (isTrue(isGreaterThan(numRawOrders, 0)))
         {
             if (isTrue(isEqual(this.orders, null)))
             {
@@ -614,7 +615,8 @@ public partial class bullish : ccxt.bullish
         {
             rawTrades = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of trades
         }
-        if (isTrue(isGreaterThan(getArrayLength(rawTrades), 0)))
+        object numRawTrades = getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (isTrue(isGreaterThan(numRawTrades, 0)))
         {
             if (isTrue(isEqual(this.myTrades, null)))
             {
@@ -741,7 +743,10 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)account)["total"] = this.safeString(data, "availableQuantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(data, "lockedQuantity");
             object code = this.safeCurrencyCode(assetId);
-            ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(tradingAccountId, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)code] = account;
+            }
             ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))["info"] = message;
             ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = this.safeBalance(getValue(this.balance, tradingAccountId));
         }

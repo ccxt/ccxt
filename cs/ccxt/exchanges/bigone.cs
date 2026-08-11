@@ -113,23 +113,155 @@ public partial class bigone : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ping", "asset_pairs", "asset_pairs/{asset_pair_name}/depth", "asset_pairs/{asset_pair_name}/trades", "asset_pairs/{asset_pair_name}/ticker", "asset_pairs/{asset_pair_name}/candles", "asset_pairs/tickers"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs/{asset_pair_name}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs/{asset_pair_name}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs/{asset_pair_name}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs/{asset_pair_name}/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset_pairs/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "fund/accounts", "assets/{asset_symbol}/address", "orders", "orders/{id}", "orders/multi", "trades", "withdrawals", "deposits"} },
-                    { "post", new List<object>() {"orders", "orders/{id}/cancel", "orders/cancel", "withdrawals", "transfer"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fund/accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets/{asset_symbol}/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/multi", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "contractPublic", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"symbols", "instruments", "depth@{symbol}/snapshot", "instruments/difference", "instruments/prices"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depth@{symbol}/snapshot", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments/difference", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "contractPrivate", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "orders/{id}", "orders", "orders/opening", "orders/count", "orders/opening/count", "trades", "trades/count"} },
-                    { "post", new List<object>() {"orders", "orders/batch"} },
-                    { "put", new List<object>() {"positions/{symbol}/margin", "positions/{symbol}/risk-limit"} },
-                    { "delete", new List<object>() {"orders/{id}", "orders/batch"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/opening", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/count", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/opening/count", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades/count", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "put", new Dictionary<string, object>() {
+                        { "positions/{symbol}/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions/{symbol}/risk-limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"v3/assets"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "v3/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -142,7 +274,9 @@ public partial class bigone : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", true },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
                     { "fund", "FUND" },
@@ -456,27 +590,30 @@ public partial class bigone : Exchange
             object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             object withdrawalFee = this.safeString(chain, "withdrawal_fee");
             object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "margin", null },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", null },
-                { "fee", this.parseNumber(withdrawalFee) },
-                { "precision", this.parseNumber(precision) },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDepositAmount },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "margin", null },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", null },
+                    { "fee", this.parseNumber(withdrawalFee) },
+                    { "precision", this.parseNumber(precision) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", minDepositAmount },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", minWithdrawalAmount },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdrawalAmount },
-                        { "max", null },
-                    } },
-                } },
-                { "info", chain },
-            };
+                    { "info", chain },
+                };
+            }
         }
         object chainLength = getArrayLength(chains);
         object type = null;
@@ -650,9 +787,10 @@ public partial class bigone : Exchange
                 { "info", market },
             }));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(contractResponse)); postFixIncrement(ref i))
+        object contractMarkets = this.toArray(contractResponse);
+        for (object i = 0; isLessThan(i, getArrayLength(contractMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(contractResponse, i);
+            object market = getValue(contractMarkets, i);
             object baseId = this.safeString(market, "baseCurrency");
             object quoteId = this.safeString(market, "quoteCurrency");
             object settleId = this.safeString(market, "settleCurrency");
@@ -913,7 +1051,8 @@ public partial class bigone : Exchange
             data = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            data = await this.contractPublicGetInstruments(parameters);
+            object instruments = await this.contractPublicGetInstruments(parameters);
+            data = this.toArray(instruments);
         }
         object tickers = this.parseTickers(data, symbols);
         return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -940,6 +1079,10 @@ public partial class bigone : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "Timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
         return this.parseToInt(divide(timestamp, 1000000));
     }
 
@@ -951,7 +1094,7 @@ public partial class bigone : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1044,14 +1187,14 @@ public partial class bigone : Exchange
         object responseAsks = this.safeValue(orderbook, "asks");
         object bids = this.parseContractBidsAsks(responseBids);
         object asks = this.parseContractBidsAsks(responseAsks);
-        return ((object)new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.filterByLimit(this.sortBy(bids, 0, true), limit) },
             { "asks", this.filterByLimit(this.sortBy(asks, 0), limit) },
             { "timestamp", null },
             { "datetime", null },
             { "nonce", null },
-        });
+        };
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1221,7 +1364,7 @@ public partial class bigone : Exchange
         {
             ((IDictionary<string,object>)result)["fee"] = null;
         }
-        return this.safeTrade(((object)result), market);
+        return this.safeTrade(result, market);
     }
 
     /**
@@ -1390,7 +1533,10 @@ public partial class bigone : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked_balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1442,7 +1588,7 @@ public partial class bigone : Exchange
             { "LIMIT", "limit" },
             { "MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1588,7 +1734,7 @@ public partial class bigone : Exchange
         object isLimit = isEqual(uppercaseType, "LIMIT");
         object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         object postOnly = null;
-        var postOnlyparametersVariable = this.handlePostOnly((isEqual(uppercaseType, "MARKET")), exchangeSpecificParam, parameters);
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(uppercaseType, "MARKET"), isEqual(exchangeSpecificParam, true), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
@@ -1617,7 +1763,7 @@ public partial class bigone : Exchange
         {
             if (isTrue(isBuy))
             {
-                object createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = null;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
@@ -1679,7 +1825,7 @@ public partial class bigone : Exchange
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        object order = this.safeDict(response, "data");
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -1716,7 +1862,7 @@ public partial class bigone : Exchange
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        object order = this.safeDict(response, "data");
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order);
     }
 
@@ -1725,7 +1871,7 @@ public partial class bigone : Exchange
      * @name bigone#cancelAllOrders
      * @description cancel all open orders
      * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

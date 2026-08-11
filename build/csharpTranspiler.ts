@@ -1,19 +1,21 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { setupCsharpPrinter } from './csharp-worker.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
+import os from 'os'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import {Transpiler as OldTranspiler } from "./transpile.js";
 import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
@@ -22,6 +24,8 @@ type dict = { [key: string]: string }
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const predictionIds: string[] = exchanges.prediction || []
+const predictionWsIds: string[] = exchanges.predictionWs || []
 
 // @ts-expect-error
 const metaUrl = import.meta.url
@@ -33,8 +37,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
+    // (~50 MB of redundant I/O per full build)
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -48,12 +54,20 @@ if (platform === 'win32') {
 }
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
+// the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
+// (not BaseExchange), so the sibling PredictionExchange tier does not inherit them
+const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
+const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
+const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
+const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
+const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
+const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
@@ -63,11 +77,29 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
+// default min(2, AP): 2w + shared-Program chunks is within ~10–15% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
+function csharpWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
+}
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
+    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
+    isPrediction = false;
+    // set once PredictionExchange.cs has been emitted in this process. A full run reaches
+    // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
+    // with identical inputs, so the second call would only rewrite the same bytes.
+    private _predictionBaseWritten = false;
 
     constructor() {
 
@@ -280,8 +312,30 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
-        this.transpiler.setVerboseMode(false);
+        setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchCsharpPropertyTypes ();
+    }
+
+    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
+    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
+    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
+    // through the existing map (exact key only).
+    patchCsharpPropertyTypes () {
+        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
+        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
+        csharpTranspiler.getType = (node: any) => {
+            const type = originalGetType (node);
+            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        csharpTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -292,12 +346,24 @@ class NewTranspiler {
         ]
     }
 
+    getNamespace(ws = false) {
+        if (this.isPrediction) {
+            return ws ? 'namespace ccxt.prediction.pro;' : 'namespace ccxt.prediction;';
+        }
+        return ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+    }
+
     getCsharpImports(file: any, ws = false) {
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = this.getNamespace (ws);
         const values = [
             // "using ccxt;",
             namespace,
         ]
+        if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class and need the ws
+            // infrastructure types (IOrderBook, ArrayCache, ...) from ccxt.pro
+            values.push ("using ccxt.pro;");
+        }
         // if (ws) {
         //     values.push("using System.Reflection;");
         // }
@@ -309,7 +375,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'NullableDict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -332,7 +398,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `Task<ccxt.pro.IOrderBook>`;
+            return this.isPrediction ? `Task<ccxt.PredictionOrderBook>` : `Task<ccxt.pro.IOrderBook>`;
         }
 
         if (name === 'watchOHLCVForSymbols') {
@@ -347,6 +413,32 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → List<Dictionary<string, object>>
+            }
+            return addTaskIfNeeded('Dictionary<string, object>');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `OpenInterest | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'object';
+        }
+
+        // TS >= 5/6 keeps type alias names (e.g. `Market[]`) instead of expanding them;
+        // map the nullable alias back to its concrete interface (matches the previous
+        // TS 4.9 output, e.g. `List<MarketInterface>` in the committed wrappers).
+        if (wrappedType === 'Market' || wrappedType === 'Market[]') {
+            wrappedType = wrappedType.replace ('Market', 'MarketInterface');
+        }
+
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `Task` : 'void';
@@ -359,6 +451,10 @@ class NewTranspiler {
         const csharpReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
+            // TS interface names whose C# structs are Currency / Fee (cs/ccxt/base/Exchange.Types.cs)
+            'CurrencyInterface': 'Currency',
+            'FeeInterface': 'Fee',
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -446,9 +542,9 @@ class NewTranspiler {
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         
-        // Special case for setMarketsFromExchange method
+        // Special case for setMarketsFromExchange method — base tier accepts any exchange
         if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'Exchange';
+            paramType = 'BaseExchange';
         } else if (param.type == undefined) {
             paramType = 'object';
         } else {
@@ -473,10 +569,15 @@ class NewTranspiler {
                 }
             }
         } else {
+            // generated ccxt types (Currencies, MarketInterface, ...) are C# structs (value
+            // types) — an optional param can only default to null if declared nullable (CS1750)
+            const isStructType = paramType !== 'object' && paramType !== 'string'
+                && !paramType.startsWith('List<') && !paramType.startsWith('Dictionary<')
+                && paramType !== 'BaseExchange' && paramType !== 'Exchange';
             if (isOptional) {
                 if (param.initializer !== undefined) {
                         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return `${paramType} ${safeName} = null`
+                            return isStructType ? `${paramType}? ${safeName} = null` : `${paramType} ${safeName} = null`
                         }
                         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }
@@ -549,7 +650,8 @@ class NewTranspiler {
     createReturnStatement(methodName: string,  unwrappedType:string ) {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+            // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
+            return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
 
         if (methodName === 'watchOHLCVForSymbols') {
@@ -565,8 +667,8 @@ class NewTranspiler {
             return `return (double)res;`;
         }
 
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
+        // handle the typescript type Dict (and its nullable alias from TS >= 5/6 inference)
+        if (unwrappedType === 'Dict' || unwrappedType === 'NullableDict') {
             return `return (Dictionary<string, object>)res;`;
         }
 
@@ -619,7 +721,8 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
@@ -660,14 +763,20 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
+    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required parameter sitting after optionals (CS1737)
+        restoreParamsBagInitializers(wrappers);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'Exchange';
+        const shouldCreateClassWrappers = exchange === 'BaseExchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = this.getNamespace (ws);
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        // prediction REST exchanges are not part of createExchangesWrappers (Exchange.Wrappers.cs),
+        // so their Capitalized wrapper class is emitted into their own wrapper file
+        const needsCapitalizedClass = ws || this.isPrediction;
+        const capitalizeStatement = needsCapitalizedClass ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const file = [
             namespace,
             '',
@@ -684,10 +793,14 @@ class NewTranspiler {
         overwriteFileAndFolder (path, file);
     }
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy (force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+
+        if (skipUpToDateStage ('csharp', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) {
+            return;
+        }
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
@@ -754,7 +867,77 @@ class NewTranspiler {
 
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
+    // the method names declared directly in the second (`export default class Exchange extends
+    // BaseExchange`) class of ts/src/base/Exchange.ts — the 62 symbol-based trading methods that the
+    // fine split moved off BaseExchange onto the concrete Exchange tier
+    getExchangeTierMethodNames (baseExchangeFile: string): Set<string> {
+        const src = fs.readFileSync (baseExchangeFile, 'utf8');
+        const markerIdx = src.indexOf ('export default class Exchange extends BaseExchange');
+        const names = new Set<string> ();
+        if (markerIdx === -1) {
+            return names;
+        }
+        const body = src.substring (markerIdx);
+        // top-level (4-space indented) method declarations only; deeper indentation = method bodies
+        const re = /^ {4}(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm;
+        let m;
+        while ((m = re.exec (body)) !== null) {
+            names.add (m[1]);
+        }
+        return names;
+    }
+
+    // cut a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any) out of
+    // `body`, returning the remaining body and the removed method text (for relocation)
+    stripCSharpMethod (body: string, name: string): { body: string, method: string } {
+        const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+        const m = sigRe.exec (body);
+        if (!m) {
+            return { 'body': body, 'method': '' };
+        }
+        let start = m.index; // the '\n' just before the signature line
+        const before = body.substring (0, start);
+        const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+        if (docMatch) {
+            start = docMatch.index as number;
+        }
+        // brace-match the method body
+        let depth = 0;
+        let end = body.indexOf ('{', m.index + m[0].length - 1);
+        for (; end < body.length; end++) {
+            const c = body[end];
+            if (c === '{') {
+                depth++;
+            } else if (c === '}') {
+                depth--;
+                if (depth === 0) {
+                    end++;
+                    break;
+                }
+            }
+        }
+        const method = body.substring (start, end);
+        const newBody = body.substring (0, start) + body.substring (end);
+        return { 'body': newBody, 'method': method };
+    }
+
+    transpileBaseMethods(baseExchangeFile: string, force = true) {
+        // the four generated base files all come out of this one pass; `exchanges.json`
+        // is a real input too — createExchangesWrappers() emits one `public class <Id>`
+        // per listed exchange into Exchange.Wrappers.cs, so adding an exchange must
+        // invalidate this stage even when ts/src/base/Exchange.ts did not change
+        if (skipUpToDateStage ('csharp', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], [
+            BASE_METHODS_FILE,
+            BASE_TRADING_METHODS_FILE,
+            GLOBAL_WRAPPER_FILE,
+            GLOBAL_TRADING_WRAPPER_FILE,
+        ])) {
+            return;
+        }
         const csharpExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
@@ -766,8 +949,25 @@ class NewTranspiler {
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
-        // create wrappers with specific types
-        this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
+        const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
+        // methods that TS places in `class Exchange` but which C#'s hand-written BaseExchange WS layer
+        // (cs/ccxt/ws/Exchange.WsBridge.cs) depends on, so they must remain reachable from BaseExchange:
+        //   loadOrderBook          — hand-written in WsBridge.cs (drop the transpiled copy)
+        //   fetchRestOrderBookSafe — called by BaseExchange.loadOrderBook
+        //   fetchOrderBook         — called by fetchRestOrderBookSafe (also overridden by every venue)
+        const droppedOnBase = [ 'loadOrderBook' ];
+        const retainedOnBase = [ 'fetchRestOrderBookSafe', 'fetchOrderBook' ];
+        const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
+
+        // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
+        // both Exchange and the sibling PredictionExchange); the trading-tier wrappers land on the
+        // concrete Exchange tier so PredictionExchange does NOT inherit the crypto-typed wrappers
+        const allWrapperTypes = baseFile.methodsTypes || [];
+        const baseTierWrapperTypes = allWrapperTypes.filter ((w: any) => !isExchangeTier (w.name));
+        const exchangeTierWrapperTypes = allWrapperTypes.filter ((w: any) => isExchangeTier (w.name));
+        this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseTierWrapperTypes)
+        this.createCSharpWrappers('Exchange', GLOBAL_TRADING_WRAPPER_FILE, exchangeTierWrapperTypes)
 
 
         // custom transformations needed for c#
@@ -777,8 +977,9 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
         
-        // Fix setMarketsFromExchange parameter type
-        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
+        // Fix setMarketsFromExchange parameter type — typed as BaseExchange so it lives on the base
+        // tier (returning `this`) and accepts both Exchange and PredictionExchange source instances
+        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -796,15 +997,105 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            const rest = parts[1];
+            // parts[1] holds the BaseExchange methods below the delimiter, its closing brace, then the
+            // whole transpiled `class Exchange : BaseExchange { ...62 trading methods... }`. Split the
+            // two tiers apart: base methods go to Exchange.BaseMethods.cs (partial class BaseExchange),
+            // the trading methods to Exchange.TradingMethods.cs (partial class Exchange).
+            const exchangeClassMatch = /class Exchange\s*:\s*BaseExchange\s*\{/.exec (rest);
+            let baseMethods = rest;
+            let exchangeBody = '';
+            if (exchangeClassMatch) {
+                baseMethods = rest.substring (0, exchangeClassMatch.index); // BaseExchange methods + its closing }
+                exchangeBody = rest.substring (exchangeClassMatch.index + exchangeClassMatch[0].length).replace (/\}\s*$/, ''); // Exchange class body
+                // drop the hand-written-elsewhere method(s)
+                for (const name of droppedOnBase) {
+                    exchangeBody = this.stripCSharpMethod (exchangeBody, name).body;
+                }
+                // relocate the WS-bridge dependency methods back onto BaseExchange
+                for (const name of retainedOnBase) {
+                    const cut = this.stripCSharpMethod (exchangeBody, name);
+                    exchangeBody = cut.body;
+                    if (cut.method) {
+                        baseMethods = baseMethods.replace (/\}\s*$/, cut.method + '\n}\n');
+                    }
+                }
+            } else {
+                // no second class (older single-class layout): keep prior behaviour
+                baseMethods = rest.replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n');
+            }
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
-                "public partial class Exchange\n{\n\n"
+                "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
+            if (exchangeClassMatch) {
+                const tradingHeader = this.getCsharpImports(undefined).concat([
+                    this.createGeneratedHeader().join('\n'),
+                    "public partial class Exchange\n{\n\n"
+                ]).join("\n");
+                const tradingFile = tradingHeader + exchangeBody + "\n}\n";
+                fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
+                log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
+            }
+        }
+    }
+
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
+        // PredictionExchange is the base class for prediction-market exchanges; it lives
+        // in the ccxt namespace (like Exchange) and is transpiled the same way as the base
+        const predictionBase = './cs/ccxt/base/PredictionExchange.cs';
+        // PredictionExchange extends BaseExchange and returns prediction-typed wrappers,
+        // so Exchange.ts and types.ts are inputs as well. Note a full run reaches this
+        // twice (once from the recursive prediction pass, once from the main pass) —
+        // the gate also makes the second call free.
+        if (skipUpToDateStage ('csharp', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ], [ predictionBase ])) {
+            return;
+        }
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const baseFile: any = this.transpiler.transpileCSharpByPath(predictionBaseFile);
+        let baseClass = baseFile.content as any;
+        baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2');
+        const jsDelimiter = '// ' + delimiter
+        const parts = baseClass.split (jsDelimiter)
+        if (parts.length > 1) {
+            // fetchOrderBook erases to the same object-typed signature as the BaseExchange virtual
+            // and must be emitted as an override to avoid hiding it, warning CS0114, see
+            // https://github.com/ccxt/ccxt/pull/29695
+            const baseMethods = parts[1].replaceAll('public async virtual Task<object> fetchOrderBook(object outcome', 'public async override Task<object> fetchOrderBook(object outcome')
+            const fields = [
+                '    public PredictionExchange(object args = null) : base(args) {}',
+                '',
+                '    public object outcomes { get; set; } = null;',
+                '    public object outcomes_by_id { get; set; } = null;',
+                '    public object events { get; set; } = null;',
+                '    public object events_by_slug { get; set; } = null;',
+                '    public bool reloadingEvents { get; set; } = false;',
+                '    public Task<object> eventsLoading { get; set; } = null;',
+                '',
+            ].join('\n')
+            const fileHeader = this.getCsharpImports(undefined).concat([
+                this.createGeneratedHeader().join('\n'),
+                "public partial class PredictionExchange : BaseExchange\n{\n\n"
+            ]).join("\n");
+            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
+            // venue that does NOT override a unified method still exposes the prediction-typed signature
+            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
+            const prevIsPrediction = this.isPrediction;
+            this.isPrediction = true;
+            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
+            this.isPrediction = prevIsPrediction;
+            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
+            const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
+            fs.writeFileSync (predictionBase, file);
+            this._predictionBaseWritten = true;
+            log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
     }
 
@@ -870,36 +1161,68 @@ class NewTranspiler {
         }
     }
 
-    async transpileWS(force = false) {
-        const tsFolder = './ts/src/pro/';
+    async transpileWS(force = false, prediction = false) {
+        // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
+            return;
+        }
+        const tsFolder = prediction ? './ts/src/prediction/pro/' : './ts/src/pro/';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
+        if (prediction && (!inputExchanges || !inputExchanges.length)) {
+            inputExchanges = predictionWsIds;
+        }
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
+        const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        if (scopedRun) {
+            force = true; // a scoped run (CI `transpileCsSingle -- --ws <exchange>`) always writes, same as the REST path
+        }
+        this.isPrediction = prediction
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true )
+        this.isPrediction = false
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
-        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src/'
+        let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
+            , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively (csharpFolder)
-        }
+        createFolderRecursively (csharpFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
+        if (prediction) {
+            // a scoped run (e.g. `csharpTranspiler.ts binance`) carries regular ids in argv —
+            // the prediction pass must not try to transpile those from ts/src/prediction/
+            // (the files don't exist there)
+            const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
+            if (exchanges.length && !predictionOnly.length) {
+                return;
+            }
+            exchanges = predictionOnly.length ? predictionOnly : predictionIds;
+        }
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            this.isPrediction = prediction
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force)
+            this.isPrediction = false
+        }
+
+        if (prediction) {
+            // the venues override methods declared in the prediction base — regenerate it
+            // in the same pass so a scoped prediction run can't leave the base stale
+            this.transpilePredictionBaseMethods (undefined, force)
+            log.bright.green ('Transpiled prediction exchanges successfully.')
+            return;
         }
 
         this.transpileExamples(); // disabled for now
@@ -911,46 +1234,79 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             return;
         }
-        if (child) {
-            return;
-        }
 
-        this.transpileBaseMethods (exchangeBase)
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        await this.transpileEverything (force, false, false, true)
+
+        this.transpileBaseMethods (exchangeBase, force)
+
+        // the recursive prediction pass above already regenerated PredictionExchange.cs from
+        // the same inputs, so this second call would re-transpile and rewrite identical bytes
+        if (!this._predictionBaseWritten) {
+            this.transpilePredictionBaseMethods (undefined, force)
+        }
 
         if (baseOnly) {
             return;
         }
 
 
-        this.transpileTests()
+        await this.transpileTests(force)
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy (force)
 
         log.bright.green ('Transpiled successfully.')
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
-        });
+        // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
+        // same threads instead of each spawning their own full-size pool
+        const maxThreads = csharpWorkerThreads ();
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'csharp-worker.js'),
+                maxThreads,
+            });
+        }
+        const piscina = this.piscina;
+        const configKey = JSON.stringify (parserConfig);
 
-        const chunkSize = 20;
+        // One file per task. `roots` is the FULL stage list on every task so each worker
+        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult: any[] = [];
+        for (const chunk of workerResult) {
+            flatResult.push (...chunk.result);
+            // csharpComments lives on the main thread (the wrapper writer reads it), so
+            // replay the raw comments the worker saw through the same transform
+            for (const comment of chunk.comments) {
+                this.transformLeadingComment (comment);
+            }
+        }
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
+    async transpilePrediction (force = false) {
+        const ws = process.argv.includes ('--ws');
+        const tsFolder = ws ? './ts/src/prediction/pro/' : './ts/src/prediction/';
+        let inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        if (inputExchanges === undefined || inputExchanges.length === 0) {
+            inputExchanges = ws ? exchanges.predictionWs : exchanges.prediction;
+        }
+        const csharpFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+        const options = { csharpFolder, exchanges: inputExchanges }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, ws, true)
+    }
+
+    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -963,53 +1319,89 @@ class NewTranspiler {
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which this function reads `.ids` off of on the next call.
+        // Assigning to it worked only because each stage ran in its own process;
+        // --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map ((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+        }
+
+        // the wrapper folder is needed up front: a skipped exchange must have BOTH its
+        // transpiled class and its wrapper already up to date
+        const wrapperFolder = ws
+            ? (this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER)
+            : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose output is newer than their ts source. This has to
+        // happen BEFORE the pool is fed, because `allFilesPath` doubles as the sticky
+        // ts.Program root list — leaving a clean exchange in it would transpile and
+        // rewrite it anyway. `--force` (and any single-exchange run) keeps everything.
+        exchangeFiles = filterDirtyExchangeFiles ('csharp', exchangeFiles, force, (file: string) => {
+            const csName = file.replace ('.ts', '.cs');
+            const outputs: string[] = [];
+            if (options.csharpFolder) {
+                outputs.push (options.csharpFolder + csName);
+            }
+            if (wrapperFolder) {
+                outputs.push (wrapperFolder + csName);
+            }
+            return { 'tsPath': jsFolder + file, 'outputs': outputs };
+        })
+
+        if (!exchangeFiles.length) {
+            return {}
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        const allFilesPath = exchangeFiles.map ((file: string) => jsFolder + file );
+        log.blue('[csharp] Transpiling [', exchangeFiles.join(', '), ']');
+        // a single exchange (scoped/debug run) is not worth a cold pool
+        const transpiledFiles = (allFilesPath.length > 1)
+            ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+                const exchangeName = exchangeFiles[i].replace('.ts','');
+                const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
+                const exchangeName = exchangeFiles[i].replace('.ts','');
+                const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
+        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
         return classes
     }
 
-    createCSharpClass(csharpVersion: any, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
+    createCSharpClass(csharpVersion: any, ws = false, prediction = false) {
+        const csharpImports = this.getCsharpImports(csharpVersion, ws, prediction).join("\n") + "\n\n";
         let content = csharpVersion.content;
 
         const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         const baseWsClassExec = baseWsClassRegex.exec(content);
         const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         if (!ws) {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+            // prediction exchanges extend PredictionExchange; both partial declarations
+            // (api/ abstract and exchanges/ file) must agree on the base class
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, (m, p1, p2) => `public partial class ${p1} : ${(this.isPrediction && p2 === 'Exchange') ? 'PredictionExchange' : p2}`);
         } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            const wsParent =  baseWsClass.endsWith('Rest') ? restNamespacePrefix + baseWsClass.replace('Rest', '') : baseWsClass;
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
@@ -1023,24 +1415,29 @@ class NewTranspiler {
             const className = classNameExec ? classNameExec[1] : '';
             const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
             content = constructorLine  + content;
+        } else if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class, so the WS transforms
+            // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
+            content = this.regexAll (content, this.getWsRegexes());
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
 
     replaceImportedRestClasses (content: string, imports: any[]) {
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
             // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
             if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+                content = content.replaceAll(name, restNamespacePrefix + name.replace('Rest', ''));
             }
         }
         return content;
     }
 
-    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
 
         const tsPath = tsFolder + filename
 
@@ -1050,7 +1447,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult, ws)
+        const csharp  = this.createCSharpClass (csharpResult, ws, prediction)
 
         if (csharpFolder) {
             overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)
@@ -1059,10 +1456,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp (outDir: string) {
+    transpileWsOrderbookTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws orderbook test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1099,10 +1500,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp (outDir: string) {
+    transpileWsCacheTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const csharpFile = `${outDir}/Ws/test.cache.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws cache test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1140,10 +1545,14 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToCSharp (outDir: string) {
+    transpileCryptoTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/test.cryptography.cs`;
+
+        if (skipUpToDateStage ('csharp', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1223,15 +1632,15 @@ class NewTranspiler {
         await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
-    transpileBaseTestsToCSharp () {
+    async transpileBaseTestsToCSharp (force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToCSharp(outDir);
-        this.transpileWsCacheTestsToCSharp(outDir);
-        this.transpileWsOrderbookTestsToCSharp(outDir);
+        await this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToCSharp(outDir, force);
+        this.transpileWsCacheTestsToCSharp(outDir, force);
+        this.transpileWsOrderbookTestsToCSharp(outDir, force);
     }
 
-    transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1239,18 +1648,31 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        for (const testName of baseFunctionTests) {
+        // filter out NO_AUTO_TRANSPILE files first, then transpile the rest through the
+        // worker pool — the previous serial loop was ~1s per file and dominated the build
+        const eligible = baseFunctionTests.filter ((testName) => {
+            const tsContent = fs.readFileSync (baseFolders.ts + testName + '.ts').toString ();
+            return !tsContent.includes ('// NO_AUTO_TRANSPILE');
+        });
+
+        // whole-stage gate: `paths` below doubles as the sticky ts.Program root list, so
+        // this stage is skipped all-or-nothing rather than per file
+        if (skipUpToDateStage ('csharp', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/${testName}.cs`))) {
+            return;
+        }
+
+        const paths = eligible.map ((testName) => baseFolders.ts + testName + '.ts');
+        const transpiled = await this.webworkerTranspile (paths, this.getTranspilerConfig ());
+
+        for (let i = 0; i < eligible.length; i++) {
+            const testName = eligible[i];
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
-                continue;
-            }
 
             const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
+            const csharp = transpiled[i];
             let content = csharp.content;
             content = this.regexAll (content, [
                 [/object  = functions;/g, '' ], // tmp fix
@@ -1271,7 +1693,7 @@ class NewTranspiler {
             ]).trim ()
 
             const contentLines = content.split ('\n');
-            const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+            const contentIdented = contentLines.map ((line: string) => '        ' + line).join ('\n');
 
             const file = [
                 'using ccxt;',
@@ -1312,11 +1734,24 @@ class NewTranspiler {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [ /object mockedExchange =/g, 'var mockedExchange =' ],
-            [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
-            [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-            [ /object exchange =/g, 'Exchange exchange =' ],
+            // The shared static-test harness holds either a regular Exchange or a prediction
+            // PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange`
+            // variable as the common base and drive the tested method by reflection. The legacy
+            // request-builders that call a symbol-trading method (createOrder/fetchTicker) directly are
+            // cast back to Exchange below — they run only against regular venues.
+            [ /public virtual object initOfflineExchange/g, 'public virtual BaseExchange initOfflineExchange' ],
+            [ /object exchange(?=[,)])/g, 'BaseExchange exchange' ],
+            [ /object exchange =/g, 'BaseExchange exchange =' ],
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
+            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            [ /BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)' ],
+            [ /BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))' ],
+            [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
+            // noImplicitAny bags: keep object so safeValue assignments typecheck
+            [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
+            [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
         const file = [
@@ -1330,12 +1765,7 @@ class NewTranspiler {
         overwriteFileAndFolder (files.csharpFile, file);
     }
 
-    transpileExchangeTests(){
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'csharpFile': BASE_TESTS_FILE,
-        });
-
+    transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -1367,10 +1797,21 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        // whole-stage gate — TestMethods.cs is included because transpileMainTest below
+        // writes it from ./ts/src/test/tests.ts, which is part of testStageInputs()
+        if (skipUpToDateStage ('csharp', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.csharpFile)))) {
+            return;
+        }
+
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'csharpFile': BASE_TESTS_FILE,
+        });
+
+        return this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(){
+    transpileWsExchangeTests(force = true){
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -1389,7 +1830,11 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        if (skipUpToDateStage ('csharp', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.csharpFile))) {
+            return;
+        }
+
+        return this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
 
     async transpileAndSaveCsharpExchangeTests(tests: any[], isWs = false) {
@@ -1399,7 +1844,12 @@ class NewTranspiler {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                // REST test functions serve BOTH tiers (regular Exchange and prediction
+                // PredictionExchange are siblings under BaseExchange), so type the exchange
+                // param as the common base and late-bind the unified-method calls through
+                // `dynamic` — the DLR resolves them on the concrete tier at runtime.
+                // WS tests only run against regular venues, keep them statically typed.
+                [ /object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
@@ -1408,8 +1858,14 @@ class NewTranspiler {
                 [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
 
+            if (!isWs) {
+                regexes = regexes.concat([
+                    [/await exchange\.(\w+)\(/g, 'await ((dynamic)exchange).$1('],
+                ]);
+            }
+
             if (isWs) {
-                // add ws-tests specific regeces
+                // add ws-tests specific regexes
                 regexes = regexes.concat([
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
                     [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
@@ -1455,41 +1911,68 @@ class NewTranspiler {
         });
     }
 
-    transpileTests(){
+    async transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        // the three groups are independent — run them concurrently
+        await Promise.all ([
+            this.transpileBaseTestsToCSharp(force),
+            this.transpileExchangeTests(force),
+            this.transpileWsExchangeTests(force),
+        ]);
     }
 }
 
 async function runMain () {
     const ws = process.argv.includes ('--ws')
+    // bare prediction-only ids (e.g. `csharpTranspiler.ts kalshi`) auto-route to the
+    // prediction namespace so scoped CI steps don't need to know it
+    const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+    const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x))
+    const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
     const baseOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
-    const child = process.argv.includes ('--child')
     const baseClassOnly = process.argv.includes ('--baseClass')
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    // single-process REST+WS (default via npm run transpileCS / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    const restAndWs = process.argv.includes ('--rest-and-ws')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green ({ force })
-    }
+    log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
+    const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-    } else if (ws) {
+        transpiler.transpilePredictionBaseMethods ()
+    } else if (restAndWs) {
+        // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
+        // one transpiler instance, so the single piscina pool (and its warm per-thread
+        // Transpilers) survives into the ws stage instead of paying a second process
+        // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
         await transpiler.transpileWS (force)
+        if (!inputExchanges.length) {
+            // full ws builds also transpile the prediction ws exchanges
+            await transpiler.transpileWS (force, true)
+        }
+    } else if (ws) {
+        if (prediction) {
+            await transpiler.transpileWS (force, true)
+        } else {
+            await transpiler.transpileWS (force)
+            if (!inputExchanges.length) {
+                // full ws builds also transpile the prediction ws exchanges
+                await transpiler.transpileWS (force, true)
+            }
+        }
     } else if (test) {
-        transpiler.transpileTests ()
-    } else if (multiprocess) {
-        await parallelizeTranspiling (exchangeIds)
+        await transpiler.transpileTests ()
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples)
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
     }
 }
 

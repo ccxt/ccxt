@@ -80,11 +80,119 @@ public partial class bitflyer : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getmarkets/usa", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets/eu", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboard", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gethealth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboardstate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getfundingrate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"} },
-                    { "post", new List<object>() {"sendcoin", "withdraw", "sendchildorder", "cancelchildorder", "sendparentorder", "cancelparentorder", "cancelallchildorders"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getpermissions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalancehistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralhistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getaddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinins", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinouts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbankaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getdeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getwithdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getpositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gettradingcommission", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "sendcoin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelallchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -251,8 +359,8 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        object markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
+        object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -387,7 +495,10 @@ public partial class bitflyer : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -438,7 +549,7 @@ public partial class bitflyer : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

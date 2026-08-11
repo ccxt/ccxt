@@ -173,41 +173,91 @@ func (this *BitteamCore) Describe() any {
 		"api": map[string]any{
 			"history": map[string]any{
 				"get": map[string]any{
-					"api/tw/history/{pairName}/{resolution}": 1,
+					"api/tw/history/{pairName}/{resolution}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"public": map[string]any{
 				"get": map[string]any{
-					"trade/api/asset":                1,
-					"trade/api/currencies":           1,
-					"trade/api/orderbooks/{symbol}":  1,
-					"trade/api/orders":               1,
-					"trade/api/pair/{name}":          1,
-					"trade/api/pairs":                1,
-					"trade/api/pairs/precisions":     1,
-					"trade/api/rates":                1,
-					"trade/api/trade/{id}":           1,
-					"trade/api/trades":               1,
-					"trade/api/ccxt/pairs":           1,
-					"trade/api/cmc/assets":           1,
-					"trade/api/cmc/orderbook/{pair}": 1,
-					"trade/api/cmc/summary":          1,
-					"trade/api/cmc/ticker":           1,
-					"trade/api/cmc/trades/{pair}":    1,
+					"trade/api/asset": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/currencies": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/orderbooks/{symbol}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/orders": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pair/{name}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pairs": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/pairs/precisions": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/rates": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/trade/{id}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/trades": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/pairs": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/assets": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/orderbook/{pair}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/summary": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/ticker": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/cmc/trades/{pair}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"trade/api/ccxt/balance":       1,
-					"trade/api/ccxt/order/{id}":    1,
-					"trade/api/ccxt/ordersOfUser":  1,
-					"trade/api/ccxt/tradesOfUser":  1,
-					"trade/api/transactionsOfUser": 1,
+					"trade/api/ccxt/balance": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/order/{id}": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/ordersOfUser": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/tradesOfUser": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/transactionsOfUser": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"trade/api/ccxt/cancel-all-order": 1,
-					"trade/api/ccxt/cancelorder":      1,
-					"trade/api/ccxt/ordercreate":      1,
+					"trade/api/ccxt/cancel-all-order": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/cancelorder": map[string]any{
+						"cost": 1,
+					},
+					"trade/api/ccxt/ordercreate": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -242,9 +292,11 @@ func (this *BitteamCore) Describe() any {
 				"ufobject":            "ufobject",
 				"tonchain":            "tonchain",
 			},
-			"currenciesValuedInUsd": map[string]any{
-				"USDT": true,
-				"BUSD": true,
+			"fetchMarkets": map[string]any{
+				"currenciesValuedInUsd": map[string]any{
+					"USDT": true,
+					"BUSD": true,
+				},
 			},
 		},
 		"features": map[string]any{
@@ -355,7 +407,7 @@ func (this *BitteamCore) Describe() any {
  * @name bitteam#fetchMarkets
  * @description retrieves data on all markets for bitteam
  * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitteamCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -475,7 +527,7 @@ func (this *BitteamCore) ParseMarket(market any) any {
 	var timeStart any = this.SafeString(market, "timeStart")
 	var created any = this.Parse8601(timeStart)
 	var minCost any = nil
-	var currenciesValuedInUsd any = this.SafeValue(this.Options, "currenciesValuedInUsd", map[string]any{})
+	var currenciesValuedInUsd any = this.HandleOption("fetchMarkets", "currenciesValuedInUsd", map[string]any{})
 	var quoteInUsd any = this.SafeBool(currenciesValuedInUsd, quote, false)
 	if IsTrue(quoteInUsd) {
 		var settings any = this.SafeValue(market, "settings", map[string]any{})
@@ -538,7 +590,7 @@ func (this *BitteamCore) ParseMarket(market any) any {
  * @name bitteam#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
 func (this *BitteamCore) FetchCurrencies(optionalArgs ...any) <-chan any {
@@ -643,7 +695,7 @@ func (this *BitteamCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//
 		var responseResult any = this.SafeValue(response, "result", map[string]any{})
 		var currencies any = this.SafeValue(responseResult, "currencies", []any{})
-		// usding another endpoint to fetch statuses of deposits and withdrawals
+		// using another endpoint to fetch statuses of deposits and withdrawals
 
 		statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
 		PanicOnError(statusesResponse)
@@ -711,30 +763,32 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
 		var networkId any = GetValue(networkIds, j)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkFee any = this.SafeNumber(feesByNetworkId, networkId)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"deposit":   deposit,
-			"withdraw":  withdraw,
-			"active":    active,
-			"fee":       networkFee,
-			"precision": networkPrecision,
-			"limits": map[string]any{
-				"amount": map[string]any{
-					"min": nil,
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"deposit":   deposit,
+				"withdraw":  withdraw,
+				"active":    active,
+				"fee":       networkFee,
+				"precision": networkPrecision,
+				"limits": map[string]any{
+					"amount": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.ParseNumber(minWithdraw),
+						"max": this.ParseNumber(maxWithdraw),
+					},
+					"deposit": map[string]any{
+						"min": this.ParseNumber(minDeposit),
+						"max": nil,
+					},
 				},
-				"withdraw": map[string]any{
-					"min": this.ParseNumber(minWithdraw),
-					"max": this.ParseNumber(maxWithdraw),
-				},
-				"deposit": map[string]any{
-					"min": this.ParseNumber(minDeposit),
-					"max": nil,
-				},
-			},
-			"info": currency,
-		})
+				"info": currency,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -774,7 +828,7 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BitteamCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
@@ -792,8 +846,8 @@ func (this *BitteamCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes75912 := (<-this.LoadMarkets())
-			PanicOnError(retRes75912)
+			retRes76312 := (<-this.LoadMarkets())
+			PanicOnError(retRes76312)
 		}
 		var market any = this.Market(symbol)
 		var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -863,8 +917,8 @@ func (this *BitteamCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -877,8 +931,8 @@ func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes83312 := (<-this.LoadMarkets())
-			PanicOnError(retRes83312)
+			retRes83712 := (<-this.LoadMarkets())
+			PanicOnError(retRes83712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -932,7 +986,7 @@ func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
@@ -951,8 +1005,8 @@ func (this *BitteamCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88612 := (<-this.LoadMarkets())
-			PanicOnError(retRes88612)
+			retRes89012 := (<-this.LoadMarkets())
+			PanicOnError(retRes89012)
 		}
 		var typeVar any = this.SafeString(params, "type", "all")
 		var request any = map[string]any{
@@ -1067,8 +1121,8 @@ func (this *BitteamCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @description fetches information on an order
  * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
  * @param {int|string} id order id
- * @param {string} symbol not used by bitteam fetchOrder ()
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {string} symbol not used by fetchOrder ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
@@ -1082,8 +1136,8 @@ func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100012 := (<-this.LoadMarkets())
-			PanicOnError(retRes100012)
+			retRes100412 := (<-this.LoadMarkets())
+			PanicOnError(retRes100412)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1149,7 +1203,7 @@ func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
@@ -1167,16 +1221,16 @@ func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes106412 := (<-this.LoadMarkets())
-			PanicOnError(retRes106412)
+			retRes106812 := (<-this.LoadMarkets())
+			PanicOnError(retRes106812)
 		}
 		var request any = map[string]any{
 			"type": "active",
 		}
 
-		retRes106915 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes106915)
-		ch <- retRes106915
+		retRes107315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes107315)
+		ch <- retRes107315
 		return nil
 
 	}()
@@ -1191,7 +1245,7 @@ func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of closed order structures to retrieve (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
@@ -1209,16 +1263,16 @@ func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes108512 := (<-this.LoadMarkets())
-			PanicOnError(retRes108512)
+			retRes108912 := (<-this.LoadMarkets())
+			PanicOnError(retRes108912)
 		}
 		var request any = map[string]any{
 			"type": "closed",
 		}
 
-		retRes109015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes109015)
-		ch <- retRes109015
+		retRes109415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes109415)
+		ch <- retRes109415
 		return nil
 
 	}()
@@ -1233,7 +1287,7 @@ func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
@@ -1251,16 +1305,16 @@ func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes110612 := (<-this.LoadMarkets())
-			PanicOnError(retRes110612)
+			retRes111012 := (<-this.LoadMarkets())
+			PanicOnError(retRes111012)
 		}
 		var request any = map[string]any{
 			"type": "cancelled",
 		}
 
-		retRes111115 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes111115)
-		ch <- retRes111115
+		retRes111515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes111515)
+		ch <- retRes111515
 		return nil
 
 	}()
@@ -1277,7 +1331,7 @@ func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
@@ -1291,8 +1345,8 @@ func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes112912 := (<-this.LoadMarkets())
-			PanicOnError(retRes112912)
+			retRes113312 := (<-this.LoadMarkets())
+			PanicOnError(retRes113312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1349,8 +1403,8 @@ func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @description cancels an open order
  * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
  * @param {string} id order id
- * @param {string} symbol not used by bitteam cancelOrder ()
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {string} symbol not used by cancelOrder ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
@@ -1364,8 +1418,8 @@ func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes118512 := (<-this.LoadMarkets())
-			PanicOnError(retRes118512)
+			retRes118912 := (<-this.LoadMarkets())
+			PanicOnError(retRes118912)
 		}
 		var request any = map[string]any{
 			"id": id,
@@ -1395,8 +1449,8 @@ func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @name bitteam#cancelAllOrders
  * @description cancel open orders of market
  * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
- * @param {string} symbol unified market symbol
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {string} [symbol] unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
@@ -1410,8 +1464,8 @@ func (this *BitteamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes121412 := (<-this.LoadMarkets())
-			PanicOnError(retRes121412)
+			retRes121812 := (<-this.LoadMarkets())
+			PanicOnError(retRes121812)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1620,7 +1674,7 @@ func (this *BitteamCore) ParseValueToPricision(valueObject any, valueKey any, pr
  * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
  * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
 func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
@@ -1634,8 +1688,8 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes142312 := (<-this.LoadMarkets())
-			PanicOnError(retRes142312)
+			retRes142712 := (<-this.LoadMarkets())
+			PanicOnError(retRes142712)
 		}
 
 		response := (<-this.PublicGetTradeApiCmcSummary())
@@ -1672,11 +1726,12 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var tickers any = []any{}
-		if !IsTrue(IsArray(response)) {
-			response = []any{}
+		var rawTickers any = []any{}
+		if IsTrue(IsArray(response)) {
+			rawTickers = response
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var rawTicker any = GetValue(response, i)
+		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+			var rawTicker any = GetValue(rawTickers, i)
 			var ticker any = this.ParseTicker(rawTicker)
 			AppendToArray(&tickers, ticker)
 		}
@@ -1694,7 +1749,7 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
 func (this *BitteamCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
@@ -1706,8 +1761,8 @@ func (this *BitteamCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148012 := (<-this.LoadMarkets())
-			PanicOnError(retRes148012)
+			retRes148512 := (<-this.LoadMarkets())
+			PanicOnError(retRes148512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2046,7 +2101,7 @@ func (this *BitteamCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
  */
 func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
@@ -2062,8 +2117,8 @@ func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes181612 := (<-this.LoadMarkets())
-			PanicOnError(retRes181612)
+			retRes182112 := (<-this.LoadMarkets())
+			PanicOnError(retRes182112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2109,7 +2164,7 @@ func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
  */
 func (this *BitteamCore) FetchMyTrades(optionalArgs ...any) <-chan any {
@@ -2127,8 +2182,8 @@ func (this *BitteamCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186012 := (<-this.LoadMarkets())
-			PanicOnError(retRes186012)
+			retRes186512 := (<-this.LoadMarkets())
+			PanicOnError(retRes186512)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2398,7 +2453,7 @@ func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @name betteam#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
- * @param {object} [params] extra parameters specific to the betteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
  */
 func (this *BitteamCore) FetchBalance(optionalArgs ...any) <-chan any {
@@ -2410,8 +2465,8 @@ func (this *BitteamCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes212712 := (<-this.LoadMarkets())
-			PanicOnError(retRes212712)
+			retRes213212 := (<-this.LoadMarkets())
+			PanicOnError(retRes213212)
 		}
 
 		response := (<-this.PrivateGetTradeApiCcxtBalance(params))
@@ -2481,11 +2536,13 @@ func (this *BitteamCore) ParseBalance(response any) any {
 		var used any = this.SafeString(currencyBalance, "used")
 		var total any = this.SafeString(currencyBalance, "total")
 		var currencyCode any = this.SafeCurrencyCode(ToLower(rawCurrencyId))
-		AddElementToObject(balance, currencyCode, map[string]any{
-			"free":  free,
-			"used":  used,
-			"total": total,
-		})
+		if IsTrue(!IsEqual(currencyCode, nil)) {
+			AddElementToObject(balance, currencyCode, map[string]any{
+				"free":  free,
+				"used":  used,
+				"total": total,
+			})
+		}
 	}
 	return this.SafeBalance(balance)
 }
@@ -2498,7 +2555,7 @@ func (this *BitteamCore) ParseBalance(response any) any {
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
  * @param {int} [limit] max number of deposit/withdrawals to return (default 10)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
 func (this *BitteamCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
@@ -2516,8 +2573,8 @@ func (this *BitteamCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes221312 := (<-this.LoadMarkets())
-			PanicOnError(retRes221312)
+			retRes222012 := (<-this.LoadMarkets())
+			PanicOnError(retRes222012)
 		}
 		var currency any = nil
 		var request any = map[string]any{}

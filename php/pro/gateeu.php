@@ -13,7 +13,10 @@ class gateeu extends \ccxt\pro\gate {
         $restInstance = new \ccxt\async\gateeu();
         $restDescribe = $restInstance->describe();
         $parentWsDescribe = parent::describe_data();
-        $extended = $this->deep_extend($parentWsDescribe, $restDescribe);
+        // the ws describe-data must be applied on top of the rest describe,
+        // otherwise the explicit-null watch* defaults of the rest 'has'
+        // block wipe the parent's ws capability flags in the deep extend
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
             'id' => 'gateeu',
             'name' => 'Gate EU',

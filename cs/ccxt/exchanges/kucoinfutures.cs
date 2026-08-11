@@ -23,6 +23,7 @@ public partial class kucoinfutures : kucoin
                 { "future", true },
                 { "option", null },
                 { "fetchBidsAsks", true },
+                { "transfer", true },
             } },
             { "options", new Dictionary<string, object>() {
                 { "fetchMarkets", new Dictionary<string, object>() {

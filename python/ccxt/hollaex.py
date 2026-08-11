@@ -6,8 +6,9 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, DepositWithdrawFees, Transaction
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -62,6 +63,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -134,44 +136,44 @@ class hollaex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'health': 1,
-                        'constants': 1,
-                        'kit': 1,
-                        'tiers': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'orderbook': 1,
-                        'orderbooks': 1,
-                        'trades': 1,
-                        'chart': 1,
-                        'charts': 1,
-                        'minicharts': 1,
-                        'oracle/prices': 1,
-                        'quick-trade': 1,
+                        'health': {'cost': 1},
+                        'constants': {'cost': 1},
+                        'kit': {'cost': 1},
+                        'tiers': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'orderbook': {'cost': 1},
+                        'orderbooks': {'cost': 1},
+                        'trades': {'cost': 1},
+                        'chart': {'cost': 1},
+                        'charts': {'cost': 1},
+                        'minicharts': {'cost': 1},
+                        'oracle/prices': {'cost': 1},
+                        'quick-trade': {'cost': 1},
                         # TradingView
-                        'udf/config': 1,
-                        'udf/history': 1,
-                        'udf/symbols': 1,
+                        'udf/config': {'cost': 1},
+                        'udf/history': {'cost': 1},
+                        'udf/symbols': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
-                        'user/balance': 1,
-                        'user/deposits': 1,
-                        'user/withdrawals': 1,
-                        'user/withdrawal/fee': 1,
-                        'user/trades': 1,
-                        'orders': 1,
-                        'order': 1,
+                        'user': {'cost': 1},
+                        'user/balance': {'cost': 1},
+                        'user/deposits': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
+                        'user/withdrawal/fee': {'cost': 1},
+                        'user/trades': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                     'post': {
-                        'user/withdrawal': 1,
-                        'order': 1,
+                        'user/withdrawal': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                     'delete': {
-                        'order/all': 1,
-                        'order': 1,
+                        'order/all': {'cost': 1},
+                        'order': {'cost': 1},
                     },
                 },
             },
@@ -500,7 +502,7 @@ class hollaex(Exchange, ImplicitAPI):
         values = list(coins.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         withdrawalLimits = self.safe_list(rawCurrency, 'withdrawal_limits', [])
@@ -513,22 +515,23 @@ class hollaex(Exchange, ImplicitAPI):
             networkId = networkIds[j]
             networkEntry = self.safe_dict(rawNetworks, networkId)
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': self.safe_bool(networkEntry, 'active'),
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(networkEntry, 'value'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': self.safe_bool(networkEntry, 'active'),
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(networkEntry, 'value'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                },
-                'info': networkEntry,
-            }
+                    'info': networkEntry,
+                }
         return self.safe_currency_structure({
             'id': id,
             'numericId': self.safe_integer(rawCurrency, 'id'),
@@ -560,8 +563,8 @@ class hollaex(Exchange, ImplicitAPI):
 
         https://apidocs.hollaex.com/#orderbooks
 
-        :param str[]|None symbols: not used by hollaex fetchOrderBooks()
-        :param int [limit]: not used by hollaex fetchOrderBooks()
+        :param str[]|None symbols: not used by fetchOrderBooks()
+        :param int [limit]: not used by fetchOrderBooks()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
@@ -572,10 +575,10 @@ class hollaex(Exchange, ImplicitAPI):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            orderbook = response[marketId]
+            orderbook = self.safe_dict(response, marketId, {})
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -587,7 +590,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -680,7 +683,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, tickers, symbols: Strings = None, params={}) -> Tickers:
+    def parse_tickers(self, tickers: Any, symbols: Strings = None, params={}) -> Tickers:
         result = {}
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
@@ -883,8 +886,8 @@ class hollaex(Exchange, ImplicitAPI):
         makerFees = self.safe_value(fees, 'maker', {})
         takerFees = self.safe_value(fees, 'taker', {})
         result = {}
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             makerString = self.safe_string(makerFees, market['id'])
             takerString = self.safe_string(takerFees, market['id'])
@@ -949,9 +952,9 @@ class hollaex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -972,21 +975,25 @@ class hollaex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        currencyIds = list(self.currencies_by_id.keys())
+        currenciesById = self.currencies_by_id
+        if currenciesById is None:
+            raise ExchangeError(self.id + ' currencies not loaded')
+        currencyIds = list(currenciesById.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(response, currencyId + '_available')
             account['total'] = self.safe_string(response, currencyId + '_balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1015,14 +1022,14 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch an open order by it's id
 
         https://apidocs.hollaex.com/#get-order
 
         :param str id: order id
-        :param str symbol: not used by hollaex fetchOpenOrder()
+        :param str symbol: not used by fetchOpenOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1460,7 +1467,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency":"usdt",
@@ -1855,7 +1862,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #    "bch":{
         #        "id":4,
@@ -1911,6 +1918,8 @@ class hollaex(Exchange, ImplicitAPI):
                 currencyId = self.safe_string(value, 'symbol')
                 currencyCode = self.safe_currency_code(currencyId)
                 networkCode = self.network_id_to_code(key, currencyCode)
+                if networkCode is None:
+                    raise ArgumentsRequired(self.id + ' requires a networkCode argument')
                 networkCodeUpper = networkCode.upper()  # default to the upper case network code
                 withdrawalFee = self.safe_number(value, 'value')
                 result['networks'][networkCodeUpper] = {
@@ -1919,7 +1928,7 @@ class hollaex(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -1968,7 +1977,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
@@ -1994,7 +2003,7 @@ class hollaex(Exchange, ImplicitAPI):
             headers['api-signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         # {"message": "Invalid token"}
         if response is None:
             return None

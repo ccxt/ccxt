@@ -203,7 +203,10 @@ public partial class BaseTest
     public async Task testLanguageSpecific()
     {
         MultithreadTest().Wait(); // temporary disable here
-        
+
+        // hand-written C#-only: dual-stack (IPv4 + IPv6) transport checks (offline)
+        testDualStack();
+
         // Run throttler performance test
         await testThrottlerPerformance();
     }

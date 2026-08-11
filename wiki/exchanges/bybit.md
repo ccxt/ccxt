@@ -436,7 +436,7 @@ bybit.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/orderbook  
 
@@ -759,7 +759,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if trigger order |
 | params.stop | <code>boolean</code> | No | alias for trigger |
@@ -770,7 +770,7 @@ cancel all open orders
 
 
 ```javascript
-bybit.cancelAllOrders (symbol, params?)
+bybit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1934,7 +1934,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=50, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days |
 | params.subType | <code>string</code> | No | 'linear' or 'inverse' |
 
@@ -2495,7 +2495,7 @@ bybit.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 

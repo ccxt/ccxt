@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -132,7 +133,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
-                'fetchStatus': False,  # none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -223,131 +224,131 @@ class htx(Exchange, ImplicitAPI):
                 # old api definitions
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1,  # 币链参考信息
-                        'market-status': 1,  # 获取当前市场状态
+                        'reference/currencies': {'cost': 1},  # 币链参考信息
+                        'market-status': {'cost': 1},  # 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': 1,
-                        'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1,  # 提币地址查询(限母用户可用)
-                        'account/deposit/address': 1,
-                        'account/repayment': 5,  # 还币交易记录查询
-                        'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2,  # 获取账户资产估值
-                        'point/account': 5,  # 点卡余额查询
-                        'sub-user/user-list': 1,  # 获取子用户列表
-                        'sub-user/user-state': 1,  # 获取特定子用户的用户状态
-                        'sub-user/account-list': 1,  # 获取特定子用户的账户列表
-                        'sub-user/deposit-address': 1,  # 子用户充币地址查询
-                        'sub-user/query-deposit': 1,  # 子用户充币记录查询
-                        'user/api-key': 1,  # 母子用户API key信息查询
-                        'user/uid': 1,  # 母子用户获取用户UID
-                        'algo-orders/opening': 1,  # 查询未触发OPEN策略委托
-                        'algo-orders/history': 1,  # 查询策略委托历史
-                        'algo-orders/specific': 1,  # 查询特定策略委托
-                        'c2c/offers': 1,  # 查询借入借出订单
-                        'c2c/offer': 1,  # 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': 1,  # 查询借入借出交易记录
-                        'c2c/repayment': 1,  # 查询还币交易记录
-                        'c2c/account': 1,  # 查询账户余额
-                        'etp/reference': 1,  # 基础参考信息
-                        'etp/transactions': 5,  # 获取杠杆ETP申赎记录
-                        'etp/transaction': 5,  # 获取特定杠杆ETP申赎记录
-                        'etp/rebalance': 1,  # 获取杠杆ETP调仓记录
-                        'etp/limit': 1,  # 获取ETP持仓限额
+                        'account/ledger': {'cost': 1},
+                        'account/withdraw/quota': {'cost': 1},
+                        'account/withdraw/address': {'cost': 1},  # 提币地址查询(限母用户可用)
+                        'account/deposit/address': {'cost': 1},
+                        'account/repayment': {'cost': 5},  # 还币交易记录查询
+                        'reference/transact-fee-rate': {'cost': 1},
+                        'account/asset-valuation': {'cost': 0.2},  # 获取账户资产估值
+                        'point/account': {'cost': 5},  # 点卡余额查询
+                        'sub-user/user-list': {'cost': 1},  # 获取子用户列表
+                        'sub-user/user-state': {'cost': 1},  # 获取特定子用户的用户状态
+                        'sub-user/account-list': {'cost': 1},  # 获取特定子用户的账户列表
+                        'sub-user/deposit-address': {'cost': 1},  # 子用户充币地址查询
+                        'sub-user/query-deposit': {'cost': 1},  # 子用户充币记录查询
+                        'user/api-key': {'cost': 1},  # 母子用户API key信息查询
+                        'user/uid': {'cost': 1},  # 母子用户获取用户UID
+                        'algo-orders/opening': {'cost': 1},  # 查询未触发OPEN策略委托
+                        'algo-orders/history': {'cost': 1},  # 查询策略委托历史
+                        'algo-orders/specific': {'cost': 1},  # 查询特定策略委托
+                        'c2c/offers': {'cost': 1},  # 查询借入借出订单
+                        'c2c/offer': {'cost': 1},  # 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': {'cost': 1},  # 查询借入借出交易记录
+                        'c2c/repayment': {'cost': 1},  # 查询还币交易记录
+                        'c2c/account': {'cost': 1},  # 查询账户余额
+                        'etp/reference': {'cost': 1},  # 基础参考信息
+                        'etp/transactions': {'cost': 5},  # 获取杠杆ETP申赎记录
+                        'etp/transaction': {'cost': 5},  # 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': {'cost': 1},  # 获取杠杆ETP调仓记录
+                        'etp/limit': {'cost': 1},  # 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5,  # 归还借币（全仓逐仓通用）
-                        'point/transfer': 5,  # 点卡划转
-                        'sub-user/management': 1,  # 冻结/解冻子用户
-                        'sub-user/creation': 1,  # 子用户创建
-                        'sub-user/tradable-market': 1,  # 设置子用户交易权限
-                        'sub-user/transferability': 1,  # 设置子用户资产转出权限
-                        'sub-user/api-key-generation': 1,  # 子用户API key创建
-                        'sub-user/api-key-modification': 1,  # 修改子用户API key
-                        'sub-user/api-key-deletion': 1,  # 删除子用户API key
-                        'sub-user/deduct-mode': 1,  # 设置子用户手续费抵扣模式
-                        'algo-orders': 1,  # 策略委托下单
-                        'algo-orders/cancel-all-after': 1,  # 自动撤销订单
-                        'algo-orders/cancellation': 1,  # 策略委托（触发前）撤单
-                        'c2c/offer': 1,  # 借入借出下单
-                        'c2c/cancellation': 1,  # 借入借出撤单
-                        'c2c/cancel-all': 1,  # 撤销所有借入借出订单
-                        'c2c/repayment': 1,  # 还币
-                        'c2c/transfer': 1,  # 资产划转
-                        'etp/creation': 5,  # 杠杆ETP换入
-                        'etp/redemption': 5,  # 杠杆ETP换出
-                        'etp/{transactId}/cancel': 10,  # 杠杆ETP单个撤单
-                        'etp/batch-cancel': 50,  # 杠杆ETP批量撤单
+                        'account/transfer': {'cost': 1},
+                        'account/repayment': {'cost': 5},  # 归还借币（全仓逐仓通用）
+                        'point/transfer': {'cost': 5},  # 点卡划转
+                        'sub-user/management': {'cost': 1},  # 冻结/解冻子用户
+                        'sub-user/creation': {'cost': 1},  # 子用户创建
+                        'sub-user/tradable-market': {'cost': 1},  # 设置子用户交易权限
+                        'sub-user/transferability': {'cost': 1},  # 设置子用户资产转出权限
+                        'sub-user/api-key-generation': {'cost': 1},  # 子用户API key创建
+                        'sub-user/api-key-modification': {'cost': 1},  # 修改子用户API key
+                        'sub-user/api-key-deletion': {'cost': 1},  # 删除子用户API key
+                        'sub-user/deduct-mode': {'cost': 1},  # 设置子用户手续费抵扣模式
+                        'algo-orders': {'cost': 1},  # 策略委托下单
+                        'algo-orders/cancel-all-after': {'cost': 1},  # 自动撤销订单
+                        'algo-orders/cancellation': {'cost': 1},  # 策略委托（触发前）撤单
+                        'c2c/offer': {'cost': 1},  # 借入借出下单
+                        'c2c/cancellation': {'cost': 1},  # 借入借出撤单
+                        'c2c/cancel-all': {'cost': 1},  # 撤销所有借入借出订单
+                        'c2c/repayment': {'cost': 1},  # 还币
+                        'c2c/transfer': {'cost': 1},  # 资产划转
+                        'etp/creation': {'cost': 5},  # 杠杆ETP换入
+                        'etp/redemption': {'cost': 5},  # 杠杆ETP换出
+                        'etp/{transactId}/cancel': {'cost': 10},  # 杠杆ETP单个撤单
+                        'etp/batch-cancel': {'cost': 50},  # 杠杆ETP批量撤单
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1,  # 查询系统支持的所有交易对
-                        'common/currencys': 1,  # 查询系统支持的所有币种
-                        'common/timestamp': 1,  # 查询系统当前时间
-                        'common/exchange': 1,  # order limits
-                        'settings/currencys': 1,  # ?language=en-US
+                        'common/symbols': {'cost': 1},  # 查询系统支持的所有交易对
+                        'common/currencys': {'cost': 1},  # 查询系统支持的所有币种
+                        'common/timestamp': {'cost': 1},  # 查询系统当前时间
+                        'common/exchange': {'cost': 1},  # order limits
+                        'settings/currencys': {'cost': 1},  # ?language=en-US
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2,  # 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance': 0.2,  # 查询指定账户的余额
-                        'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
-                        'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1,  # 查询借币币息率及额度
-                        'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
-                        'order/orders': 0.4,
-                        'order/orders/{id}': 0.4,  # 查询某个订单详情
-                        'order/orders/{id}/matchresults': 0.4,  # 查询某个订单的成交明细
-                        'order/orders/getClientOrder': 0.4,
-                        'order/history': 1,  # 查询当前委托、历史委托
-                        'order/matchresults': 1,  # 查询当前成交、历史成交
+                        'account/accounts': {'cost': 0.2},  # 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': {'cost': 0.2},  # 查询指定账户的余额
+                        'account/accounts/{sub-uid}': {'cost': 1},
+                        'account/history': {'cost': 4},
+                        'cross-margin/loan-info': {'cost': 1},
+                        'margin/loan-info': {'cost': 1},  # 查询借币币息率及额度
+                        'fee/fee-rate/get': {'cost': 1},
+                        'order/openOrders': {'cost': 0.4},
+                        'order/orders': {'cost': 0.4},
+                        'order/orders/{id}': {'cost': 0.4},  # 查询某个订单详情
+                        'order/orders/{id}/matchresults': {'cost': 0.4},  # 查询某个订单的成交明细
+                        'order/orders/getClientOrder': {'cost': 0.4},
+                        'order/history': {'cost': 1},  # 查询当前委托、历史委托
+                        'order/matchresults': {'cost': 1},  # 查询当前成交、历史成交
                         # 'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
+                        'query/deposit-withdraw': {'cost': 1},
                         # 'margin/loan-info',  # duplicate
-                        'margin/loan-orders': 0.2,  # 借贷订单
-                        'margin/accounts/balance': 0.2,  # 借贷账户详情
-                        'cross-margin/loan-orders': 1,  # 查询借币订单
-                        'cross-margin/accounts/balance': 1,  # 借币账户详情
-                        'points/actions': 1,
-                        'points/orders': 1,
-                        'subuser/aggregate-balance': 10,
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'margin/loan-orders': {'cost': 0.2},  # 借贷订单
+                        'margin/accounts/balance': {'cost': 0.2},  # 借贷账户详情
+                        'cross-margin/loan-orders': {'cost': 1},  # 查询借币订单
+                        'cross-margin/accounts/balance': {'cost': 1},  # 借币账户详情
+                        'points/actions': {'cost': 1},
+                        'points/orders': {'cost': 1},
+                        'subuser/aggregate-balance': {'cost': 10},
+                        'stable-coin/exchange_rate': {'cost': 1},
+                        'stable-coin/quote': {'cost': 1},
                     },
                     'post': {
-                        'account/transfer': 1,  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2,  # 创建并执行一个新订单(一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
+                        'account/transfer': {'cost': 1},  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': {'cost': 1},
+                        'order/batch-orders': {'cost': 0.4},
+                        'order/orders/place': {'cost': 0.2},  # 创建并执行一个新订单(一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': {'cost': 0.2},
+                        'order/orders/batchCancelOpenOrders': {'cost': 0.4},
                         # 'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
                         # 'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2,  # 申请撤销一个订单请求
-                        'order/orders/batchcancel': 0.4,  # 批量撤销订单
+                        'order/orders/{id}/submitcancel': {'cost': 0.2},  # 申请撤销一个订单请求
+                        'order/orders/batchcancel': {'cost': 0.4},  # 批量撤销订单
                         # 'dw/balance/transfer',  # 资产划转
-                        'dw/withdraw/api/create': 1,  # 申请提现虚拟币
+                        'dw/withdraw/api/create': {'cost': 1},  # 申请提现虚拟币
                         # 'dw/withdraw-virtual/create',  # 申请提现虚拟币
                         # 'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1,  # 申请取消提现虚拟币
-                        'dw/transfer-in/margin': 10,  # 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': 10,  # 借贷账户划出至现货账户
-                        'margin/orders': 10,  # 申请借贷
-                        'margin/orders/{id}/repay': 10,  # 归还借贷
-                        'cross-margin/transfer-in': 1,  # 资产划转
-                        'cross-margin/transfer-out': 1,  # 资产划转
-                        'cross-margin/orders': 1,  # 申请借币
-                        'cross-margin/orders/{id}/repay': 1,  # 归还借币
-                        'stable-coin/exchange': 1,
-                        'subuser/transfer': 10,
+                        'dw/withdraw-virtual/{id}/cancel': {'cost': 1},  # 申请取消提现虚拟币
+                        'dw/transfer-in/margin': {'cost': 10},  # 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': {'cost': 10},  # 借贷账户划出至现货账户
+                        'margin/orders': {'cost': 10},  # 申请借贷
+                        'margin/orders/{id}/repay': {'cost': 10},  # 归还借贷
+                        'cross-margin/transfer-in': {'cost': 1},  # 资产划转
+                        'cross-margin/transfer-out': {'cost': 1},  # 资产划转
+                        'cross-margin/orders': {'cost': 1},  # 申请借币
+                        'cross-margin/orders/{id}/repay': {'cost': 1},  # 归还借币
+                        'stable-coin/exchange': {'cost': 1},
+                        'subuser/transfer': {'cost': 10},
                     },
                 },
                 # ------------------------------------------------------------
@@ -360,30 +361,30 @@ class htx(Exchange, ImplicitAPI):
                     'public': {
                         'spot': {
                             'get': {
-                                'api/v2/summary.json': 1,
+                                'api/v2/summary.json': {'cost': 1},
                             },
                         },
                         'future': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': {'cost': 1},
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': {'cost': 1},
                                 },
                             },
                         },
                         'swap': {
                             'inverse': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': {'cost': 1},
                                 },
                             },
                             'linear': {
                                 'get': {
-                                    'api/v2/summary.json': 1,
+                                    'api/v2/summary.json': {'cost': 1},
                                 },
                             },
                         },
@@ -392,414 +393,414 @@ class htx(Exchange, ImplicitAPI):
                 'spot': {
                     'public': {
                         'get': {
-                            'v2/market-status': 1,
-                            'v1/common/symbols': 1,
-                            'v1/common/currencys': 1,
-                            'v2/settings/common/currencies': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/common/timestamp': 1,
-                            'v1/common/exchange': 1,  # order limits
-                            'v1/settings/common/chains': 1,
-                            'v1/settings/common/currencys': 1,
-                            'v1/settings/common/symbols': 1,
-                            'v2/settings/common/symbols': 1,
-                            'v1/settings/common/market-symbols': 1,
+                            'v2/market-status': {'cost': 1},
+                            'v1/common/symbols': {'cost': 1},
+                            'v1/common/currencys': {'cost': 1},
+                            'v2/settings/common/currencies': {'cost': 1},
+                            'v2/reference/currencies': {'cost': 1},
+                            'v1/common/timestamp': {'cost': 1},
+                            'v1/common/exchange': {'cost': 1},  # order limits
+                            'v1/settings/common/chains': {'cost': 1},
+                            'v1/settings/common/currencys': {'cost': 1},
+                            'v1/settings/common/symbols': {'cost': 1},
+                            'v2/settings/common/symbols': {'cost': 1},
+                            'v1/settings/common/market-symbols': {'cost': 1},
                             # Market Data
-                            'market/history/candles': 1,
-                            'market/history/kline': 1,
-                            'market/detail/merged': 1,
-                            'market/tickers': 1,
-                            'market/detail': 1,
-                            'market/depth': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'market/etp': 1,  # Get real-time equity of leveraged ETP
+                            'market/history/candles': {'cost': 1},
+                            'market/history/kline': {'cost': 1},
+                            'market/detail/merged': {'cost': 1},
+                            'market/tickers': {'cost': 1},
+                            'market/detail': {'cost': 1},
+                            'market/depth': {'cost': 1},
+                            'market/trade': {'cost': 1},
+                            'market/history/trade': {'cost': 1},
+                            'market/etp': {'cost': 1},  # Get real-time equity of leveraged ETP
                             # ETP
-                            'v2/etp/reference': 1,
-                            'v2/etp/rebalance': 1,
+                            'v2/etp/reference': {'cost': 1},
+                            'v2/etp/rebalance': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
                             # Account
-                            'v1/account/accounts': 0.2,
-                            'v1/account/accounts/{account-id}/balance': 0.2,
-                            'v2/account/valuation': 1,
-                            'v2/account/asset-valuation': 0.2,
-                            'v1/account/history': 4,
-                            'v2/account/ledger': 1,
-                            'v2/point/account': 5,
+                            'v1/account/accounts': {'cost': 0.2},
+                            'v1/account/accounts/{account-id}/balance': {'cost': 0.2},
+                            'v2/account/valuation': {'cost': 1},
+                            'v2/account/asset-valuation': {'cost': 0.2},
+                            'v1/account/history': {'cost': 4},
+                            'v2/account/ledger': {'cost': 1},
+                            'v2/point/account': {'cost': 5},
                             # Wallet(Deposit and Withdraw)
-                            'v2/account/deposit/address': 1,
-                            'v2/account/withdraw/quota': 1,
-                            'v2/account/withdraw/address': 1,
-                            'v2/reference/currencies': 1,
-                            'v1/query/deposit-withdraw': 1,
-                            'v1/query/withdraw/client-order-id': 1,
+                            'v2/account/deposit/address': {'cost': 1},
+                            'v2/account/withdraw/quota': {'cost': 1},
+                            'v2/account/withdraw/address': {'cost': 1},
+                            'v2/reference/currencies': {'cost': 1},
+                            'v1/query/deposit-withdraw': {'cost': 1},
+                            'v1/query/withdraw/client-order-id': {'cost': 1},
                             # Sub user management
-                            'v2/user/api-key': 1,
-                            'v2/user/uid': 1,
-                            'v2/sub-user/user-list': 1,
-                            'v2/sub-user/user-state': 1,
-                            'v2/sub-user/account-list': 1,
-                            'v2/sub-user/deposit-address': 1,
-                            'v2/sub-user/query-deposit': 1,
-                            'v1/subuser/aggregate-balance': 10,
-                            'v1/account/accounts/{sub-uid}': 1,
+                            'v2/user/api-key': {'cost': 1},
+                            'v2/user/uid': {'cost': 1},
+                            'v2/sub-user/user-list': {'cost': 1},
+                            'v2/sub-user/user-state': {'cost': 1},
+                            'v2/sub-user/account-list': {'cost': 1},
+                            'v2/sub-user/deposit-address': {'cost': 1},
+                            'v2/sub-user/query-deposit': {'cost': 1},
+                            'v1/subuser/aggregate-balance': {'cost': 10},
+                            'v1/account/accounts/{sub-uid}': {'cost': 1},
                             # Trading
-                            'v1/order/openOrders': 0.4,
-                            'v1/order/orders/{order-id}': 0.4,
-                            'v1/order/orders/getClientOrder': 0.4,
-                            'v1/order/orders/{order-id}/matchresult': 0.4,
-                            'v1/order/orders/{order-id}/matchresults': 0.4,
-                            'v1/order/orders': 0.4,
-                            'v1/order/history': 1,
-                            'v1/order/matchresults': 1,
-                            'v2/reference/transact-fee-rate': 1,
+                            'v1/order/openOrders': {'cost': 0.4},
+                            'v1/order/orders/{order-id}': {'cost': 0.4},
+                            'v1/order/orders/getClientOrder': {'cost': 0.4},
+                            'v1/order/orders/{order-id}/matchresult': {'cost': 0.4},
+                            'v1/order/orders/{order-id}/matchresults': {'cost': 0.4},
+                            'v1/order/orders': {'cost': 0.4},
+                            'v1/order/history': {'cost': 1},
+                            'v1/order/matchresults': {'cost': 1},
+                            'v2/reference/transact-fee-rate': {'cost': 1},
                             # Conditional Order
-                            'v2/algo-orders/opening': 1,
-                            'v2/algo-orders/history': 1,
-                            'v2/algo-orders/specific': 1,
+                            'v2/algo-orders/opening': {'cost': 1},
+                            'v2/algo-orders/history': {'cost': 1},
+                            'v2/algo-orders/specific': {'cost': 1},
                             # Margin Loan(Cross/Isolated)
-                            'v1/margin/loan-info': 1,
-                            'v1/margin/loan-orders': 0.2,
-                            'v1/margin/accounts/balance': 0.2,
-                            'v1/cross-margin/loan-info': 1,
-                            'v1/cross-margin/loan-orders': 1,
-                            'v1/cross-margin/accounts/balance': 1,
-                            'v2/account/repayment': 5,
+                            'v1/margin/loan-info': {'cost': 1},
+                            'v1/margin/loan-orders': {'cost': 0.2},
+                            'v1/margin/accounts/balance': {'cost': 0.2},
+                            'v1/cross-margin/loan-info': {'cost': 1},
+                            'v1/cross-margin/loan-orders': {'cost': 1},
+                            'v1/cross-margin/accounts/balance': {'cost': 1},
+                            'v2/account/repayment': {'cost': 5},
                             # Universal Transfer
-                            'v5/account/universal_transfer_records': 4,  # 5 requests per 2 seconds
+                            'v5/account/universal_transfer_records': {'cost': 4},  # 5 requests per 2 seconds
                             # Stable Coin Exchange
-                            'v1/stable-coin/quote': 1,
-                            'v1/stable_coin/exchange_rate': 1,
+                            'v1/stable-coin/quote': {'cost': 1},
+                            'v1/stable_coin/exchange_rate': {'cost': 1},
                             # ETP
-                            'v2/etp/transactions': 5,
-                            'v2/etp/transaction': 5,
-                            'v2/etp/limit': 1,
+                            'v2/etp/transactions': {'cost': 5},
+                            'v2/etp/transaction': {'cost': 5},
+                            'v2/etp/limit': {'cost': 1},
                         },
                         'post': {
                             # Account
-                            'v1/account/transfer': 1,
-                            'v1/futures/transfer': 1,  # future transfers
-                            'v2/point/transfer': 5,
-                            'v2/account/transfer': 1,  # swap transfers
+                            'v1/account/transfer': {'cost': 1},
+                            'v1/futures/transfer': {'cost': 1},  # future transfers
+                            'v2/point/transfer': {'cost': 5},
+                            'v2/account/transfer': {'cost': 1},  # swap transfers
                             # Wallet(Deposit and Withdraw)
-                            'v1/dw/withdraw/api/create': 1,
-                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': 1,
+                            'v1/dw/withdraw/api/create': {'cost': 1},
+                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': {'cost': 1},
                             # Sub user management
-                            'v2/sub-user/deduct-mode': 1,
-                            'v2/sub-user/creation': 1,
-                            'v2/sub-user/management': 1,
-                            'v2/sub-user/tradable-market': 1,
-                            'v2/sub-user/transferability': 1,
-                            'v2/sub-user/api-key-generation': 1,
-                            'v2/sub-user/api-key-modification': 1,
-                            'v2/sub-user/api-key-deletion': 1,
-                            'v1/subuser/transfer': 10,
-                            'v1/trust/user/active/credit': 10,
+                            'v2/sub-user/deduct-mode': {'cost': 1},
+                            'v2/sub-user/creation': {'cost': 1},
+                            'v2/sub-user/management': {'cost': 1},
+                            'v2/sub-user/tradable-market': {'cost': 1},
+                            'v2/sub-user/transferability': {'cost': 1},
+                            'v2/sub-user/api-key-generation': {'cost': 1},
+                            'v2/sub-user/api-key-modification': {'cost': 1},
+                            'v2/sub-user/api-key-deletion': {'cost': 1},
+                            'v1/subuser/transfer': {'cost': 10},
+                            'v1/trust/user/active/credit': {'cost': 10},
                             # Trading
-                            'v1/order/orders/place': 0.2,
-                            'v1/order/batch-orders': 0.4,
-                            'v1/order/auto/place': 0.2,
-                            'v1/order/orders/{order-id}/submitcancel': 0.2,
-                            'v1/order/orders/submitCancelClientOrder': 0.2,
-                            'v1/order/orders/batchCancelOpenOrders': 0.4,
-                            'v1/order/orders/batchcancel': 0.4,
-                            'v2/algo-orders/cancel-all-after': 1,
+                            'v1/order/orders/place': {'cost': 0.2},
+                            'v1/order/batch-orders': {'cost': 0.4},
+                            'v1/order/auto/place': {'cost': 0.2},
+                            'v1/order/orders/{order-id}/submitcancel': {'cost': 0.2},
+                            'v1/order/orders/submitCancelClientOrder': {'cost': 0.2},
+                            'v1/order/orders/batchCancelOpenOrders': {'cost': 0.4},
+                            'v1/order/orders/batchcancel': {'cost': 0.4},
+                            'v2/algo-orders/cancel-all-after': {'cost': 1},
                             # Conditional Order
-                            'v2/algo-orders': 1,
-                            'v2/algo-orders/cancellation': 1,
+                            'v2/algo-orders': {'cost': 1},
+                            'v2/algo-orders/cancellation': {'cost': 1},
                             # Margin Loan(Cross/Isolated)
-                            'v2/account/repayment': 5,
-                            'v1/dw/transfer-in/margin': 10,
-                            'v1/dw/transfer-out/margin': 10,
-                            'v1/margin/orders': 10,
-                            'v1/margin/orders/{order-id}/repay': 10,
-                            'v1/cross-margin/transfer-in': 1,
-                            'v1/cross-margin/transfer-out': 1,
-                            'v1/cross-margin/orders': 1,
-                            'v1/cross-margin/orders/{order-id}/repay': 1,
+                            'v2/account/repayment': {'cost': 5},
+                            'v1/dw/transfer-in/margin': {'cost': 10},
+                            'v1/dw/transfer-out/margin': {'cost': 10},
+                            'v1/margin/orders': {'cost': 10},
+                            'v1/margin/orders/{order-id}/repay': {'cost': 10},
+                            'v1/cross-margin/transfer-in': {'cost': 1},
+                            'v1/cross-margin/transfer-out': {'cost': 1},
+                            'v1/cross-margin/orders': {'cost': 1},
+                            'v1/cross-margin/orders/{order-id}/repay': {'cost': 1},
                             # Stable Coin Exchange
-                            'v1/stable-coin/exchange': 1,
+                            'v1/stable-coin/exchange': {'cost': 1},
                             # ETP
-                            'v2/etp/creation': 5,
-                            'v2/etp/redemption': 5,
-                            'v2/etp/{transactId}/cancel': 10,
-                            'v2/etp/batch-cancel': 50,
+                            'v2/etp/creation': {'cost': 5},
+                            'v2/etp/redemption': {'cost': 5},
+                            'v2/etp/{transactId}/cancel': {'cost': 10},
+                            'v2/etp/batch-cancel': {'cost': 50},
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'api/v1/timestamp': 1,
-                            'heartbeat/': 1,  # backslash is not a typo
+                            'api/v1/timestamp': {'cost': 1},
+                            'heartbeat/': {'cost': 1},  # backslash is not a typo
                             # Future Market Data interface
-                            'api/v1/contract_contract_info': 1,
-                            'api/v1/contract_index': 1,
-                            'api/v1/contract_query_elements': 1,
-                            'api/v1/contract_price_limit': 1,
-                            'api/v1/contract_open_interest': 1,
-                            'api/v1/contract_delivery_price': 1,
-                            'market/depth': 1,
-                            'market/bbo': 1,
-                            'market/history/kline': 1,
-                            'index/market/history/mark_price_kline': 1,
-                            'market/detail/merged': 1,
-                            'market/detail/batch_merged': 1,
-                            'v2/market/detail/batch_merged': 1,
-                            'market/trade': 1,
-                            'market/history/trade': 1,
-                            'api/v1/contract_risk_info': 1,
-                            'api/v1/contract_insurance_fund': 1,
-                            'api/v1/contract_adjustfactor': 1,
-                            'api/v1/contract_his_open_interest': 1,
-                            'api/v1/contract_ladder_margin': 1,
-                            'api/v1/contract_api_state': 1,
-                            'api/v1/contract_elite_account_ratio': 1,
-                            'api/v1/contract_elite_position_ratio': 1,
-                            'api/v1/contract_liquidation_orders': 1,
-                            'api/v1/contract_settlement_records': 1,
-                            'index/market/history/index': 1,
-                            'index/market/history/basis': 1,
-                            'api/v1/contract_estimated_settlement_price': 1,
-                            'api/v3/contract_liquidation_orders': 1,
+                            'api/v1/contract_contract_info': {'cost': 1},
+                            'api/v1/contract_index': {'cost': 1},
+                            'api/v1/contract_query_elements': {'cost': 1},
+                            'api/v1/contract_price_limit': {'cost': 1},
+                            'api/v1/contract_open_interest': {'cost': 1},
+                            'api/v1/contract_delivery_price': {'cost': 1},
+                            'market/depth': {'cost': 1},
+                            'market/bbo': {'cost': 1},
+                            'market/history/kline': {'cost': 1},
+                            'index/market/history/mark_price_kline': {'cost': 1},
+                            'market/detail/merged': {'cost': 1},
+                            'market/detail/batch_merged': {'cost': 1},
+                            'v2/market/detail/batch_merged': {'cost': 1},
+                            'market/trade': {'cost': 1},
+                            'market/history/trade': {'cost': 1},
+                            'api/v1/contract_risk_info': {'cost': 1},
+                            'api/v1/contract_insurance_fund': {'cost': 1},
+                            'api/v1/contract_adjustfactor': {'cost': 1},
+                            'api/v1/contract_his_open_interest': {'cost': 1},
+                            'api/v1/contract_ladder_margin': {'cost': 1},
+                            'api/v1/contract_api_state': {'cost': 1},
+                            'api/v1/contract_elite_account_ratio': {'cost': 1},
+                            'api/v1/contract_elite_position_ratio': {'cost': 1},
+                            'api/v1/contract_liquidation_orders': {'cost': 1},
+                            'api/v1/contract_settlement_records': {'cost': 1},
+                            'index/market/history/index': {'cost': 1},
+                            'index/market/history/basis': {'cost': 1},
+                            'api/v1/contract_estimated_settlement_price': {'cost': 1},
+                            'api/v3/contract_liquidation_orders': {'cost': 1},
                             # Swap Market Data interface
-                            'swap-api/v1/swap_contract_info': 1,
-                            'swap-api/v1/swap_index': 1,
-                            'swap-api/v1/swap_query_elements': 1,
-                            'swap-api/v1/swap_price_limit': 1,
-                            'swap-api/v1/swap_open_interest': 1,
-                            'swap-ex/market/depth': 1,
-                            'swap-ex/market/bbo': 1,
-                            'swap-ex/market/history/kline': 1,
-                            'index/market/history/swap_mark_price_kline': 1,
-                            'swap-ex/market/detail/merged': 1,
-                            'v2/swap-ex/market/detail/batch_merged': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
-                            'swap-ex/market/detail/batch_merged': 1,
-                            'swap-ex/market/trade': 1,
-                            'swap-ex/market/history/trade': 1,
-                            'swap-api/v1/swap_risk_info': 1,
-                            'swap-api/v1/swap_insurance_fund': 1,
-                            'swap-api/v1/swap_adjustfactor': 1,
-                            'swap-api/v1/swap_his_open_interest': 1,
-                            'swap-api/v1/swap_ladder_margin': 1,
-                            'swap-api/v1/swap_api_state': 1,
-                            'swap-api/v1/swap_elite_account_ratio': 1,
-                            'swap-api/v1/swap_elite_position_ratio': 1,
-                            'swap-api/v1/swap_estimated_settlement_price': 1,
-                            'swap-api/v1/swap_liquidation_orders': 1,
-                            'swap-api/v1/swap_settlement_records': 1,
-                            'swap-api/v1/swap_funding_rate': 1,
-                            'swap-api/v1/swap_batch_funding_rate': 1,
-                            'swap-api/v1/swap_historical_funding_rate': 1,
-                            'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_estimated_rate_kline': 1,
-                            'index/market/history/swap_basis': 1,
+                            'swap-api/v1/swap_contract_info': {'cost': 1},
+                            'swap-api/v1/swap_index': {'cost': 1},
+                            'swap-api/v1/swap_query_elements': {'cost': 1},
+                            'swap-api/v1/swap_price_limit': {'cost': 1},
+                            'swap-api/v1/swap_open_interest': {'cost': 1},
+                            'swap-ex/market/depth': {'cost': 1},
+                            'swap-ex/market/bbo': {'cost': 1},
+                            'swap-ex/market/history/kline': {'cost': 1},
+                            'index/market/history/swap_mark_price_kline': {'cost': 1},
+                            'swap-ex/market/detail/merged': {'cost': 1},
+                            'v2/swap-ex/market/detail/batch_merged': {'cost': 1},
+                            'index/market/history/swap_premium_index_kline': {'cost': 1},
+                            'swap-ex/market/detail/batch_merged': {'cost': 1},
+                            'swap-ex/market/trade': {'cost': 1},
+                            'swap-ex/market/history/trade': {'cost': 1},
+                            'swap-api/v1/swap_risk_info': {'cost': 1},
+                            'swap-api/v1/swap_insurance_fund': {'cost': 1},
+                            'swap-api/v1/swap_adjustfactor': {'cost': 1},
+                            'swap-api/v1/swap_his_open_interest': {'cost': 1},
+                            'swap-api/v1/swap_ladder_margin': {'cost': 1},
+                            'swap-api/v1/swap_api_state': {'cost': 1},
+                            'swap-api/v1/swap_elite_account_ratio': {'cost': 1},
+                            'swap-api/v1/swap_elite_position_ratio': {'cost': 1},
+                            'swap-api/v1/swap_estimated_settlement_price': {'cost': 1},
+                            'swap-api/v1/swap_liquidation_orders': {'cost': 1},
+                            'swap-api/v1/swap_settlement_records': {'cost': 1},
+                            'swap-api/v1/swap_funding_rate': {'cost': 1},
+                            'swap-api/v1/swap_batch_funding_rate': {'cost': 1},
+                            'swap-api/v1/swap_historical_funding_rate': {'cost': 1},
+                            'swap-api/v3/swap_liquidation_orders': {'cost': 1},
+                            'index/market/history/swap_estimated_rate_kline': {'cost': 1},
+                            'index/market/history/swap_basis': {'cost': 1},
                             # Linear Swap Market Data interface
-                            'linear-swap-api/v1/swap_contract_info': 1,
-                            'linear-swap-api/v1/swap_index': 1,
-                            'linear-swap-api/v1/swap_query_elements': 1,
-                            'linear-swap-api/v1/swap_price_limit': 1,
-                            'linear-swap-ex/market/depth': 1,
-                            'linear-swap-ex/market/bbo': 1,
-                            'linear-swap-ex/market/history/kline': 1,
-                            'index/market/history/linear_swap_mark_price_kline': 1,
-                            'linear-swap-ex/market/detail/merged': 1,
-                            'linear-swap-ex/market/detail/batch_merged': 1,
-                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
-                            'linear-swap-ex/market/trade': 1,
-                            'linear-swap-ex/market/history/trade': 1,
-                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
-                            'linear-swap-api/v1/swap_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_cross_adjustfactor': 1,
-                            'linear-swap-api/v1/swap_his_open_interest': 1,
-                            'linear-swap-api/v1/swap_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_cross_ladder_margin': 1,
-                            'linear-swap-api/v1/swap_api_state': 1,
-                            'linear-swap-api/v1/swap_elite_account_ratio': 1,
-                            'linear-swap-api/v1/swap_elite_position_ratio': 1,
-                            'linear-swap-api/v1/swap_settlement_records': 1,
-                            'linear-swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/linear_swap_premium_index_kline': 1,
-                            'index/market/history/linear_swap_estimated_rate_kline': 1,
-                            'index/market/history/linear_swap_basis': 1,
-                            'linear-swap-api/v1/swap_estimated_settlement_price': 1,
-                            'v5/market/funding_rate': 0.125,  # 80 requests per second = 1000ms / ( 100 * 0.125)
-                            'v5/market/funding_rate_history': 0.125,
-                            'v5/market/open_interest': 0.125,
-                            'v5/market/liquidation_orders': 0.125,
-                            'v5/market/settlement_history': 0.125,
-                            'v5/market/elite_account_ratio': 0.125,
-                            'v5/market/elite_position_ratio': 0.125,
-                            'v5/market/estimated_settlement_price': 0.125,
-                            'v5/market/price_limit': 0.125,
+                            'linear-swap-api/v1/swap_contract_info': {'cost': 1},
+                            'linear-swap-api/v1/swap_index': {'cost': 1},
+                            'linear-swap-api/v1/swap_query_elements': {'cost': 1},
+                            'linear-swap-api/v1/swap_price_limit': {'cost': 1},
+                            'linear-swap-ex/market/depth': {'cost': 1},
+                            'linear-swap-ex/market/bbo': {'cost': 1},
+                            'linear-swap-ex/market/history/kline': {'cost': 1},
+                            'index/market/history/linear_swap_mark_price_kline': {'cost': 1},
+                            'linear-swap-ex/market/detail/merged': {'cost': 1},
+                            'linear-swap-ex/market/detail/batch_merged': {'cost': 1},
+                            'v2/linear-swap-ex/market/detail/batch_merged': {'cost': 1},
+                            'linear-swap-ex/market/trade': {'cost': 1},
+                            'linear-swap-ex/market/history/trade': {'cost': 1},
+                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': {'cost': 1},
+                            'linear-swap-api/v1/swap_adjustfactor': {'cost': 1},
+                            'linear-swap-api/v1/swap_cross_adjustfactor': {'cost': 1},
+                            'linear-swap-api/v1/swap_his_open_interest': {'cost': 1},
+                            'linear-swap-api/v1/swap_ladder_margin': {'cost': 1},
+                            'linear-swap-api/v1/swap_cross_ladder_margin': {'cost': 1},
+                            'linear-swap-api/v1/swap_api_state': {'cost': 1},
+                            'linear-swap-api/v1/swap_elite_account_ratio': {'cost': 1},
+                            'linear-swap-api/v1/swap_elite_position_ratio': {'cost': 1},
+                            'linear-swap-api/v1/swap_settlement_records': {'cost': 1},
+                            'linear-swap-api/v3/swap_liquidation_orders': {'cost': 1},
+                            'index/market/history/linear_swap_premium_index_kline': {'cost': 1},
+                            'index/market/history/linear_swap_estimated_rate_kline': {'cost': 1},
+                            'index/market/history/linear_swap_basis': {'cost': 1},
+                            'linear-swap-api/v1/swap_estimated_settlement_price': {'cost': 1},
+                            'v5/market/funding_rate': {'cost': 0.125},  # 80 requests per second = 1000ms / ( 100 * 0.125)
+                            'v5/market/funding_rate_history': {'cost': 0.125},
+                            'v5/market/open_interest': {'cost': 0.125},
+                            'v5/market/liquidation_orders': {'cost': 0.125},
+                            'v5/market/settlement_history': {'cost': 0.125},
+                            'v5/market/elite_account_ratio': {'cost': 0.125},
+                            'v5/market/elite_position_ratio': {'cost': 0.125},
+                            'v5/market/estimated_settlement_price': {'cost': 0.125},
+                            'v5/market/price_limit': {'cost': 0.125},
                         },
                     },
                     'private': {
                         'get': {
                             # Future Account Interface
-                            'api/v1/contract_sub_auth_list': 1,
-                            'api/v1/contract_api_trading_status': 1,
+                            'api/v1/contract_sub_auth_list': {'cost': 1},
+                            'api/v1/contract_api_trading_status': {'cost': 1},
                             # Swap Account Interface
-                            'swap-api/v1/swap_sub_auth_list': 1,
-                            'swap-api/v1/swap_api_trading_status': 1,
+                            'swap-api/v1/swap_sub_auth_list': {'cost': 1},
+                            'swap-api/v1/swap_api_trading_status': {'cost': 1},
                             # Linear Swap Interface
-                            'v5/account/asset_mode': 0.20834,  # 48 requests per second = 1000ms / ( 100 * 0.20834)
-                            'v5/account/balance': 0.20834,
-                            'v5/account/bills': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/trade/position/opens': 0.41679,  # 24 requests per second = 1000ms / ( 100 * 0.41679)
-                            'v5/trade/order/opens': 0.41679,
-                            'v5/trade/order/details': 0.41679,
-                            'v5/trade/order/history': 0.41679,
-                            'v5/trade/order': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/risk/limit': 0.20834,
-                            'v5/position/risk/limit_tier': 0.20834,
-                            'v5/market/risk/limit': 0.125,
-                            'v5/market/assets_deduction_currency': 0.125,
-                            'v5/market/multi_assets_margin': 0.125,
-                            'v5/algo/order/opens': 0.41679,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/order/history': 0.41679,
+                            'v5/account/asset_mode': {'cost': 0.20834},  # 48 requests per second = 1000ms / ( 100 * 0.20834)
+                            'v5/account/balance': {'cost': 0.20834},
+                            'v5/account/bills': {'cost': 0.20834},
+                            'v5/account/fee_deduction_currency': {'cost': 0.20834},
+                            'v5/trade/position/opens': {'cost': 0.41679},  # 24 requests per second = 1000ms / ( 100 * 0.41679)
+                            'v5/trade/order/opens': {'cost': 0.41679},
+                            'v5/trade/order/details': {'cost': 0.41679},
+                            'v5/trade/order/history': {'cost': 0.41679},
+                            'v5/trade/order': {'cost': 0.41679},
+                            'v5/position/lever': {'cost': 0.20834},
+                            'v5/position/mode': {'cost': 0.20834},
+                            'v5/position/risk/limit': {'cost': 0.20834},
+                            'v5/position/risk/limit_tier': {'cost': 0.20834},
+                            'v5/market/risk/limit': {'cost': 0.125},
+                            'v5/market/assets_deduction_currency': {'cost': 0.125},
+                            'v5/market/multi_assets_margin': {'cost': 0.125},
+                            'v5/algo/order/opens': {'cost': 0.41679},
+                            'v5/algo/order': {'cost': 0.41679},
+                            'v5/algo/order/history': {'cost': 0.41679},
                         },
                         'post': {
                             # Future Account Interface
-                            'api/v1/contract_balance_valuation': 1,
-                            'api/v1/contract_account_info': 1,
-                            'api/v1/contract_position_info': 1,
-                            'api/v1/contract_sub_auth': 1,
-                            'api/v1/contract_sub_account_list': 1,
-                            'api/v1/contract_sub_account_info_list': 1,
-                            'api/v1/contract_sub_account_info': 1,
-                            'api/v1/contract_sub_position_info': 1,
-                            'api/v1/contract_financial_record': 1,
-                            'api/v1/contract_financial_record_exact': 1,
-                            'api/v1/contract_user_settlement_records': 1,
-                            'api/v1/contract_order_limit': 1,
-                            'api/v1/contract_fee': 1,
-                            'api/v1/contract_transfer_limit': 1,
-                            'api/v1/contract_position_limit': 1,
-                            'api/v1/contract_account_position_info': 1,
-                            'api/v1/contract_master_sub_transfer': 1,
-                            'api/v1/contract_master_sub_transfer_record': 1,
-                            'api/v1/contract_available_level_rate': 1,
-                            'api/v3/contract_financial_record': 1,
-                            'api/v3/contract_financial_record_exact': 1,
+                            'api/v1/contract_balance_valuation': {'cost': 1},
+                            'api/v1/contract_account_info': {'cost': 1},
+                            'api/v1/contract_position_info': {'cost': 1},
+                            'api/v1/contract_sub_auth': {'cost': 1},
+                            'api/v1/contract_sub_account_list': {'cost': 1},
+                            'api/v1/contract_sub_account_info_list': {'cost': 1},
+                            'api/v1/contract_sub_account_info': {'cost': 1},
+                            'api/v1/contract_sub_position_info': {'cost': 1},
+                            'api/v1/contract_financial_record': {'cost': 1},
+                            'api/v1/contract_financial_record_exact': {'cost': 1},
+                            'api/v1/contract_user_settlement_records': {'cost': 1},
+                            'api/v1/contract_order_limit': {'cost': 1},
+                            'api/v1/contract_fee': {'cost': 1},
+                            'api/v1/contract_transfer_limit': {'cost': 1},
+                            'api/v1/contract_position_limit': {'cost': 1},
+                            'api/v1/contract_account_position_info': {'cost': 1},
+                            'api/v1/contract_master_sub_transfer': {'cost': 1},
+                            'api/v1/contract_master_sub_transfer_record': {'cost': 1},
+                            'api/v1/contract_available_level_rate': {'cost': 1},
+                            'api/v3/contract_financial_record': {'cost': 1},
+                            'api/v3/contract_financial_record_exact': {'cost': 1},
                             # Future Trade Interface
-                            'api/v1/contract-cancel-after': 1,
-                            'api/v1/contract_order': 1,
-                            'api/v1/contract_batchorder': 1,
-                            'api/v1/contract_cancel': 1,
-                            'api/v1/contract_cancelall': 1,
-                            'api/v1/contract_switch_lever_rate': 30,
-                            'api/v1/lightning_close_position': 1,
-                            'api/v1/contract_order_info': 1,
-                            'api/v1/contract_order_detail': 1,
-                            'api/v1/contract_openorders': 1,
-                            'api/v1/contract_hisorders': 1,
-                            'api/v1/contract_hisorders_exact': 1,
-                            'api/v1/contract_matchresults': 1,
-                            'api/v1/contract_matchresults_exact': 1,
-                            'api/v3/contract_hisorders': 1,
-                            'api/v3/contract_hisorders_exact': 1,
-                            'api/v3/contract_matchresults': 1,
-                            'api/v3/contract_matchresults_exact': 1,
+                            'api/v1/contract-cancel-after': {'cost': 1},
+                            'api/v1/contract_order': {'cost': 1},
+                            'api/v1/contract_batchorder': {'cost': 1},
+                            'api/v1/contract_cancel': {'cost': 1},
+                            'api/v1/contract_cancelall': {'cost': 1},
+                            'api/v1/contract_switch_lever_rate': {'cost': 30},
+                            'api/v1/lightning_close_position': {'cost': 1},
+                            'api/v1/contract_order_info': {'cost': 1},
+                            'api/v1/contract_order_detail': {'cost': 1},
+                            'api/v1/contract_openorders': {'cost': 1},
+                            'api/v1/contract_hisorders': {'cost': 1},
+                            'api/v1/contract_hisorders_exact': {'cost': 1},
+                            'api/v1/contract_matchresults': {'cost': 1},
+                            'api/v1/contract_matchresults_exact': {'cost': 1},
+                            'api/v3/contract_hisorders': {'cost': 1},
+                            'api/v3/contract_hisorders_exact': {'cost': 1},
+                            'api/v3/contract_matchresults': {'cost': 1},
+                            'api/v3/contract_matchresults_exact': {'cost': 1},
                             # Contract Strategy Order Interface
-                            'api/v1/contract_trigger_order': 1,
-                            'api/v1/contract_trigger_cancel': 1,
-                            'api/v1/contract_trigger_cancelall': 1,
-                            'api/v1/contract_trigger_openorders': 1,
-                            'api/v1/contract_trigger_hisorders': 1,
-                            'api/v1/contract_tpsl_order': 1,
-                            'api/v1/contract_tpsl_cancel': 1,
-                            'api/v1/contract_tpsl_cancelall': 1,
-                            'api/v1/contract_tpsl_openorders': 1,
-                            'api/v1/contract_tpsl_hisorders': 1,
-                            'api/v1/contract_relation_tpsl_order': 1,
-                            'api/v1/contract_track_order': 1,
-                            'api/v1/contract_track_cancel': 1,
-                            'api/v1/contract_track_cancelall': 1,
-                            'api/v1/contract_track_openorders': 1,
-                            'api/v1/contract_track_hisorders': 1,
+                            'api/v1/contract_trigger_order': {'cost': 1},
+                            'api/v1/contract_trigger_cancel': {'cost': 1},
+                            'api/v1/contract_trigger_cancelall': {'cost': 1},
+                            'api/v1/contract_trigger_openorders': {'cost': 1},
+                            'api/v1/contract_trigger_hisorders': {'cost': 1},
+                            'api/v1/contract_tpsl_order': {'cost': 1},
+                            'api/v1/contract_tpsl_cancel': {'cost': 1},
+                            'api/v1/contract_tpsl_cancelall': {'cost': 1},
+                            'api/v1/contract_tpsl_openorders': {'cost': 1},
+                            'api/v1/contract_tpsl_hisorders': {'cost': 1},
+                            'api/v1/contract_relation_tpsl_order': {'cost': 1},
+                            'api/v1/contract_track_order': {'cost': 1},
+                            'api/v1/contract_track_cancel': {'cost': 1},
+                            'api/v1/contract_track_cancelall': {'cost': 1},
+                            'api/v1/contract_track_openorders': {'cost': 1},
+                            'api/v1/contract_track_hisorders': {'cost': 1},
                             # Swap Account Interface
-                            'swap-api/v1/swap_balance_valuation': 1,
-                            'swap-api/v1/swap_account_info': 1,
-                            'swap-api/v1/swap_position_info': 1,
-                            'swap-api/v1/swap_account_position_info': 1,
-                            'swap-api/v1/swap_sub_auth': 1,
-                            'swap-api/v1/swap_sub_account_list': 1,
-                            'swap-api/v1/swap_sub_account_info_list': 1,
-                            'swap-api/v1/swap_sub_account_info': 1,
-                            'swap-api/v1/swap_sub_position_info': 1,
-                            'swap-api/v1/swap_financial_record': 1,
-                            'swap-api/v1/swap_financial_record_exact': 1,
-                            'swap-api/v1/swap_user_settlement_records': 1,
-                            'swap-api/v1/swap_available_level_rate': 1,
-                            'swap-api/v1/swap_order_limit': 1,
-                            'swap-api/v1/swap_fee': 1,
-                            'swap-api/v1/swap_transfer_limit': 1,
-                            'swap-api/v1/swap_position_limit': 1,
-                            'swap-api/v1/swap_master_sub_transfer': 1,
-                            'swap-api/v1/swap_master_sub_transfer_record': 1,
-                            'swap-api/v3/swap_financial_record': 1,
-                            'swap-api/v3/swap_financial_record_exact': 1,
+                            'swap-api/v1/swap_balance_valuation': {'cost': 1},
+                            'swap-api/v1/swap_account_info': {'cost': 1},
+                            'swap-api/v1/swap_position_info': {'cost': 1},
+                            'swap-api/v1/swap_account_position_info': {'cost': 1},
+                            'swap-api/v1/swap_sub_auth': {'cost': 1},
+                            'swap-api/v1/swap_sub_account_list': {'cost': 1},
+                            'swap-api/v1/swap_sub_account_info_list': {'cost': 1},
+                            'swap-api/v1/swap_sub_account_info': {'cost': 1},
+                            'swap-api/v1/swap_sub_position_info': {'cost': 1},
+                            'swap-api/v1/swap_financial_record': {'cost': 1},
+                            'swap-api/v1/swap_financial_record_exact': {'cost': 1},
+                            'swap-api/v1/swap_user_settlement_records': {'cost': 1},
+                            'swap-api/v1/swap_available_level_rate': {'cost': 1},
+                            'swap-api/v1/swap_order_limit': {'cost': 1},
+                            'swap-api/v1/swap_fee': {'cost': 1},
+                            'swap-api/v1/swap_transfer_limit': {'cost': 1},
+                            'swap-api/v1/swap_position_limit': {'cost': 1},
+                            'swap-api/v1/swap_master_sub_transfer': {'cost': 1},
+                            'swap-api/v1/swap_master_sub_transfer_record': {'cost': 1},
+                            'swap-api/v3/swap_financial_record': {'cost': 1},
+                            'swap-api/v3/swap_financial_record_exact': {'cost': 1},
                             # Swap Trade Interface
-                            'swap-api/v1/swap-cancel-after': 1,
-                            'swap-api/v1/swap_order': 1,
-                            'swap-api/v1/swap_batchorder': 1,
-                            'swap-api/v1/swap_cancel': 1,
-                            'swap-api/v1/swap_cancelall': 1,
-                            'swap-api/v1/swap_lightning_close_position': 1,
-                            'swap-api/v1/swap_switch_lever_rate': 30,
-                            'swap-api/v1/swap_order_info': 1,
-                            'swap-api/v1/swap_order_detail': 1,
-                            'swap-api/v1/swap_openorders': 1,
-                            'swap-api/v1/swap_hisorders': 1,
-                            'swap-api/v1/swap_hisorders_exact': 1,
-                            'swap-api/v1/swap_matchresults': 1,
-                            'swap-api/v1/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_matchresults': 1,
-                            'swap-api/v3/swap_matchresults_exact': 1,
-                            'swap-api/v3/swap_hisorders': 1,
-                            'swap-api/v3/swap_hisorders_exact': 1,
+                            'swap-api/v1/swap-cancel-after': {'cost': 1},
+                            'swap-api/v1/swap_order': {'cost': 1},
+                            'swap-api/v1/swap_batchorder': {'cost': 1},
+                            'swap-api/v1/swap_cancel': {'cost': 1},
+                            'swap-api/v1/swap_cancelall': {'cost': 1},
+                            'swap-api/v1/swap_lightning_close_position': {'cost': 1},
+                            'swap-api/v1/swap_switch_lever_rate': {'cost': 30},
+                            'swap-api/v1/swap_order_info': {'cost': 1},
+                            'swap-api/v1/swap_order_detail': {'cost': 1},
+                            'swap-api/v1/swap_openorders': {'cost': 1},
+                            'swap-api/v1/swap_hisorders': {'cost': 1},
+                            'swap-api/v1/swap_hisorders_exact': {'cost': 1},
+                            'swap-api/v1/swap_matchresults': {'cost': 1},
+                            'swap-api/v1/swap_matchresults_exact': {'cost': 1},
+                            'swap-api/v3/swap_matchresults': {'cost': 1},
+                            'swap-api/v3/swap_matchresults_exact': {'cost': 1},
+                            'swap-api/v3/swap_hisorders': {'cost': 1},
+                            'swap-api/v3/swap_hisorders_exact': {'cost': 1},
                             # Swap Strategy Order Interface
-                            'swap-api/v1/swap_trigger_order': 1,
-                            'swap-api/v1/swap_trigger_cancel': 1,
-                            'swap-api/v1/swap_trigger_cancelall': 1,
-                            'swap-api/v1/swap_trigger_openorders': 1,
-                            'swap-api/v1/swap_trigger_hisorders': 1,
-                            'swap-api/v1/swap_tpsl_order': 1,
-                            'swap-api/v1/swap_tpsl_cancel': 1,
-                            'swap-api/v1/swap_tpsl_cancelall': 1,
-                            'swap-api/v1/swap_tpsl_openorders': 1,
-                            'swap-api/v1/swap_tpsl_hisorders': 1,
-                            'swap-api/v1/swap_relation_tpsl_order': 1,
-                            'swap-api/v1/swap_track_order': 1,
-                            'swap-api/v1/swap_track_cancel': 1,
-                            'swap-api/v1/swap_track_cancelall': 1,
-                            'swap-api/v1/swap_track_openorders': 1,
-                            'swap-api/v1/swap_track_hisorders': 1,
+                            'swap-api/v1/swap_trigger_order': {'cost': 1},
+                            'swap-api/v1/swap_trigger_cancel': {'cost': 1},
+                            'swap-api/v1/swap_trigger_cancelall': {'cost': 1},
+                            'swap-api/v1/swap_trigger_openorders': {'cost': 1},
+                            'swap-api/v1/swap_trigger_hisorders': {'cost': 1},
+                            'swap-api/v1/swap_tpsl_order': {'cost': 1},
+                            'swap-api/v1/swap_tpsl_cancel': {'cost': 1},
+                            'swap-api/v1/swap_tpsl_cancelall': {'cost': 1},
+                            'swap-api/v1/swap_tpsl_openorders': {'cost': 1},
+                            'swap-api/v1/swap_tpsl_hisorders': {'cost': 1},
+                            'swap-api/v1/swap_relation_tpsl_order': {'cost': 1},
+                            'swap-api/v1/swap_track_order': {'cost': 1},
+                            'swap-api/v1/swap_track_cancel': {'cost': 1},
+                            'swap-api/v1/swap_track_cancelall': {'cost': 1},
+                            'swap-api/v1/swap_track_openorders': {'cost': 1},
+                            'swap-api/v1/swap_track_hisorders': {'cost': 1},
                             # Linear Swap Interface
-                            'v5/account/asset_mode': 100,  # 0.1 requests per second = 1000ms / (100 * 100)
-                            'v5/trade/order': 0.41679,
-                            'v5/trade/batch_orders': 0.41679,
-                            'v5/trade/cancel_order': 0.41679,
-                            'v5/trade/cancel_batch_orders': 0.41679,
-                            'v5/trade/cancel_all_orders': 0.41679,
-                            'v5/trade/cancel-after': 0.41679,
-                            'v5/trade/position': 0.41679,
-                            'v5/trade/position_all': 0.41679,
-                            'v5/position/lever': 0.20834,
-                            'v5/position/mode': 0.20834,
-                            'v5/position/margin': 0.20834,
-                            'v5/account/fee_deduction_currency': 0.20834,
-                            'v5/algo/order': 0.41679,
-                            'v5/algo/cancel_orders': 0.41679,
+                            'v5/account/asset_mode': {'cost': 100},  # 0.1 requests per second = 1000ms / (100 * 100)
+                            'v5/trade/order': {'cost': 0.41679},
+                            'v5/trade/batch_orders': {'cost': 0.41679},
+                            'v5/trade/cancel_order': {'cost': 0.41679},
+                            'v5/trade/cancel_batch_orders': {'cost': 0.41679},
+                            'v5/trade/cancel_all_orders': {'cost': 0.41679},
+                            'v5/trade/cancel-after': {'cost': 0.41679},
+                            'v5/trade/position': {'cost': 0.41679},
+                            'v5/trade/position_all': {'cost': 0.41679},
+                            'v5/position/lever': {'cost': 0.20834},
+                            'v5/position/mode': {'cost': 0.20834},
+                            'v5/position/margin': {'cost': 0.20834},
+                            'v5/account/fee_deduction_currency': {'cost': 0.20834},
+                            'v5/algo/order': {'cost': 0.41679},
+                            'v5/algo/cancel_orders': {'cost': 0.41679},
                         },
                     },
                 },
@@ -1321,7 +1322,7 @@ class htx(Exchange, ImplicitAPI):
             'rollingWindowSize': 2000.0,
         })
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1526,7 +1527,7 @@ class htx(Exchange, ImplicitAPI):
                 status = None
             else:
                 status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
-            updated = self.safe_string(response, 'ts')
+            updated = self.safe_integer(response, 'ts')
         else:
             statusData = self.safe_value(response, 'status', {})
             statusRaw = self.safe_string(statusData, 'indicator')
@@ -1637,13 +1638,15 @@ class htx(Exchange, ImplicitAPI):
             await self.load_markets()
         if symbols is None:
             symbols = self.symbols
+        if symbols is None:
+            raise ExchangeError(self.id + ' markets not loaded')
         result = {}
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             result[symbol] = await self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    async def fetch_trading_limits_by_id(self, id: str, params={}):
+    async def fetch_trading_limits_by_id(self, id: Str, params={}):
         """
  @ignore
 
@@ -1675,7 +1678,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: Any, symbol: Str = None, params={}):
         #
         #   {                               "symbol": "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -1701,8 +1704,8 @@ class htx(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
+    def cost_to_precision(self, symbol: Str, cost: Any):
+        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1874,6 +1877,8 @@ class htx(Exchange, ImplicitAPI):
             # check if parsed market is contract
             if contract:
                 id = self.safe_string(market, 'contract_code')
+                if id is None:
+                    raise ExchangeError(self.id + ' method() missing id')
                 lowercaseId = id.lower()
                 delivery_date = self.safe_string(market, 'delivery_date')
                 business_type = self.safe_string(market, 'business_type')
@@ -1883,6 +1888,8 @@ class htx(Exchange, ImplicitAPI):
                 inverse = not linear
                 if swap:
                     type = 'swap'
+                    if id is None:
+                        raise ExchangeError(self.id + ' method() missing id')
                     parts = id.split('-')
                     baseId = self.safe_string_lower(market, 'symbol')
                     quoteId = self.safe_string_lower(parts, 1)
@@ -1895,6 +1902,8 @@ class htx(Exchange, ImplicitAPI):
                         settleId = baseId
                     else:
                         pair = self.safe_string(market, 'pair')
+                        if pair is None:
+                            raise ExchangeError(self.id + ' method() missing pair')
                         parts = pair.split('-')
                         quoteId = self.safe_string_lower(parts, 1)
                         settleId = quoteId
@@ -1902,6 +1911,10 @@ class htx(Exchange, ImplicitAPI):
                 type = 'spot'
                 baseId = self.safe_string(market, 'base-currency')
                 quoteId = self.safe_string(market, 'quote-currency')
+                if quoteId is None:
+                    raise ExchangeError(self.id + ' method() missing quoteId')
+                if baseId is None:
+                    raise ExchangeError(self.id + ' method() missing baseId')
                 id = baseId + quoteId
                 lowercaseId = id.lower()
             base = self.safe_currency_code(baseId)
@@ -2023,7 +2036,7 @@ class htx(Exchange, ImplicitAPI):
         return result
 
     def try_get_symbol_from_future_markets(self, symbolOrMarketId: str):
-        if symbolOrMarketId in self.markets:
+        if (self.markets is not None) and (symbolOrMarketId in self.markets):
             return symbolOrMarketId
         # only on "future" market type(inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
         # so we have to create a mapping
@@ -2045,7 +2058,7 @@ class htx(Exchange, ImplicitAPI):
             market = futureMarkets[i]
             info = self.safe_value(market, 'info', {})
             contractType = self.safe_string(info, 'contract_type')
-            contractSuffix = futuresCharsMaps[contractType]
+            contractSuffix = self.safe_value(futuresCharsMaps, contractType)
             # see comment on formats a bit above
             constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix if market['linear'] else market['base'] + '_' + contractSuffix
             if constructedId == symbolOrMarketId:
@@ -2441,7 +2454,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         # example responses are documented in fetchLastPrices
         marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
         market = self.safe_market(marketId, market)
@@ -2469,7 +2482,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -2534,6 +2547,8 @@ class htx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        if response is None:
+            raise NullResponse(self.id + ' fetchOrderBook() returned empty response')
         if 'tick' in response:
             if not response['tick']:
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
@@ -2750,7 +2765,8 @@ class htx(Exchange, ImplicitAPI):
             'order-id': id,
         }
         response = await self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(self.extend(request, params))
-        return self.parse_trades(response['data'], None, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, None, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3011,7 +3027,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -3066,7 +3082,7 @@ class htx(Exchange, ImplicitAPI):
             # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
-        priceType = self.safe_string_n(params, ['priceType', 'price'])
+        priceType = self.safe_string_2(params, 'priceType', 'price')
         params = self.omit(params, ['priceType', 'price'])
         until = None
         until, params = self.handle_param_integer(params, 'until')
@@ -3187,7 +3203,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_accounts(data)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "id": 5202591,
@@ -3294,7 +3310,7 @@ class htx(Exchange, ImplicitAPI):
         self.options['networkChainIdsByNames'] = {}
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         if not ('networkNamesByChainIds' in self.options):
             self.options['networkNamesByChainIds'] = {}
         if not ('networkChainIdsByNames' in self.options):
@@ -3303,36 +3319,40 @@ class htx(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         assetType = self.safe_string(rawCurrency, 'assetType')
         type = 'crypto' if (assetType == '1') else 'fiat'
-        self.options['networkChainIdsByNames'][code] = {}
+        if code is not None:
+            self.options['networkChainIdsByNames'][code] = {}
         chains = self.safe_list(rawCurrency, 'chains', [])
         networks = {}
         for j in range(0, len(chains)):
             chainEntry = chains[j]
             uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
             title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            self.options['networkChainIdsByNames'][code][title] = uniqueChainId
-            self.options['networkNamesByChainIds'][uniqueChainId] = title
+            if code is not None and title is not None:
+                self.options['networkChainIdsByNames'][code][title] = uniqueChainId
+            if uniqueChainId is not None:
+                self.options['networkNamesByChainIds'][uniqueChainId] = title
             networkCode = self.network_id_to_code(uniqueChainId, code)
-            networks[networkCode] = {
-                'info': chainEntry,
-                'id': uniqueChainId,
-                'network': networkCode,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(chainEntry, 'minDepositAmt'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(chainEntry, 'minDepositAmt'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
+                            'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
-                        'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
-                    },
-                },
-                'active': None,
-                'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
-                'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
-                'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
-            }
+                    'active': None,
+                    'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
+                    'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
+                    'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'code': code,
@@ -3370,7 +3390,7 @@ class htx(Exchange, ImplicitAPI):
         networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
         return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
-    def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
+    def network_code_to_id(self, networkCode: Str, currencyCode: Str = None):
         if networkCode is None:
             return None
         if currencyCode is None:
@@ -3412,7 +3432,9 @@ class htx(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         subType = None
         isMultiAssetMode = None
-        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear')
+        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType')
+        if subType is None:
+            subType = 'linear'
         isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
         request = {}
         spot = (type == 'spot')
@@ -3597,7 +3619,8 @@ class htx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available_margin')
                 account['total'] = self.safe_string(balance, 'equity')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
             result = self.safe_balance(result)
         elif spot or margin:
             if isolated:
@@ -3610,7 +3633,8 @@ class htx(Exchange, ImplicitAPI):
                         balance = balances[j]
                         currencyId = self.safe_string(balance, 'currency')
                         code = self.safe_currency_code(currencyId)
-                        subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
+                        if code is not None:
+                            subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
                     result[symbol] = self.safe_balance(subResult)
             else:
                 balances = self.safe_value(data, 'list', [])
@@ -3618,7 +3642,8 @@ class htx(Exchange, ImplicitAPI):
                     balance = balances[i]
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
-                    result[code] = self.parse_margin_balance_helper(balance, code, result)
+                    if code is not None:
+                        result[code] = self.parse_margin_balance_helper(balance, code, result)
                 result = self.safe_balance(result)
         elif inverse:
             for i in range(0, len(data)):
@@ -3628,7 +3653,8 @@ class htx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
             result = self.safe_balance(result)
         return result
 
@@ -3838,19 +3864,23 @@ class htx(Exchange, ImplicitAPI):
             order = self.safe_value(order, 0)
         return self.parse_order(order, market)
 
-    def parse_margin_balance_helper(self, balance, code, result):
+    def parse_margin_balance_helper(self, balance: Any, code: Any, result: Any):
         account = None
         if code in result:
             account = result[code]
         else:
             account = self.account()
+        if account is None:
+            raise ExchangeError(self.id + ' parseMarginBalanceHelper() could not resolve account')
         if balance['type'] == 'trade':
             account['free'] = self.safe_string(balance, 'balance')
+        if account is None:
+            raise ExchangeError(self.id + ' parseMarginBalanceHelper() could not resolve account')
         if balance['type'] == 'frozen':
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    async def fetch_spot_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_orders_by_states(self, states: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -4822,7 +4852,7 @@ class htx(Exchange, ImplicitAPI):
         if isLinearOrder:
             type = self.safe_string(order, 'type')
             if (type is None) or (type == 'tp') or (type == 'sl') or (type == 'tpsl'):
-                type = self.safe_string_n(order, ['tp_type', 'sl_type'])
+                type = self.safe_string_2(order, 'tp_type', 'sl_type')
             if type == '0':
                 type = None
         else:
@@ -4896,7 +4926,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -4915,7 +4945,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -4936,7 +4966,7 @@ class htx(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
         """
  @ignore
         helper function to build request
@@ -4950,6 +4980,10 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: request to be sent to the exchange
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         if self.markets is None:
             await self.load_markets()
         await self.load_accounts()
@@ -5041,7 +5075,11 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build request
@@ -5370,6 +5408,8 @@ class htx(Exchange, ImplicitAPI):
                 result = self.safe_dict(data, 0, {})
             else:
                 result = self.safe_dict(response, 'data', {})
+            if result is None:
+                raise NullResponse(self.id + ' parseOrder() returned empty response')
             return self.extend(self.parse_order(result, market), {
                 'type': type,
                 'side': side,
@@ -5384,6 +5424,8 @@ class htx(Exchange, ImplicitAPI):
             result = self.safe_value(data, 'tp_order', {})
         else:
             result = self.safe_value(response, 'data', {})
+        if result is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(result, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
@@ -5684,6 +5726,8 @@ class htx(Exchange, ImplicitAPI):
                 result = self.safe_dict(response, 'data', {})
         else:
             result = response
+        if result is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.extend(self.parse_order(result, market), {
             'id': id,
             'status': 'canceled',
@@ -5857,7 +5901,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def parse_cancel_orders(self, orders):
+    def parse_cancel_orders(self, orders: Any):
         #
         #    {
         #        "success": [
@@ -6072,6 +6116,8 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         request = {
             'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
@@ -6088,7 +6134,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -6164,9 +6210,9 @@ class htx(Exchange, ImplicitAPI):
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
-        return indexedAddresses[selectedNetworkCode]
+        return self.safe_value(indexedAddresses, selectedNetworkCode)
 
-    async def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
+    async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -6189,7 +6235,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)  # cjg: to do remove self weird object or array ambiguity
+        allAddresses = self.parse_deposit_addresses(data, [currency['code']], False)
         addresses = []
         for i in range(0, len(allAddresses)):
             address = allAddresses[i]
@@ -6254,7 +6300,8 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -6309,7 +6356,8 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -6372,6 +6420,8 @@ class htx(Exchange, ImplicitAPI):
             feeCost = Precise.string_abs(feeCost)
         networkId = self.safe_string(transaction, 'chain')
         txHash = self.safe_string(transaction, 'tx-hash')
+        if txHash is None:
+            raise ExchangeError(self.id + ' parseTransaction() missing txHash')
         if networkId == 'ETH' and txHash.find('0x') < 0:
             txHash = '0x' + txHash
         subType = self.safe_string(transaction, 'sub-type')
@@ -6455,7 +6505,10 @@ class htx(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode, code)
-        amount = float(self.currency_to_precision(code, amount, networkCode))
+        amountPrecision = self.currency_to_precision(code, amount, networkCode)
+        if amountPrecision is None:
+            amountPrecision = '0'
+        amount = float(amountPrecision)
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         if self.safe_bool(withdrawOptions, 'includeFee', False):
             fee = self.safe_number(params, 'fee')
@@ -6471,9 +6524,18 @@ class htx(Exchange, ImplicitAPI):
             params = self.omit(params, 'fee')
             amountString = self.number_to_string(amount)
             amountSubtractedString = Precise.string_sub(amountString, feeString)
-            amountSubtracted = float(amountSubtractedString)
-            request['fee'] = float(feeString)
-            amount = float(self.currency_to_precision(code, amountSubtracted, networkCode))
+            amountSubtractedParsed = amountSubtractedString
+            if amountSubtractedParsed is None:
+                amountSubtractedParsed = '0'
+            amountSubtracted = float(amountSubtractedParsed)
+            feeParsed = feeString
+            if feeParsed is None:
+                feeParsed = '0'
+            request['fee'] = float(feeParsed)
+            amountAfterFee = self.currency_to_precision(code, amountSubtracted, networkCode)
+            if amountAfterFee is None:
+                amountAfterFee = '0'
+            amount = float(amountAfterFee)
         request['amount'] = amount
         response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
         #
@@ -6562,9 +6624,12 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
+        transferAmount = self.currency_to_precision(code, amount)
+        if transferAmount is None:
+            transferAmount = '0'
         request = {
             'currency': currency['id'],
-            'amount': float(self.currency_to_precision(code, amount)),
+            'amount': float(transferAmount),
         }
         subType = None
         subType, params = self.handle_sub_type_and_params('transfer', None, params)
@@ -6572,8 +6637,8 @@ class htx(Exchange, ImplicitAPI):
         toAccountId = self.convert_type_to_account(toAccount)
         toCross = toAccountId == 'cross'
         fromCross = fromAccountId == 'cross'
-        toIsolated = self.in_array(toAccountId, self.ids)
-        fromIsolated = self.in_array(fromAccountId, self.ids)
+        toIsolated = ((self.ids is not None) and self.in_array(toAccountId, self.ids))
+        fromIsolated = ((self.ids is not None) and self.in_array(fromAccountId, self.ids))
         fromSpot = fromAccountId == 'pro'
         toSpot = toAccountId == 'pro'
         if fromSpot and toSpot:
@@ -6621,6 +6686,8 @@ class htx(Exchange, ImplicitAPI):
         #        "print-log": True
         #    }
         #
+        if response is None:
+            raise NullResponse(self.id + ' parseTransfer() returned empty response')
         return self.parse_transfer(response, currency)
 
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
@@ -6794,7 +6861,7 @@ class htx(Exchange, ImplicitAPI):
         }
         if market['linear']:
             if limit is not None:
-                request['limit'] = limit
+                request['limit'] = min(limit, 100)  # max 100
             if since is not None:
                 request['start_time'] = since
         else:
@@ -6880,7 +6947,7 @@ class htx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         # inverse swap
         #
@@ -6934,7 +7001,7 @@ class htx(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7021,7 +7088,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
+        defaultSubType = 'linear'
         subType = None
         subType, params = self.handle_option_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
         if symbols is not None:
@@ -7184,7 +7251,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = '/'
         isArrayParams = isinstance(params, list)
         query = None
@@ -7211,7 +7278,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     request = self.extend(request, query)
                 sortedRequest = self.keysort(request)
-                auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
+                auth = self.urlencode(sortedRequest, True)  # True is a go only requirement
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 content = [method, self.hostname, url, auth]
                 payload = "\n".join(content)  # eslint-disable-line quotes
@@ -7233,7 +7300,7 @@ class htx(Exchange, ImplicitAPI):
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
             else:
-                if query:
+                if (query is not None) and query:
                     url += '?' + self.urlencode(query)
             url = self.implode_params(self.urls['api'][api], {
                 'hostname': self.hostname,
@@ -7254,7 +7321,7 @@ class htx(Exchange, ImplicitAPI):
             hostname = hostnames
             url += self.implode_params(path, params)
             if access == 'public':
-                if query:
+                if (query is not None) and query:
                     url += '?' + self.urlencode(query)
             elif access == 'private':
                 self.check_required_credentials()
@@ -7313,7 +7380,7 @@ class htx(Exchange, ImplicitAPI):
             }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -7433,7 +7500,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> dict:
         """
         set the level of leverage for a market
 
@@ -7502,9 +7569,11 @@ class htx(Exchange, ImplicitAPI):
             #       "ts": "1641184652979"
             #     }
             #
+        if response is None:
+            raise NullResponse(self.id + ' setLeverage() returned empty response')
         return response
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "id": "1667161118",
@@ -7611,8 +7680,13 @@ class htx(Exchange, ImplicitAPI):
         entryPrice = self.safe_number_2(position, 'cost_open', 'open_avg_price')
         initialMargin = self.safe_string_2(position, 'position_margin', 'initial_margin')
         rawSide = self.safe_string(position, 'direction')
-        rawPositionSide = 'long' if (rawSide == 'buy') else 'short'
-        side = self.safe_string(position, 'position_side', rawPositionSide)
+        directionSide = 'long' if (rawSide == 'buy') else 'short'
+        rawPositionSide = self.safe_string(position, 'position_side')
+        # in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        side = directionSide
+        isHedgedPositionSide = (rawPositionSide == 'long') or (rawPositionSide == 'short')
+        if isHedgedPositionSide:
+            side = rawPositionSide
         unrealizedProfit = self.safe_number(position, 'profit_unreal')
         marginMode = self.safe_string(position, 'margin_mode')
         leverage = self.safe_string(position, 'lever_rate')
@@ -7974,7 +8048,7 @@ class htx(Exchange, ImplicitAPI):
         parsed['datetime'] = self.iso8601(timestamp)
         return parsed
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'trade': 'trade',
             'etf': 'trade',
@@ -8150,7 +8224,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         currencyId = self.safe_string(info, 'trade_partition')
         marketId = self.safe_string(info, 'contract_code')
         tiers = []
@@ -8461,7 +8535,7 @@ class htx(Exchange, ImplicitAPI):
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -8524,7 +8598,7 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -8560,7 +8634,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def borrow_cross_margin(self, code: str, amount: float, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -8593,7 +8667,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -8634,7 +8708,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -8673,7 +8747,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
         #
         # borrowMargin cross
         #
@@ -8706,7 +8780,7 @@ class htx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
         """
         Fetches historical settlement records
 
@@ -8825,7 +8899,7 @@ class htx(Exchange, ImplicitAPI):
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -8877,7 +8951,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #            {
         #              "currency": "sxp",
@@ -8931,17 +9005,18 @@ class htx(Exchange, ImplicitAPI):
                     'fee': withdrawFee,
                     'percentage': True,
                 }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': None,
-                    'percentage': None,
-                },
-            }
+            if networkCode is not None:
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
             result = self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
-    def parse_settlements(self, settlements, market):
+    def parse_settlements(self, settlements: Any, market: Any):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9011,7 +9086,7 @@ class htx(Exchange, ImplicitAPI):
                 result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def parse_settlement(self, settlement, market):
+    def parse_settlement(self, settlement: Any, market: Any):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9143,7 +9218,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     {
         #         "query_id": 452057,
@@ -9199,7 +9274,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param str side: 'buy' or 'sell', the side of the closing order, opposite side side
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
         :param dict [params.marginMode]: 'cross' or 'isolated', required for linear markets
 
@@ -9253,6 +9328,8 @@ class htx(Exchange, ImplicitAPI):
         if market['linear']:
             data = self.safe_dict(response, 'data', {})
             return self.parse_order(data, market)
+        if response is None:
+            raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):

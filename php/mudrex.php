@@ -93,8 +93,8 @@ class mudrex extends Exchange {
             'api' => array(
                 'market' => array(
                     'get' => array(
-                        'price/kline' => 1,
-                        'price/mark-kline' => 1,
+                        'price/kline' => array( 'cost' => 1 ),
+                        'price/mark-kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
@@ -103,36 +103,36 @@ class mudrex extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'futures' => 1,
-                        'futures/{asset_id}' => 1,
-                        'wallet/funds' => 5,
-                        'futures/funds' => 5,
-                        'futures/orders' => 1,
-                        'futures/orders/history' => 1,
-                        'futures/orders/{order_id}' => 1,
-                        'futures/positions' => 1,
-                        'futures/positions/history' => 1,
-                        'futures/fee/history' => 1,
-                        'futures/{asset_id}/leverage' => 2,
-                        'futures/positions/{position_id}/liq-price' => 1,
+                        'futures' => array( 'cost' => 1 ),
+                        'futures/{asset_id}' => array( 'cost' => 1 ),
+                        'wallet/funds' => array( 'cost' => 5 ),
+                        'futures/funds' => array( 'cost' => 5 ),
+                        'futures/orders' => array( 'cost' => 1 ),
+                        'futures/orders/history' => array( 'cost' => 1 ),
+                        'futures/orders/{order_id}' => array( 'cost' => 1 ),
+                        'futures/positions' => array( 'cost' => 1 ),
+                        'futures/positions/history' => array( 'cost' => 1 ),
+                        'futures/fee/history' => array( 'cost' => 1 ),
+                        'futures/{asset_id}/leverage' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/liq-price' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'wallet/futures/transfer' => 5,
-                        'futures/transfers/inr' => 5,
-                        'futures/{asset_id}/order' => 2,
-                        'futures/positions/{position_id}/close' => 2,
-                        'futures/positions/{position_id}/close/partial' => 2,
-                        'futures/positions/{position_id}/reverse' => 2,
-                        'futures/positions/{position_id}/add-margin' => 2,
-                        'futures/positions/{position_id}/riskorder' => 2,
-                        'futures/{asset_id}/leverage' => 2,
+                        'wallet/futures/transfer' => array( 'cost' => 5 ),
+                        'futures/transfers/inr' => array( 'cost' => 5 ),
+                        'futures/{asset_id}/order' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/close' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/close/partial' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/reverse' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/add-margin' => array( 'cost' => 2 ),
+                        'futures/positions/{position_id}/riskorder' => array( 'cost' => 2 ),
+                        'futures/{asset_id}/leverage' => array( 'cost' => 2 ),
                     ),
                     'patch' => array(
-                        'futures/orders/{order_id}' => 1,
-                        'futures/positions/{position_id}/riskorder' => 2,
+                        'futures/orders/{order_id}' => array( 'cost' => 1 ),
+                        'futures/positions/{position_id}/riskorder' => array( 'cost' => 2 ),
                     ),
                     'delete' => array(
-                        'futures/orders/{order_id}' => 2,
+                        'futures/orders/{order_id}' => array( 'cost' => 2 ),
                     ),
                 ),
             ),
@@ -174,7 +174,7 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $api);
         if ($base === null) {
@@ -182,17 +182,20 @@ class mudrex extends Exchange {
         }
         $url = $base . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $headers = ($headers !== null) ? $this->extend(array(), $headers) : array();
+        $requestHeaders = array();
+        if ($headers !== null) {
+            $requestHeaders = $this->extend(array(), $headers);
+        }
         $brokerId = $this->safe_string($this->options, 'broker');
         if ($brokerId !== null) {
-            $headers['Partner-Id'] = $brokerId;
+            $requestHeaders['Partner-Id'] = $brokerId;
         }
         $methodUpper = strtoupper($method);
         if ($api === 'private') {
             $this->check_required_credentials();
-            $headers['X-Authentication'] = $this->secret;
+            $requestHeaders['X-Authentication'] = $this->secret;
             if ($methodUpper === 'POST' || $methodUpper === 'PATCH' || $methodUpper === 'DELETE') {
-                $headers['Content-Type'] = 'application/json';
+                $requestHeaders['Content-Type'] = 'application/json';
                 // is_symbol is a $query-string flag even on write requests
                 $isSymbol = $this->safe_string($query, 'is_symbol');
                 if ($isSymbol !== null) {
@@ -200,19 +203,19 @@ class mudrex extends Exchange {
                     $url .= '?' . $this->urlencode(array( 'is_symbol' => $isSymbol ));
                 }
                 if (($methodUpper === 'DELETE') && $this->is_empty($query)) {
-                    return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $headers );
+                    return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
                 }
                 $bodyStr = $this->json($query);
-                return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $headers );
+                return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $requestHeaders );
             }
         }
         if ($query) {
             $url .= '?' . $this->urlencode($query);
         }
-        return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null || gettype($response) !== 'array') {
             return null;
         }
@@ -244,7 +247,7 @@ class mudrex extends Exchange {
         return null;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array( 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 )
         //     array( timestampInSeconds, open, high, low, close, volume )
@@ -298,6 +301,9 @@ class mudrex extends Exchange {
             $startTime = $this->parse_to_int($since / 1000);
         } else {
             $startTime = $now - $duration * $requestLimit;
+        }
+        if ($startTime === null) {
+            throw new ExchangeError($this->id . ' fetchOHLCV() missing startTime');
         }
         $endTime = $startTime . $duration * $requestLimit;
         $until = $this->safe_integer($params, 'until');
@@ -454,26 +460,31 @@ class mudrex extends Exchange {
             $items = array();
             if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 $items = $this->safe_list($data, 'items', array());
-                if (strlen(!$items)) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                $itemsLength = count($items);
+                if (!$itemsLength) {
                     $items = $this->safe_list($data, 'results', array());
+                    $itemsLength = count($items);
                 }
-                if (strlen(!$items) && (is_array($data) && array_key_exists('symbol', $data))) {
+                if (!$itemsLength && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                     $items = array( $data );
                 }
             } else {
                 $items = $this->to_array($data);
             }
-            if (strlen(!$items)) {
+            $numItems = count($items);
+            if (!$numItems) {
                 $paging = false;
                 break;
             }
-            for ($i = 0; $i < count($items); $i++) {
+            for ($i = 0; $i < $numItems; $i++) {
                 $aggregated[] = $items[$i];
             }
-            if (strlen($items) < $pageLimit) {
+            if ($numItems < $pageLimit) {
                 $paging = false;
             } else {
-                $offset .= $pageLimit;
+                // array($this, 'sum') keeps the $offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                $offset = $this->sum($offset, $pageLimit);
             }
         }
         $result = array();
@@ -497,7 +508,7 @@ class mudrex extends Exchange {
         }
         $priceStep = $this->safe_string($asset, 'price_step', '0.01');
         $qtyStep = $this->safe_string($asset, 'quantity_step', '0.001');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $ms,
             'lowercaseId' => null,
             'symbol' => $symbol,
@@ -544,7 +555,7 @@ class mudrex extends Exchange {
             ),
             'info' => $asset,
             'created' => null,
-        );
+        ));
     }
 
     public function fetch_balance($params = array()): array {
@@ -581,6 +592,9 @@ class mudrex extends Exchange {
         $currency = $requested;
         if ($currency === null) {
             $currency = 'USDT';
+        }
+        if ($response === null) {
+            throw new NullResponse($this->id . ' fetchBalance() returned empty response');
         }
         $response['currency'] = $currency;
         return $this->parse_balance($response);
@@ -1178,10 +1192,12 @@ class mudrex extends Exchange {
                 $request['limit_price'] = $lp;
             }
             $params = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
-            return $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $params));
+            $partialResponse = $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $params));
+            return $partialResponse;
         }
         $params = $this->omit($params, array( 'position_id' ));
-        return $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $params));
+        $response = $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $params));
+        return $response;
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): array {
@@ -1218,7 +1234,8 @@ class mudrex extends Exchange {
             'margin' => $this->cost_to_precision($symbol, $amount),
         );
         $params = $this->omit($params, array( 'position_id' ));
-        return $this->privatePostFuturesPositionsPositionIdAddMargin($this->extend($request, $params));
+        $response = $this->privatePostFuturesPositionsPositionIdAddMargin($this->extend($request, $params));
+        return $response;
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): array {

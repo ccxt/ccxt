@@ -170,14 +170,173 @@ public partial class extended : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"info/markets", "info/assets", "info/assets/{asset}/price", "info/markets/{market}/stats", "info/markets/{market}/orderbook", "info/markets/{market}/trades", "info/candles/{market}/{candleType}", "info/{market}/funding", "info/{market}/open-interests", "info/builder/dashboard"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "info/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/assets/{asset}/price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/candles/{market}/{candleType}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/{market}/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/{market}/open-interests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/builder/dashboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"user/accounts", "user/account/info", "user/balance", "user/spot/balances", "user/assetOperations", "user/positions", "user/positions/history", "user/orders", "user/orders/history", "user/orders/{id}", "user/orders/external/{externalId}", "user/trades", "user/funding/history", "user/rebates/stats", "user/leverage", "user/fees", "user/bridge/config", "user/bridge/quote", "user/affiliate", "user/referrals/status", "user/referrals/links", "user/referrals/dashboard", "user/rewards/earned", "user/rewards/leaderboard/stats", "portfolio/charts/equities", "portfolio/charts/pnl", "vault/public/performance", "vault/public/summary", "builder/trades"} },
-                        { "post", new List<object>() {"user/order", "user/order/massCancel", "user/deadmanswitch", "user/bridge/quote", "user/withdrawal", "user/transfer", "user/referrals/use", "user/referrals"} },
-                        { "put", new List<object>() {"user/referrals"} },
-                        { "patch", new List<object>() {"user/leverage"} },
-                        { "delete", new List<object>() {"user/order/{id}", "user/order"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "user/accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/account/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/spot/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/assetOperations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/positions/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/external/{externalId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/funding/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rebates/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/fees", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/affiliate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/links", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/dashboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rewards/earned", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rewards/leaderboard/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/equities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "vault/public/performance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "vault/public/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "builder/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order/massCancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/deadmanswitch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/withdrawal", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/use", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "user/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "user/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "user/order/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -844,7 +1003,7 @@ public partial class extended : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1532,7 +1691,10 @@ public partial class extended : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableToWithdraw");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2327,7 +2489,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -2480,7 +2642,7 @@ public partial class extended : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchPositionsHistory", ((object)symbols), since, limit, parameters, "cursor", "cursor", null, 10000);
+            return await this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000);
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -2606,7 +2768,7 @@ public partial class extended : Exchange
         roundUp ??= false;
         object resolutionString = this.numberToString(resolution);
         object precise = Precise.stringMul(amount, resolutionString);
-        object result = this.decimalToPrecision(((string)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(isTrue(roundUp) && isTrue(Precise.stringGt(precise, result))))
         {
             result = ((string)Precise.stringAdd(result, "1"));
@@ -2748,6 +2910,14 @@ public partial class extended : Exchange
     public async virtual Task<object> createExtendedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
@@ -3285,7 +3455,13 @@ public partial class extended : Exchange
         object request = new Dictionary<string, object>() {
             { "countdownTime", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        object response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return new Dictionary<string, object>() {
+            { "info", response },
+        };
     }
 
     /**

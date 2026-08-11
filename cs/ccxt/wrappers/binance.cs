@@ -49,6 +49,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -145,7 +146,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -167,10 +168,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -181,6 +182,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -209,6 +211,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -299,6 +302,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -326,6 +330,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -667,6 +672,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -776,6 +782,12 @@ public partial class binance
     /// string : the clientOrderId of the order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tradingSession</term>
+    /// <description>
+    /// string : *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -883,6 +895,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-detail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -908,6 +921,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch a trigger or conditional order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -930,6 +949,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -979,6 +999,12 @@ public partial class binance
     /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -1003,7 +1029,14 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#current-open-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1038,6 +1071,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
     /// </description>
     /// </item>
     /// <item>
@@ -1106,7 +1145,14 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market orders were made in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1141,6 +1187,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
     /// </description>
     /// </item>
     /// </list>
@@ -1166,7 +1218,14 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market the orders were made in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1201,6 +1260,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
     /// </description>
     /// </item>
     /// </list>
@@ -1226,7 +1291,14 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market the orders were made in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1261,6 +1333,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock orders
     /// </description>
     /// </item>
     /// </list>
@@ -1288,6 +1366,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-equity-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1305,6 +1384,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel a portfolio margin account conditional order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to cancel a tokenized stock order
     /// </description>
     /// </item>
     /// </list>
@@ -1330,6 +1415,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-all-equity-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1353,6 +1439,12 @@ public partial class binance
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel portfolio margin account conditional orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to cancel tokenized stock orders
     /// </description>
     /// </item>
     /// </list>
@@ -1438,7 +1530,14 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1473,6 +1572,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to fetch trades for a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch tokenized stock trades
     /// </description>
     /// </item>
     /// </list>
@@ -1776,10 +1881,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// make a withdrawal
@@ -2371,12 +2476,12 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// fetches historical settlement records of the user
@@ -2895,10 +3000,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
-    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PositionModeInfo(res);
     }
     /// <summary>
     /// fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned

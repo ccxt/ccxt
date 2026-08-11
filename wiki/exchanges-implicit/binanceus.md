@@ -1,6 +1,6 @@
 Every endpoint in `binanceus`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/binanceus) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `sapiGetCopyTradingFuturesUserStatus`); the snake_case alias (`sapi_get_copytrading_futures_userstatus`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SapiGetCopyTradingFuturesUserStatus`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `sapiGetCopyTradingFuturesUserStatus`); the snake_case alias (`sapi_get_copytrading_futures_userstatus`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SapiGetCopyTradingFuturesUserStatus`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official binanceus API documentation:** [github.com](https://github.com/binance-us/binance-official-api-docs)
 
-> 844 implicit endpoints across 20 access groups.
+> 860 implicit endpoints across 20 access groups.
 
 ## sapi
 
@@ -324,6 +324,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiGetAccumulatorProductList` | GET | `accumulator/product/list` | 0.1 |
 | `sapiGetAccumulatorProductPositionList` | GET | `accumulator/product/position/list` | 0.1 |
 | `sapiGetAccumulatorProductSumHolding` | GET | `accumulator/product/sum-holding` | 0.1 |
+| `sapiGetEquityMarketExchangeInfo` | GET | `equity/market/exchangeInfo` | 0.1 |
+| `sapiGetEquityMarketTokenizedAssets` | GET | `equity/market/tokenized-assets` | 0.1 |
+| `sapiGetEquityMarketQuote` | GET | `equity/market/quote` | 0.1 |
+| `sapiGetEquityOrderOpenOrders` | GET | `equity/order/open-orders` | 0.1 |
+| `sapiGetEquityOrderHistory` | GET | `equity/order/history` | 0.1 |
+| `sapiGetEquityOrderDetail` | GET | `equity/order/detail` | 0.1 |
+| `sapiGetEquityTradeHistory` | GET | `equity/trade/history` | 0.1 |
+| `sapiGetEquityTokenizedConvertStatus` | GET | `equity/tokenized/convert-status` | 0.1 |
+| `sapiGetEquityTokenizedHistory` | GET | `equity/tokenized/history` | 0.1 |
 | `sapiGetAssetAssetDistributionHistory` | GET | `asset/assetDistributionHistory` | 1 |
 | `sapiGetAssetQueryTradingFee` | GET | `asset/query/trading-fee` | 1 |
 | `sapiGetAssetQueryTradingVolume` | GET | `asset/query/trading-volume` | 1 |
@@ -479,6 +488,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPostDciProductSubscribe` | POST | `dci/product/subscribe` | 0.1 |
 | `sapiPostDciProductAutoCompoundEdit` | POST | `dci/product/auto_compound/edit` | 0.1 |
 | `sapiPostAccumulatorProductSubscribe` | POST | `accumulator/product/subscribe` | 0.1 |
+| `sapiPostEquityOrderPlace` | POST | `equity/order/place` | 0.1 |
+| `sapiPostEquityOrderCancel` | POST | `equity/order/cancel` | 0.1 |
+| `sapiPostEquityOrderCancelAll` | POST | `equity/order/cancel-all` | 0.1 |
+| `sapiPostEquityTokenizedMint` | POST | `equity/tokenized/mint` | 0.1 |
+| `sapiPostEquityTokenizedRedeem` | POST | `equity/tokenized/redeem` | 0.1 |
+| `sapiPostEquityAccountDisclaimer` | POST | `equity/account/disclaimer` | 0.1 |
+| `sapiPostEquityListenKey` | POST | `equity/listenKey` | 0.1 |
 | `sapiPostOtcQuotes` | POST | `otc/quotes` | 1 |
 | `sapiPostOtcOrders` | POST | `otc/orders` | 1 |
 | `sapiPostFiatpaymentWithdrawApply` | POST | `fiatpayment/withdraw/apply` | 1 |

@@ -3,11 +3,10 @@
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
-import { Str } from '../base/types.js';
+import { Dict } from '../base/types.js';
 
 // js specific codes //
 const DIR_NAME = path.dirname (fileURLToPath (import.meta.url)) + path.sep;
@@ -36,11 +35,11 @@ const OnMaintenance = ccxt.OnMaintenance;
 // ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 
-function filterArgvs (argsArray, needle, include = true) {
-    return argsArray.filter ((x) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
+function filterArgvs (argsArray: string[], needle: string, include = true) {
+    return argsArray.filter ((x: string) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
 }
-function selectArgv (argsArray, needle) {
-    const foundArray = argsArray.filter ((x) => (x.includes (needle)));
+function selectArgv (argsArray: string[], needle: string) {
+    const foundArray = argsArray.filter ((x: string) => (x.includes (needle)));
     return foundArray.length ? foundArray[0] : undefined;
 }
 
@@ -51,7 +50,7 @@ const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
 
 
-function getCliArgValue (arg) {
+function getCliArgValue (arg: string) {
     return process.argv.includes (arg) || false;
 }
 
@@ -65,71 +64,67 @@ const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
 const PROXY_TEST_FILE_NAME = "proxies";
 
-function dump (...args) {
+function dump (...args: any[]) {
     console.log (...args);
 }
 
-function jsonParse (elem) {
+function jsonParse (elem: any) {
     return JSON.parse (elem);
 }
 
-function jsonStringify (elem) {
+function jsonStringify (elem: any) {
     return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
-function convertAscii (input)
+function convertAscii (input: any)
 {
     return input; // stub for c#
 }
 
-function getTestName (str) {
-    return str;
-}
-
-function ioFileExists (path) {
+function ioFileExists (path: string) {
     return fs.existsSync (path);
 }
 
-function ioFileRead (path, decode = true) {
+function ioFileRead (path: string, decode = true) {
     const content = fs.readFileSync (path, 'utf8');
     return decode ? JSON.parse (content) : content;
 }
 
-function ioDirRead (path) {
+function ioDirRead (path: string) {
     const files = fs.readdirSync (path);
     return files;
 }
 
-async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+async function callMethodSync (testFiles: any, methodName: string, exchange: any, skippedProperties: object, args: any[]) {
     // empty in js
     return {};
 }
 
-async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
+async function callMethod (testFiles: any, methodName: string, exchange: any, skippedProperties: object, args: any[]) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
 
-async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args) {
+async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args: any) {
     // used for calling actual exchange methods
     return await exchange[methodName] (...args);
 }
 
-function callExchangeMethodDynamicallySync (exchange: Exchange, methodName: string, args) {
+function callExchangeMethodDynamicallySync (exchange: Exchange, methodName: string, args: any) {
     throw new Error ("This function shouldn't be called, only async functions apply here");
 }
 
-async function callOverridenMethod (exchange, methodName, args) {
+async function callOverridenMethod (exchange: any, methodName: string, args: any[]) {
     // needed in PHP here is just a bridge
     return await callExchangeMethodDynamically (exchange, methodName, args);
 }
 
-function exceptionMessage (exc) {
+function exceptionMessage (exc: any) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
 // stub for c#
-function getRootException (exc) {
+function getRootException (exc: any) {
     return exc;
 }
 
@@ -137,36 +132,44 @@ function exitScript (code = 0) {
     process.exit (code);
 }
 
-function getExchangeProp (exchange, prop, defaultValue = undefined) {
+function getExchangeProp (exchange: any, prop: string, defaultValue: any = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
-function setExchangeProp (exchange, prop, value) {
+function setExchangeProp (exchange: any, prop: string, value: any) {
     exchange[prop] = value;
     exchange[unCamelCase (prop)] = value;
 }
 
-function initExchange (exchangeId, args, isWs = false): Exchange {
-    if (isWs) {
-        return new (ccxt.pro)[exchangeId] (args);
+function initExchange (exchangeId: string, args: any, isWs = false): Exchange {
+    const prediction: Dict = ccxt.prediction;
+    const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
+    // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
+    // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
+    // the prediction class carries the watch* methods too (no ccxt.pro variant), so route WS there as well
+    if (hasPrediction && (getCliArgValue ('--prediction') || !(exchangeId in ccxt))) {
+        return new (prediction)[exchangeId] (args);
     }
-    return new (ccxt)[exchangeId] (args);
+    if (isWs) {
+        return new (ccxt.pro as Dict)[exchangeId] (args);
+    }
+    return new (ccxt as Dict)[exchangeId] (args);
 }
 
-async function importTestFile (filePath) {
+async function importTestFile (filePath: string) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-function getTestFilesSync (properties, ws = false) {
+function getTestFilesSync (properties: string[], ws = false) {
     // empty in js
     return {};
 }
 
-async function getTestFiles (properties, ws = false) {
+async function getTestFiles (properties: string[], ws = false) {
     const targetPath = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
-    const tests = {};
+    const tests: Dict = {};
     const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
@@ -189,12 +192,12 @@ async function getTestFiles (properties, ws = false) {
     return tests;
 }
 
-function setFetchResponse (exchange: Exchange, mockResponse) {
-    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
+function setFetchResponse (exchange: Exchange, mockResponse: any) {
+    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => mockResponse;
     return exchange;
 }
 
-function isNullValue (value) {
+function isNullValue (value: any) {
     return value === null;
 }
 

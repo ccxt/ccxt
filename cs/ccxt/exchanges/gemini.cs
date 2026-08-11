@@ -55,6 +55,7 @@ public partial class gemini : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -99,99 +100,267 @@ public partial class gemini : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "webExchange", new Dictionary<string, object>() {
-                    { "get", new List<object>() {""} },
+                    { "get", new Dictionary<string, object>() {
+                        { "", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "web", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"rest-api"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "rest-api", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/symbols", 5 },
-                        { "v1/symbols/details/{symbol}", 5 },
-                        { "v1/network/{token}", 5 },
-                        { "v1/staking/rates", 5 },
-                        { "v1/pubticker/{symbol}", 5 },
-                        { "v1/feepromos", 5 },
-                        { "v2/ticker/{symbol}", 5 },
-                        { "v2/candles/{symbol}/{timeframe}", 5 },
-                        { "v1/trades/{symbol}", 5 },
-                        { "v1/auction/{symbol}", 5 },
-                        { "v1/auction/{symbol}/history", 5 },
-                        { "v1/pricefeed", 5 },
-                        { "v1/fundingamount/{symbol}", 5 },
-                        { "v1/fundingamountreport/records.xlsx", 5 },
-                        { "v1/book/{symbol}", 5 },
-                        { "v1/earn/rates", 5 },
-                        { "v2/derivatives/candles/{symbol}/{time_frame}", 5 },
-                        { "v2/fxrate/{symbol}/{timestamp}", 5 },
-                        { "v1/riskstats/{symbol}", 5 },
+                        { "v1/symbols", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/symbols/details/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/network/{token}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/staking/rates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/pubticker/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/feepromos", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v2/ticker/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v2/candles/{symbol}/{timeframe}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/trades/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/auction/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/auction/{symbol}/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/pricefeed", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/fundingamount/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/fundingamountreport/records.xlsx", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/book/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/earn/rates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v2/derivatives/candles/{symbol}/{time_frame}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v2/fxrate/{symbol}/{timestamp}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/riskstats/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/perpetuals/fundingpaymentreport/records.xlsx", 1 },
+                        { "v1/perpetuals/fundingpaymentreport/records.xlsx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/staking/unstake", 1 },
-                        { "v1/staking/stake", 1 },
-                        { "v1/staking/rewards", 1 },
-                        { "v1/staking/history", 1 },
-                        { "v1/order/new", 1 },
-                        { "v1/order/cancel", 1 },
-                        { "v1/wrap/{symbol}", 1 },
-                        { "v1/order/cancel/session", 1 },
-                        { "v1/order/cancel/all", 1 },
-                        { "v1/order/status", 1 },
-                        { "v1/orders", 1 },
-                        { "v1/mytrades", 1 },
-                        { "v1/notionalvolume", 1 },
-                        { "v1/tradevolume", 1 },
-                        { "v1/clearing/new", 1 },
-                        { "v1/clearing/status", 1 },
-                        { "v1/clearing/cancel", 1 },
-                        { "v1/clearing/confirm", 1 },
-                        { "v1/balances", 1 },
-                        { "v1/balances/staking", 1 },
-                        { "v1/notionalbalances/{currency}", 1 },
-                        { "v1/transfers", 1 },
-                        { "v1/addresses/{network}", 1 },
-                        { "v1/deposit/{network}/newAddress", 1 },
-                        { "v1/deposit/{currency}/newAddress", 1 },
-                        { "v1/withdraw/{currency}", 1 },
-                        { "v1/account/transfer/{currency}", 1 },
-                        { "v1/payments/addbank", 1 },
-                        { "v1/payments/methods", 1 },
-                        { "v1/payments/sen/withdraw", 1 },
-                        { "v1/balances/earn", 1 },
-                        { "v1/earn/interest", 1 },
-                        { "v1/earn/history", 1 },
-                        { "v1/approvedAddresses/{network}/request", 1 },
-                        { "v1/approvedAddresses/account/{network}", 1 },
-                        { "v1/approvedAddresses/{network}/remove", 1 },
-                        { "v1/account", 1 },
-                        { "v1/account/create", 1 },
-                        { "v1/account/list", 1 },
-                        { "v1/heartbeat", 1 },
-                        { "v1/roles", 1 },
-                        { "v1/custodyaccountfees", 1 },
-                        { "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", 1 },
-                        { "v1/payments/addbank/cad", 1 },
-                        { "v1/transactions", 1 },
-                        { "v1/margin/account", 1 },
-                        { "v1/margin/rates", 1 },
-                        { "v1/margin/order/preview", 1 },
-                        { "v1/clearing/list", 1 },
-                        { "v1/clearing/broker/list", 1 },
-                        { "v1/clearing/broker/new", 1 },
-                        { "v1/clearing/trades", 1 },
-                        { "v1/instant/quote", 1 },
-                        { "v1/instant/execute", 1 },
-                        { "v1/account/rename", 1 },
-                        { "v1/oauth/revokeByToken", 1 },
-                        { "v1/margin", 1 },
-                        { "v1/perpetuals/fundingPayment", 1 },
-                        { "v1/perpetuals/fundingpaymentreport/records.json", 1 },
-                        { "v1/positions", 1 },
+                        { "v1/staking/unstake", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/staking/stake", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/staking/rewards", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/staking/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/wrap/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/cancel/session", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/cancel/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/mytrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/notionalvolume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/tradevolume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/confirm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/balances/staking", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/notionalbalances/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/addresses/{network}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposit/{network}/newAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/deposit/{currency}/newAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraw/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account/transfer/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/payments/addbank", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/payments/methods", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/payments/sen/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/balances/earn", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/earn/interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/earn/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/approvedAddresses/{network}/request", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/approvedAddresses/account/{network}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/approvedAddresses/{network}/remove", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/heartbeat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/roles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/custodyaccountfees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/payments/addbank/cad", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/margin/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/margin/rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/margin/order/preview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/broker/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/broker/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/clearing/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/instant/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/instant/execute", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account/rename", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/oauth/revokeByToken", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/perpetuals/fundingPayment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/perpetuals/fundingpaymentreport/records.json", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -437,26 +606,29 @@ public partial class gemini : Exchange
         if (isTrue(!isEqual(networkId, null)))
         {
             networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawCurrency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", precision },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawCurrency },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -665,11 +837,16 @@ public partial class gemini : Exchange
         object options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
         object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         object marketIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIdsRaw)); postFixIncrement(ref i))
+        object allMarketIds = new List<object>() {};
+        if (isTrue(((marketIdsRaw is IList<object>) || (marketIdsRaw.GetType().IsGenericType && marketIdsRaw.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            if (!isTrue(this.inArray(getValue(marketIdsRaw, i), brokenPairs)))
+            allMarketIds = marketIdsRaw;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(allMarketIds)); postFixIncrement(ref i))
+        {
+            if (!isTrue(this.inArray(getValue(allMarketIds, i), brokenPairs)))
             {
-                ((IList<object>)marketIds).Add(getValue(marketIdsRaw, i));
+                ((IList<object>)marketIds).Add(getValue(allMarketIds, i));
             }
         }
         if (isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
@@ -837,7 +1014,7 @@ public partial class gemini : Exchange
         }
         object type = ((bool) isTrue(swap)) ? "swap" : "spot";
         object isSpot = !isTrue(swap);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -885,7 +1062,7 @@ public partial class gemini : Exchange
             } },
             { "created", null },
             { "info", response },
-        };
+        });
     }
 
     /**
@@ -896,7 +1073,7 @@ public partial class gemini : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1091,8 +1268,8 @@ public partial class gemini : Exchange
         object last = this.safeString2(ticker, "last", "close", price);
         object percentage = this.safeString(ticker, "percentChange24h");
         object open = this.safeString(ticker, "open");
-        object baseVolume = this.safeString(volume, ((string)baseId));
-        object quoteVolume = this.safeString(volume, ((string)quoteId));
+        object baseVolume = this.safeString(volume, baseId);
+        object quoteVolume = this.safeString(volume, quoteId);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1278,7 +1455,10 @@ public partial class gemini : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1334,9 +1514,10 @@ public partial class gemini : Exchange
         object maker = this.parseNumber(makerString);
         object taker = this.parseNumber(takerString);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -2052,7 +2233,7 @@ public partial class gemini : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((string)networkCode)), "currency");
+        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
         return this.safeValue(networkGroup, code);
     }
 
@@ -2243,7 +2424,12 @@ public partial class gemini : Exchange
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object candles = new List<object>() {};
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     /**

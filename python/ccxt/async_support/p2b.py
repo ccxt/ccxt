@@ -162,28 +162,28 @@ class p2b(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'market': 1,
-                        'tickers': 1,
-                        'ticker': 1,
-                        'book': 1,
-                        'history': 1,
-                        'depth/result': 1,
-                        'market/kline': 1,
+                        'markets': {'cost': 1},
+                        'market': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'book': {'cost': 1},
+                        'history': {'cost': 1},
+                        'depth/result': {'cost': 1},
+                        'market/kline': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': 1,
-                        'account/balance': 1,
-                        'order/new': 1,
-                        'order/cancel': 1,
-                        'orders': 1,
-                        'account/market_order_history': 1,
-                        'account/market_deal_history': 1,
-                        'account/order': 1,
-                        'account/order_history': 1,
-                        'account/executed_history': 1,
+                        'account/balances': {'cost': 1},
+                        'account/balance': {'cost': 1},
+                        'order/new': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'account/market_order_history': {'cost': 1},
+                        'account/market_deal_history': {'cost': 1},
+                        'account/order': {'cost': 1},
+                        'account/order_history': {'cost': 1},
+                        'account/executed_history': {'cost': 1},
                     },
                 },
             },
@@ -520,7 +520,7 @@ class p2b(Exchange, ImplicitAPI):
             self.parse_ticker(result, market)
         )
 
-    def parse_ticker(self, ticker, market: Market = None):
+    def parse_ticker(self, ticker: Any, market: Market = None):
         #
         # parseTickers
         #
@@ -591,7 +591,7 @@ class p2b(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.interval]: 0(default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -794,7 +794,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #    [
         #        1699253400,       # Kline open time
@@ -848,7 +848,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: Any):
         #
         #    {
         #        "USDT": {
@@ -1300,7 +1300,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':
@@ -1319,7 +1319,7 @@ class p2b(Exchange, ImplicitAPI):
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         if code == 400:

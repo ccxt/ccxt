@@ -109,6 +109,22 @@ func IsLessThan(a any, b any) bool {
 	return base.IsLessThan(a, b)
 }
 
+// the generated base ws tests emit the full comparison family, mirror the
+// remaining delegates from github.com/ccxt/tests/base test.helpers.go so a
+// test assertion using >, >= or <= does not break the build,
+// see https://github.com/ccxt/ccxt/pull/29749
+func IsGreaterThan(a any, b any) bool {
+	return base.IsGreaterThan(a, b)
+}
+
+func IsGreaterThanOrEqual(a any, b any) bool {
+	return base.IsGreaterThanOrEqual(a, b)
+}
+
+func IsLessThanOrEqual(a any, b any) bool {
+	return base.IsLessThanOrEqual(a, b)
+}
+
 func ToString(value any) string {
 	return base.ToString(value)
 }

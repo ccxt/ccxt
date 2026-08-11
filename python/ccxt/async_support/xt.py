@@ -7,7 +7,8 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, Transaction, TransferEntry
+import math
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,6 +23,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -98,7 +100,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -111,6 +113,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
                 'fetchStatus': False,
@@ -118,8 +121,8 @@ class xt(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
@@ -161,201 +164,210 @@ class xt(Exchange, ImplicitAPI):
                 'public': {
                     'spot': {
                         'get': {
-                            'currencies': 1,
-                            'depth': 10,
-                            'kline': 1,
-                            'symbol': 1,  # 1 for a single symbol
-                            'ticker': 1,  # 1 for a single symbol
-                            'ticker/book': 1,  # 1 for a single symbol
-                            'ticker/price': 1,  # 1 for a single symbol
-                            'ticker/24h': 1,  # 1 for a single symbol
-                            'time': 1,
-                            'trade/history': 1,
-                            'trade/recent': 1,
-                            'wallet/support/currency': 1,
+                            'currencies': {'cost': 1},
+                            'depth': {'cost': 10},
+                            'kline': {'cost': 1},
+                            'symbol': {'cost': 1},  # 1 for a single symbol
+                            'ticker': {'cost': 1},  # 1 for a single symbol
+                            'ticker/book': {'cost': 1},  # 1 for a single symbol
+                            'ticker/price': {'cost': 1},  # 1 for a single symbol
+                            'ticker/24h': {'cost': 1},  # 1 for a single symbol
+                            'time': {'cost': 1},
+                            'trade/history': {'cost': 1},
+                            'trade/recent': {'cost': 1},
+                            'wallet/support/currency': {'cost': 1},
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': {'cost': 1},
+                            'future/market/v1/public/contract/open-interest': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/detail': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/list': {'cost': 1},
+                            'future/market/v1/public/q/agg-ticker': {'cost': 1},
+                            'future/market/v1/public/q/agg-tickers': {'cost': 1},
+                            'future/market/v1/public/q/deal': {'cost': 1},
+                            'future/market/v1/public/q/depth': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate-record': {'cost': 1},
+                            'future/market/v1/public/q/index-price': {'cost': 1},
+                            'future/market/v1/public/q/kline': {'cost': 1},
+                            'future/market/v1/public/q/mark-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-index-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-mark-price': {'cost': 1},
+                            'future/market/v1/public/q/ticker': {'cost': 1},
+                            'future/market/v1/public/q/ticker/books': {'cost': 1},
+                            'future/market/v1/public/q/tickers': {'cost': 1},
+                            'future/market/v1/public/symbol/coins': {'cost': 3.33},
+                            'future/market/v1/public/symbol/detail': {'cost': 3.33},
+                            'future/market/v1/public/symbol/list': {'cost': 1},
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/market/v1/public/contract/risk-balance': 1,
-                            'future/market/v1/public/contract/open-interest': 1,
-                            'future/market/v1/public/leverage/bracket/detail': 1,
-                            'future/market/v1/public/leverage/bracket/list': 1,
-                            'future/market/v1/public/q/agg-ticker': 1,
-                            'future/market/v1/public/q/agg-tickers': 1,
-                            'future/market/v1/public/q/deal': 1,
-                            'future/market/v1/public/q/depth': 1,
-                            'future/market/v1/public/q/funding-rate': 1,
-                            'future/market/v1/public/q/funding-rate-record': 1,
-                            'future/market/v1/public/q/index-price': 1,
-                            'future/market/v1/public/q/kline': 1,
-                            'future/market/v1/public/q/mark-price': 1,
-                            'future/market/v1/public/q/symbol-index-price': 1,
-                            'future/market/v1/public/q/symbol-mark-price': 1,
-                            'future/market/v1/public/q/ticker': 1,
-                            'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
-                            'future/market/v1/public/symbol/list': 1,
+                            'future/market/v1/public/contract/risk-balance': {'cost': 1},
+                            'future/market/v1/public/contract/open-interest': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/detail': {'cost': 1},
+                            'future/market/v1/public/leverage/bracket/list': {'cost': 1},
+                            'future/market/v1/public/q/agg-ticker': {'cost': 1},
+                            'future/market/v1/public/q/agg-tickers': {'cost': 1},
+                            'future/market/v1/public/q/deal': {'cost': 1},
+                            'future/market/v1/public/q/depth': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate': {'cost': 1},
+                            'future/market/v1/public/q/funding-rate-record': {'cost': 1},
+                            'future/market/v1/public/q/index-price': {'cost': 1},
+                            'future/market/v1/public/q/kline': {'cost': 1},
+                            'future/market/v1/public/q/mark-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-index-price': {'cost': 1},
+                            'future/market/v1/public/q/symbol-mark-price': {'cost': 1},
+                            'future/market/v1/public/q/ticker': {'cost': 1},
+                            'future/market/v1/public/q/ticker/books': {'cost': 1},
+                            'future/market/v1/public/q/tickers': {'cost': 1},
+                            'future/market/v1/public/symbol/coins': {'cost': 3.33},
+                            'future/market/v1/public/symbol/detail': {'cost': 3.33},
+                            'future/market/v1/public/symbol/list': {'cost': 1},
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'balance': 1,
-                            'balances': 1,
-                            'batch-order': 1,
-                            'deposit/address': 1,
-                            'deposit/history': 1,
-                            'history-order': 1,
-                            'open-order': 1,
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'trade': 1,
-                            'withdraw/history': 1,
+                            'balance': {'cost': 1},
+                            'balances': {'cost': 1},
+                            'batch-order': {'cost': 1},
+                            'deposit/address': {'cost': 1},
+                            'deposit/history': {'cost': 1},
+                            'history-order': {'cost': 1},
+                            'open-order': {'cost': 1},
+                            'order': {'cost': 1},
+                            'order/{orderId}': {'cost': 1},
+                            'trade': {'cost': 1},
+                            'withdraw/history': {'cost': 1},
                         },
                         'post': {
-                            'order': 0.2,
-                            'withdraw': 10,
-                            'balance/transfer': 1,
-                            'balance/account/transfer': 1,
-                            'ws-token': 1,
+                            'order': {'cost': 0.2},
+                            'withdraw': {'cost': 10},
+                            'balance/transfer': {'cost': 1},
+                            'balance/account/transfer': {'cost': 1},
+                            'ws-token': {'cost': 1},
                         },
                         'delete': {
-                            'batch-order': 1,
-                            'open-order': 1,
-                            'order/{orderId}': 1,
+                            'batch-order': {'cost': 1},
+                            'open-order': {'cost': 1},
+                            'order/{orderId}': {'cost': 1},
                         },
                         'put': {
-                            'order/{orderId}': 1,
+                            'order/{orderId}': {'cost': 1},
                         },
                     },
                     'linear': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/profit-detail': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/order/detail': {'cost': 1},
+                            'future/trade/v1/order/list': {'cost': 1},
+                            'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/balance/bills': {'cost': 1},
+                            'future/user/v1/balance/detail': {'cost': 1},
+                            'future/user/v1/balance/funding-rate-list': {'cost': 1},
+                            'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/position/adl': {'cost': 1},
+                            'future/user/v1/position/break-list': {'cost': 1},
+                            'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/step-rate': {'cost': 1},
+                            'future/user/v1/user/collection/list': {'cost': 1},
+                            'future/user/v1/user/listen-key': {'cost': 1},
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
-                            'future/user/v1/position/change-type': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
+                            'future/trade/v1/order/cancel': {'cost': 1},
+                            'future/trade/v1/order/cancel-all': {'cost': 1},
+                            'future/trade/v1/order/create': {'cost': 1},
+                            'future/trade/v1/order/create-batch': {'cost': 1},
+                            'future/trade/v1/order/update': {'cost': 1},
+                            'future/user/v1/account/open': {'cost': 1},
+                            'future/user/v1/position/adjust-leverage': {'cost': 1},
+                            'future/user/v1/position/auto-margin': {'cost': 1},
+                            'future/user/v1/position/close-all': {'cost': 1},
+                            'future/user/v1/position/margin': {'cost': 1},
+                            'future/user/v1/user/collection/add': {'cost': 1},
+                            'future/user/v1/user/collection/cancel': {'cost': 1},
+                            'future/user/v1/position/change-type': {'cost': 1},
                         },
                     },
                     'inverse': {
                         'get': {
-                            'future/trade/v1/entrust/plan-detail': 1,
-                            'future/trade/v1/entrust/plan-list': 1,
-                            'future/trade/v1/entrust/plan-list-history': 1,
-                            'future/trade/v1/entrust/profit-detail': 1,
-                            'future/trade/v1/entrust/profit-list': 1,
-                            'future/trade/v1/order/detail': 1,
-                            'future/trade/v1/order/list': 1,
-                            'future/trade/v1/order/list-history': 1,
-                            'future/trade/v1/order/trade-list': 1,
-                            'future/user/v1/account/info': 1,
-                            'future/user/v1/balance/bills': 1,
-                            'future/user/v1/balance/detail': 1,
-                            'future/user/v1/balance/funding-rate-list': 1,
-                            'future/user/v1/balance/list': 1,
-                            'future/user/v1/position/adl': 1,
-                            'future/user/v1/position/list': 1,
-                            'future/user/v1/user/collection/list': 1,
-                            'future/user/v1/user/listen-key': 1,
+                            'future/trade/v1/entrust/plan-detail': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/plan-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/profit-detail': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/order/detail': {'cost': 1},
+                            'future/trade/v1/order/list': {'cost': 1},
+                            'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/balance/bills': {'cost': 1},
+                            'future/user/v1/balance/detail': {'cost': 1},
+                            'future/user/v1/balance/funding-rate-list': {'cost': 1},
+                            'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/position/adl': {'cost': 1},
+                            'future/user/v1/position/break-list': {'cost': 1},
+                            'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/step-rate': {'cost': 1},
+                            'future/user/v1/user/collection/list': {'cost': 1},
+                            'future/user/v1/user/listen-key': {'cost': 1},
                         },
                         'post': {
-                            'future/trade/v1/entrust/cancel-all-plan': 1,
-                            'future/trade/v1/entrust/cancel-all-profit-stop': 1,
-                            'future/trade/v1/entrust/cancel-plan': 1,
-                            'future/trade/v1/entrust/cancel-profit-stop': 1,
-                            'future/trade/v1/entrust/create-plan': 1,
-                            'future/trade/v1/entrust/create-profit': 1,
-                            'future/trade/v1/entrust/update-profit-stop': 1,
-                            'future/trade/v1/order/cancel': 1,
-                            'future/trade/v1/order/cancel-all': 1,
-                            'future/trade/v1/order/create': 1,
-                            'future/trade/v1/order/create-batch': 1,
-                            'future/trade/v1/order/update': 1,
-                            'future/user/v1/account/open': 1,
-                            'future/user/v1/position/adjust-leverage': 1,
-                            'future/user/v1/position/auto-margin': 1,
-                            'future/user/v1/position/close-all': 1,
-                            'future/user/v1/position/margin': 1,
-                            'future/user/v1/user/collection/add': 1,
-                            'future/user/v1/user/collection/cancel': 1,
+                            'future/trade/v1/entrust/cancel-all-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-all-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-plan': {'cost': 1},
+                            'future/trade/v1/entrust/cancel-profit-stop': {'cost': 1},
+                            'future/trade/v1/entrust/create-plan': {'cost': 1},
+                            'future/trade/v1/entrust/create-profit': {'cost': 1},
+                            'future/trade/v1/entrust/update-profit-stop': {'cost': 1},
+                            'future/trade/v1/order/cancel': {'cost': 1},
+                            'future/trade/v1/order/cancel-all': {'cost': 1},
+                            'future/trade/v1/order/create': {'cost': 1},
+                            'future/trade/v1/order/create-batch': {'cost': 1},
+                            'future/trade/v1/order/update': {'cost': 1},
+                            'future/user/v1/account/open': {'cost': 1},
+                            'future/user/v1/position/adjust-leverage': {'cost': 1},
+                            'future/user/v1/position/auto-margin': {'cost': 1},
+                            'future/user/v1/position/close-all': {'cost': 1},
+                            'future/user/v1/position/margin': {'cost': 1},
+                            'future/user/v1/user/collection/add': {'cost': 1},
+                            'future/user/v1/user/collection/cancel': {'cost': 1},
+                            'future/user/v1/position/change-type': {'cost': 1},
                         },
                     },
                     'user': {
                         'get': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': {'cost': 1},
+                            'user/account/api-key': {'cost': 1},
                         },
                         'post': {
-                            'user/account': 1,
-                            'user/account/api-key': 1,
+                            'user/account': {'cost': 1},
+                            'user/account/api-key': {'cost': 1},
                         },
                         'put': {
-                            'user/account/api-key': 1,
+                            'user/account/api-key': {'cost': 1},
                         },
                         'delete': {
-                            'user/account/{apiKeyId}': 1,
+                            'user/account/{apiKeyId}': {'cost': 1},
                         },
                     },
                 },
@@ -704,7 +716,7 @@ class xt(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': False,
                     'createOrder': {
-                        'marginMode': False,
+                        'marginMode': True,
                         'triggerPrice': False,
                         'triggerDirection': False,
                         'triggerPriceType': None,
@@ -785,6 +797,7 @@ class xt(Exchange, ImplicitAPI):
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         # todo
                         'triggerPriceType': {
@@ -826,9 +839,9 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the xt server
 
-        https://doc.xt.com/#market1serverInfo
+        https://doc.xt.com/docs/spot/Market/GetServerTime
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the xt server
         """
         response = await self.publicSpotGetTime(params)
@@ -849,9 +862,9 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+        https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         promisesRaw = [self.publicSpotGetWalletSupportCurrency(params), self.publicSpotGetCurrencies(params)]
@@ -923,23 +936,58 @@ class xt(Exchange, ImplicitAPI):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
                 networkCode = self.network_id_to_code(networkId, code)
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': None,
+                if networkCode is not None:
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': None,
+                        'active': None,
+                        'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
+                        'precision': None,
+                        'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
+                        'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'withdraw': {
+                                'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': None,
+                                'max': None,
+                            },
+                        },
+                    }
+            typeRaw = self.safe_string(entry, 'type')
+            type = None
+            if typeRaw == 'FT':
+                type = 'crypto'
+            else:
+                type = 'other'
+            if code is not None:
+                result[code] = self.safe_currency_structure({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': self.safe_string(entry, 'fullName'),
                     'active': None,
-                    'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
-                    'precision': None,
-                    'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
-                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
+                    'fee': None,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
+                    'deposit': self.safe_string(entry, 'depositStatus') == '1',
+                    'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
+                    'networks': networks,
+                    'type': type,
                     'limits': {
                         'amount': {
                             'min': None,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
+                            'min': None,
                             'max': None,
                         },
                         'deposit': {
@@ -947,50 +995,17 @@ class xt(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
-                }
-            typeRaw = self.safe_string(entry, 'type')
-            type = None
-            if typeRaw == 'FT':
-                type = 'crypto'
-            else:
-                type = 'other'
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': self.safe_string(entry, 'fullName'),
-                'active': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
-                'deposit': self.safe_string(entry, 'depositStatus') == '1',
-                'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            })
+                })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for xt
 
-        https://doc.xt.com/#market2symbol
-        https://doc.xt.com/#futures_quotesgetSymbols
+        https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+        https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
@@ -1004,7 +1019,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = promises[1]
         return self.array_concat(spotMarkets, swapAndFutureMarkets)
 
-    async def fetch_spot_markets(self, params={}):
+    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = await self.publicSpotGetSymbol(params)
         #
         #     {
@@ -1129,7 +1144,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_value(markets[0], 'result', []), self.safe_value(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets):
+    def parse_markets(self, markets: Any):
         result = []
         for i in range(0, len(markets)):
             result.append(self.parse_market(markets[i]))
@@ -1346,8 +1361,8 @@ class xt(Exchange, ImplicitAPI):
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.safe_number(market, 'takerFee'),
-            'maker': self.safe_number(market, 'makerFee'),
+            'taker': self.safe_number_2(market, 'takerFee', 'takerFeeRate'),
+            'maker': self.safe_number_2(market, 'makerFee', 'makerFeeRate'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1384,14 +1399,14 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://doc.xt.com/#market4kline
-        https://doc.xt.com/#futures_quotesgetKLine
+        https://doc.xt.com/docs/spot/Market/GetKlineData
+        https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -1408,7 +1423,11 @@ class xt(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
-            request['startTime'] = since
+            # xt rounds startTime down to the candle boundary, which makes a mid-candle
+            # window start return one pre-since candle, shifting paginated windows and
+            # dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['startTime'] = int(math.ceil(since / duration)) * duration
         if limit is not None:
             if market['spot']:
                 limit = min(limit, 1000)  # spot max limit
@@ -1472,7 +1491,7 @@ class xt(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # spot
         #
@@ -1514,14 +1533,14 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
 
-        https://doc.xt.com/#market3depth
-        https://doc.xt.com/#futures_quotesgetDepth
+        https://doc.xt.com/docs/spot/Market/GetDepthData
+        https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
 
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified market symbol to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1603,11 +1622,11 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.xt.com/#market10ticker24h
-        https://doc.xt.com/#futures_quotesgetAggTicker
+        https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+        https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
 
         :param str symbol: unified market symbol to fetch the ticker for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1678,11 +1697,11 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
 
-        https://doc.xt.com/#market10ticker24h
-        https://doc.xt.com/#futures_quotesgetAggTickers
+        https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+        https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
 
         :param str [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1756,17 +1775,19 @@ class xt(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i], market)
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
-        https://doc.xt.com/#market9tickerBook
+        https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+        https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
 
-        :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1776,11 +1797,22 @@ class xt(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
+        type = None
         subType = None
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
-        if subType is not None:
-            raise NotSupported(self.id + ' fetchBidsAsks() is not available for swap and future markets, only spot markets are supported')
-        response = await self.publicSpotGetTickerBook(self.extend(request, params))
+        isInverse = (subType == 'inverse')
+        isLinear = (subType == 'linear') or (type == 'swap') or (type == 'future')
+        isContract = isInverse or isLinear
+        response = None
+        if isInverse:
+            response = await self.publicInverseGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        elif isLinear:
+            response = await self.publicLinearGetFutureMarketV1PublicQTickerBooks(self.extend(request, params))
+        else:
+            response = await self.publicSpotGetTickerBook(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "rc": 0,
@@ -1798,10 +1830,40 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
-        return self.parse_tickers(tickers, symbols)
+        # swap and future
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": [
+        #             {
+        #                 "s": "btc_usdt",
+        #                 "t": 1785928174370,
+        #                 "ap": "64085.5",
+        #                 "aq": "101843",
+        #                 "bp": "64085.3",
+        #                 "bq": "121042"
+        #             },
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'result', [])
+        result = {}
+        for i in range(0, len(tickers)):
+            rawTicker = tickers[i]
+            # the spot and contract payloads share the same field names, so
+            # the market type cannot be inferred from the entry itself
+            marketId = self.safe_string(rawTicker, 's')
+            marketType = 'contract' if isContract else 'spot'
+            marketInner = self.safe_market(marketId, market, '_', marketType)
+            ticker = self.parse_ticker(rawTicker, marketInner)
+            symbol = ticker['symbol']
+            if symbol is not None:
+                result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None):
+    def parse_ticker(self, ticker: Any, market: Market = None):
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1876,7 +1938,7 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'a'),
+            'baseVolume': self.safe_number_2(ticker, 'a', 'q'),
             'quoteVolume': self.safe_number(ticker, 'v'),
             'info': ticker,
         }, market)
@@ -1885,13 +1947,13 @@ class xt(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://doc.xt.com/#market5tradeRecent
-        https://doc.xt.com/#futures_quotesgetDeal
+        https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+        https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
 
         :param str symbol: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -1955,13 +2017,13 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://doc.xt.com/#tradetradeGet
-        https://doc.xt.com/#futures_ordergetTrades
+        https://doc.xt.com/docs/spot/Trade/QueryTrade
+        https://doc.xt.com/docs/futures/Order/see-transaction-details
 
         :param str [symbol]: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -2055,7 +2117,7 @@ class xt(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None):
+    def parse_trade(self, trade: Any, market: Market = None):
         #
         # spot: fetchTrades
         #
@@ -2223,10 +2285,10 @@ class xt(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://doc.xt.com/#balancebalancesGet
-        https://doc.xt.com/#futures_usergetBalances
+        https://doc.xt.com/docs/spot/Balance/GetBalances
+        https://doc.xt.com/docs/futures/User/GetUserFunds
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         if self.markets is None:
@@ -2295,7 +2357,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_value(data, 'assets', [])
         return self.parse_balance(balances)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: Any):
         #
         # spot
         #
@@ -2337,13 +2399,14 @@ class xt(Exchange, ImplicitAPI):
             account['free'] = free
             account['used'] = used
             account['total'] = total
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
 
-        https://doc.xt.com/#orderorderPost
+        https://doc.xt.com/docs/spot/Order/SubmitOrder
 
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2362,17 +2425,17 @@ class xt(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://doc.xt.com/#orderorderPost
-        https://doc.xt.com/#futures_ordercreate
-        https://doc.xt.com/#futures_entrustcreatePlan
-        https://doc.xt.com/#futures_entrustcreateProfit
+        https://doc.xt.com/docs/spot/Order/SubmitOrder
+        https://doc.xt.com/docs/futures/Order/Create%20Orders
+        https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'GTX'
         :param str [params.entrustType]: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
         :param str [params.triggerPriceType]: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2391,7 +2454,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_spot_order(self, symbol: str, type: OrderType, side: Any, amount: Any, price: Num = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -2446,7 +2509,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_contract_order(self, symbol: str, type: Any, side: Any, amount: Any, price: Num = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -2464,7 +2527,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             requestType = 'LONG' if (reduceOnly) else 'SHORT'
             request['positionSide'] = requestType
-        response = None
+        response = {}
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(params, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(params, 'takeProfit', 'triggerProfitPrice')
@@ -2517,14 +2580,14 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://doc.xt.com/#orderorderGet
-        https://doc.xt.com/#futures_ordergetById
-        https://doc.xt.com/#futures_entrustgetPlanById
-        https://doc.xt.com/#futures_entrustgetProfitById
+        https://doc.xt.com/docs/spot/Order/GetSingleOrder
+        https://doc.xt.com/docs/futures/Order/see-orders-by-id
+        https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+        https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -2690,14 +2753,14 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://doc.xt.com/#orderhistoryOrderGet
-        https://doc.xt.com/#futures_ordergetHistory
-        https://doc.xt.com/#futures_entrustgetPlanHistory
+        https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+        https://doc.xt.com/docs/futures/Order/see-order-history
+        https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2848,7 +2911,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -3103,22 +3166,22 @@ class xt(Exchange, ImplicitAPI):
         if resultDict is not None:
             orders = self.safe_list(resultDict, 'items', [])
         else:
-            orders = self.safe_list(response, 'result')
+            orders = self.safe_list(response, 'result', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all unfilled currently open orders
 
-        https://doc.xt.com/#orderopenOrderGet
-        https://doc.xt.com/#futures_ordergetOrders
-        https://doc.xt.com/#futures_entrustgetPlan
-        https://doc.xt.com/#futures_entrustgetProfit
+        https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+        https://doc.xt.com/docs/futures/Order/see-orders
+        https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3129,15 +3192,15 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://doc.xt.com/#orderhistoryOrderGet
-        https://doc.xt.com/#futures_ordergetOrders
-        https://doc.xt.com/#futures_entrustgetPlan
-        https://doc.xt.com/#futures_entrustgetProfit
+        https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+        https://doc.xt.com/docs/futures/Order/see-orders
+        https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3148,15 +3211,15 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches information on multiple canceled orders made by the user
 
-        https://doc.xt.com/#orderhistoryOrderGet
-        https://doc.xt.com/#futures_ordergetOrders
-        https://doc.xt.com/#futures_entrustgetPlan
-        https://doc.xt.com/#futures_entrustgetProfit
+        https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+        https://doc.xt.com/docs/futures/Order/see-orders
+        https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
 
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3167,14 +3230,14 @@ class xt(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://doc.xt.com/#orderorderDel
-        https://doc.xt.com/#futures_ordercancel
-        https://doc.xt.com/#futures_entrustcancelPlan
-        https://doc.xt.com/#futures_entrustcancelProfit
+        https://doc.xt.com/docs/spot/Order/CancelOrder
+        https://doc.xt.com/docs/futures/Order/cancel-orders
+        https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3245,13 +3308,13 @@ class xt(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://doc.xt.com/#orderopenOrderDel
-        https://doc.xt.com/#futures_ordercancelBatch
-        https://doc.xt.com/#futures_entrustcancelPlanBatch
-        https://doc.xt.com/#futures_entrustcancelProfitBatch
+        https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+        https://doc.xt.com/docs/futures/Order/cancel-all-orders
+        https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+        https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3319,11 +3382,11 @@ class xt(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://doc.xt.com/#orderbatchOrderDel
+        https://doc.xt.com/docs/spot/Order/CancelBatchOrder
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -3353,7 +3416,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_order(response),
         ]
 
-    def parse_order(self, order, market: Market = None):
+    def parse_order(self, order: dict, market: Market = None):
         #
         # spot: createOrder
         #
@@ -3490,6 +3553,18 @@ class xt(Exchange, ImplicitAPI):
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
+        side = self.safe_string_lower_2(order, 'side', 'orderSide')
+        if side is None:
+            # the stop loss and take profit entries carry only the position
+            # side, they close the position, so a long position closes with a
+            # sell and a short position closes with a buy
+            # see https://github.com/ccxt/ccxt/issues/25288
+            positionSide = self.safe_string(order, 'positionSide')
+            if positionSide is not None:
+                if positionSide == 'LONG':
+                    side = 'sell'
+                else:
+                    side = 'buy'
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
@@ -3502,7 +3577,7 @@ class xt(Exchange, ImplicitAPI):
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
-            'side': self.safe_string_lower_2(order, 'side', 'orderSide'),
+            'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number(order, 'stopPrice'),
             'stopLoss': self.safe_number(order, 'triggerStopPrice'),
@@ -3520,7 +3595,7 @@ class xt(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status):
+    def parse_order_status(self, status: Str):
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3542,12 +3617,12 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://doc.xt.com/#futures_usergetBalanceBill
+        https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
 
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
         if self.markets is None:
@@ -3598,7 +3673,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_value(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, item: Any, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3637,7 +3712,7 @@ class xt(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -3654,10 +3729,10 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+        https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
 
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['network']: required network id
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
@@ -3687,7 +3762,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3708,12 +3783,12 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+        https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
 
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         if self.markets is None:
@@ -3762,12 +3837,12 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+        https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
 
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         if self.markets is None:
@@ -3816,13 +3891,13 @@ class xt(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://doc.xt.com/#deposit_withdrawalwithdraw
+        https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str [tag]:
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.check_address(address)
@@ -3931,7 +4006,7 @@ class xt(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',
@@ -3947,11 +4022,11 @@ class xt(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://doc.xt.com/#futures_useradjustLeverage
+        https://doc.xt.com/docs/futures/User/Adjust%20Leverage
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: response from the exchange
         """
@@ -3992,11 +4067,11 @@ class xt(Exchange, ImplicitAPI):
         """
         add margin to a position
 
-        https://doc.xt.com/#futures_useradjustMargin
+        https://doc.xt.com/docs/futures/User/Alter%20Margin
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
@@ -4006,19 +4081,20 @@ class xt(Exchange, ImplicitAPI):
         """
         remove margin from a position
 
-        https://doc.xt.com/#futures_useradjustMargin
+        https://doc.xt.com/docs/futures/User/Alter%20Margin
 
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
-        self.check_required_argument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT'])
+        methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
+        self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -4045,7 +4121,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: Any, market: Market = None) -> MarginModification:
         return {
             'info': data,
             'type': None,
@@ -4063,10 +4139,10 @@ class xt(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage for different trade sizes
 
-        https://doc.xt.com/#futures_quotesgetLeverageBrackets
+        https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
 
         :param str [symbols]: a list of unified market symbols
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         if self.markets is None:
@@ -4106,7 +4182,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response: Any, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4141,10 +4217,10 @@ class xt(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage for different trade sizes of a single market
 
-        https://doc.xt.com/#futures_quotesgetLeverageBracket
+        https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
 
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         if self.markets is None:
@@ -4185,7 +4261,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4226,12 +4302,12 @@ class xt(Exchange, ImplicitAPI):
         """
         fetches historical funding rates
 
-        https://doc.xt.com/#futures_quotesgetFundingRateRecord
+        https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
 
         :param str [symbol]: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool params['paginate']: True/false whether to use the pagination helper to aumatically paginate through the results
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
@@ -4302,7 +4378,7 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch the current funding rate interval
 
-        https://doc.xt.com/#futures_quotesgetFundingRate
+        https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4314,10 +4390,10 @@ class xt(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://doc.xt.com/#futures_quotesgetFundingRate
+        https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
 
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         if self.markets is None:
@@ -4351,7 +4427,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4387,16 +4463,167 @@ class xt(Exchange, ImplicitAPI):
             'interval': interval,
         }
 
+    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterest', market, params)
+        response = None
+        if subType == 'inverse':
+            response = await self.publicInverseGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        else:
+            response = await self.publicLinearGetFutureMarketV1PublicContractOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "symbol": "btc_usdt",
+        #             "openInterest": "21005.8646",
+        #             "openInterestUsd": "1120726916.46709",
+        #             "time": 1785925443734
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "openInterest": "21005.8646",
+        #         "openInterestUsd": "1120726916.46709",
+        #         "time": 1785925443734
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        timestamp = self.safe_integer(interest, 'time')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': self.safe_number(interest, 'openInterestUsd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
+
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+
+        https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' fetchTradingFee() supports contract markets only')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
+        response = None
+        if subType == 'inverse':
+            response = await self.privateInverseGetFutureUserV1UserStepRate(params)
+        else:
+            response = await self.privateLinearGetFutureUserV1UserStepRate(params)
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "specialType": False,
+        #             "vipProType": False,
+        #             "stepRateProName": null,
+        #             "discountLevel": 0,
+        #             "makerFee": "0.0002",
+        #             "takerFee": "0.0006",
+        #             "levelReturnDay": 90,
+        #             "totalTradeVolume": "78.708",
+        #             "walletBalance": "21.95",
+        #             "nextLvTradeVolume": "200000",
+        #             "nextLvMakerFee": "0.00018",
+        #             "nextLvTakerFee": "0.00054",
+        #             "feeSource": "step_rate"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_trading_fee(result, market)
+
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+
+        https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: 'linear'(default) or 'inverse'
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbol
+        """
+        await self.load_markets()
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params)
+        isInverse = (subType == 'inverse')
+        response = None
+        if isInverse:
+            response = await self.privateInverseGetFutureUserV1UserStepRate(params)
+        else:
+            response = await self.privateLinearGetFutureUserV1UserStepRate(params)
+        #
+        # same response
+        #
+        fee = self.safe_dict(response, 'result', {})
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            matchesSubType = market['inverse'] if (isInverse) else market['linear']
+            if market['contract'] and matchesSubType:
+                result[symbol] = self.parse_trading_fee(fee, market)
+        return result
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        symbol = market['symbol'] if (market is not None) else None
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'makerFee'),
+            'taker': self.safe_number(fee, 'takerFee'),
+            'percentage': None,
+            'tierBased': True,
+        }
+
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the funding history
 
-        https://doc.xt.com/#futures_usergetFunding
+        https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
 
         :param str symbol: unified market symbol
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
@@ -4448,7 +4675,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract, market: Market = None):
+    def parse_funding_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "id": "210804044057280512",
@@ -4474,14 +4701,47 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
-    async def fetch_position(self, symbol: str, params={}):
+    def index_position_break_list(self, breakList: List[dict]) -> dict:
+        """
+ @ignore
+        :param dict[] breakList: the "result" array of a position/break-list response
+        """
+        breakBySymbolSide = {}
+        for i in range(0, len(breakList)):
+            breakEntry = breakList[i]
+            # xt is hedge-mode only(positionSide is always 'LONG'/'SHORT' on every
+            # endpoint, including here and on position/list; there is no one-way/net
+            # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            # both validate positionSide against exactly ['LONG', 'SHORT'])
+            key = self.safe_string(breakEntry, 'symbol') + '_' + self.safe_string(breakEntry, 'positionSide')
+            breakBySymbolSide[key] = breakEntry
+        return breakBySymbolSide
+
+    def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:
+        """
+ @ignore
+        :param dict entry: a single entry from a position/list response
+        :param dict breakBySymbolSide: the result of indexPositionBreakList()
+        """
+        marketId = self.safe_string(entry, 'symbol')
+        key = marketId + '_' + self.safe_string(entry, 'positionSide')
+        breakEntry = self.safe_dict(breakBySymbolSide, key)
+        if breakEntry is None:
+            return entry
+        return self.extend(entry, {
+            'breakPrice': self.safe_string(breakEntry, 'breakPrice'),
+            'calMarkPrice': self.safe_string(breakEntry, 'calMarkPrice'),
+        })
+
+    async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
-        https://doc.xt.com/#futures_usergetPosition
+        https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+        https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
 
         :param str symbol: unified market symbol of the market the position is held in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
@@ -4492,11 +4752,16 @@ class xt(Exchange, ImplicitAPI):
         }
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPosition', market, params)
-        response = None
+        promisesUnresolved = []
         if subType == 'inverse':
-            response = await self.privateInverseGetFutureUserV1PositionList(self.extend(request, params))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionList(self.extend(request, params)))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionBreakList(self.extend(request, params)))
         else:
-            response = await self.privateLinearGetFutureUserV1PositionList(self.extend(request, params))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionList(self.extend(request, params)))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionBreakList(self.extend(request, params)))
+        response, breakResponse = await asyncio.gather(*promisesUnresolved)
+        #
+        # position/list
         #
         #     {
         #         "returnCode": 0,
@@ -4517,40 +4782,63 @@ class xt(Exchange, ImplicitAPI):
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
         #                 "autoMargin": False,
-        #                 "leverage": 25
+        #                 "leverage": 25,
+        #                 "markPrice": "27050"
         #             },
         #         ]
         #     }
         #
-        positions = self.safe_value(response, 'result', [])
+        # position/break-list
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "result": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "positionSide": "SHORT",
+        #                 "breakPrice": "0",
+        #                 "calMarkPrice": "27050"
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_list(response, 'result', [])
+        breakBySymbolSide = self.index_position_break_list(self.safe_list(breakResponse, 'result', []))
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
             marketInner = self.safe_market(marketId, None, None, 'contract')
             positionSize = self.safe_string(entry, 'positionSize')
             if positionSize != '0':
-                return self.parse_position(entry, marketInner)
-        return None
+                merged = self.merge_position_break_info(entry, breakBySymbolSide)
+                return self.parse_position(merged, marketInner)
+        raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
-        https://doc.xt.com/#futures_usergetPosition
+        https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+        https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
 
         :param str [symbols]: list of unified market symbols, not supported with xt
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
-        response = None
+        promisesUnresolved = []
         if subType == 'inverse':
-            response = await self.privateInverseGetFutureUserV1PositionList(params)
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionList(params))
+            promisesUnresolved.append(self.privateInverseGetFutureUserV1PositionBreakList(params))
         else:
-            response = await self.privateLinearGetFutureUserV1PositionList(params)
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionList(params))
+            promisesUnresolved.append(self.privateLinearGetFutureUserV1PositionBreakList(params))
+        response, breakResponse = await asyncio.gather(*promisesUnresolved)
+        #
+        # position/list
         #
         #     {
         #         "returnCode": 0,
@@ -4571,21 +4859,113 @@ class xt(Exchange, ImplicitAPI):
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
         #                 "autoMargin": False,
-        #                 "leverage": 25
+        #                 "leverage": 25,
+        #                 "markPrice": "27050"
         #             },
         #         ]
         #     }
         #
-        positions = self.safe_value(response, 'result', [])
+        # position/break-list
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "result": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "positionSide": "SHORT",
+        #                 "breakPrice": "0",
+        #                 "calMarkPrice": "27050"
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_list(response, 'result', [])
+        breakBySymbolSide = self.index_position_break_list(self.safe_list(breakResponse, 'result', []))
         result = []
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
             marketInner = self.safe_market(marketId, None, None, 'contract')
-            result.append(self.parse_position(entry, marketInner))
+            merged = self.merge_position_break_info(entry, breakBySymbolSide)
+            result.append(self.parse_position(merged, marketInner))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market: Market = None):
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical closed positions
+
+        https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+
+        :param str[] [symbols]: unified market symbols, all closed positions are returned if not assigned
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum amount of records to fetch, default=10
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest position to fetch
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionsHistory', market, params)
+        response = None
+        if subType == 'inverse':
+            response = await self.privateInverseGetFutureTradeV1PositionListHistory(self.extend(request, params))
+        else:
+            response = await self.privateLinearGetFutureTradeV1PositionListHistory(self.extend(request, params))
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "hasPrev": False,
+        #             "hasNext": False,
+        #             "items": [
+        #                 {
+        #                     "id": "654559911738263296",
+        #                     "positionSide": "LONG",
+        #                     "contractType": "PERPETUAL",
+        #                     "symbol": "xrp_usdt",
+        #                     "positionType": 2,
+        #                     "closeProfit": "0.001",
+        #                     "closePositionSize": "1",
+        #                     "closeOpenPrice": "1.0651",
+        #                     "closePrice": "1.0652",
+        #                     "maxPositionSize": "1",
+        #                     "openTime": 1785761266645,
+        #                     "closeTime": 1785761266645,
+        #                     "startLeverage": 10,
+        #                     "endLeverage": 10,
+        #                     "working": False,
+        #                     "force": False,
+        #                     "forceMarkPrice": null,
+        #                     "totalFee": "0.0063",
+        #                     "totalFundFee": "0"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        items = self.safe_list(result, 'items', [])
+        positions = self.parse_positions(items, symbols)
+        return self.filter_by_since_limit(positions, since, limit)
+
+    def parse_position(self, position: Any, market: Market = None):
+        #
+        # position/list
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4601,36 +4981,77 @@ class xt(Exchange, ImplicitAPI):
         #         "openOrderMarginFrozen": "0",
         #         "realizedProfit": "-0.00130138",
         #         "autoMargin": False,
-        #         "leverage": 25
+        #         "leverage": 25,
+        #         "markPrice": "27050"
+        #     }
+        #
+        # position/break-list
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "positionSide": "SHORT",
+        #         "breakPrice": "0",
+        #         "calMarkPrice": "27050"
+        #     }
+        #
+        # position/list-history
+        #
+        #     {
+        #         "id": "654559911738263296",
+        #         "positionSide": "LONG",
+        #         "contractType": "PERPETUAL",
+        #         "symbol": "xrp_usdt",
+        #         "positionType": 2,
+        #         "closeProfit": "0.001",
+        #         "closePositionSize": "1",
+        #         "closeOpenPrice": "1.0651",
+        #         "closePrice": "1.0652",
+        #         "maxPositionSize": "1",
+        #         "openTime": 1785761266645,
+        #         "closeTime": 1785761266645,
+        #         "startLeverage": 10,
+        #         "endLeverage": 10,
+        #         "working": False,
+        #         "force": False,
+        #         "forceMarkPrice": null,
+        #         "totalFee": "0.0063",
+        #         "totalFundFee": "0"
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_symbol(marketId, market, None, 'contract')
+        # "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         positionType = self.safe_string(position, 'positionType')
-        marginMode = 'cross' if (positionType == 'CROSSED') else 'isolated'
+        isCross = (positionType == 'CROSSED') or (positionType == '1')
+        marginMode = 'cross' if (isCross) else 'isolated'
         collateral = self.safe_number(position, 'isolatedMargin')
+        # history entries carry the liquidation price in forceMarkPrice when force is True
+        liquidationPriceString = self.omit_zero(self.safe_string_2(position, 'breakPrice', 'forceMarkPrice'))
+        timestamp = self.safe_integer(position, 'closeTime')
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'id'),
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'hedged': None,
             'side': self.safe_string_lower(position, 'positionSide'),
-            'contracts': self.safe_number(position, 'positionSize'),
+            'contracts': self.safe_number_2(position, 'positionSize', 'closePositionSize'),
             'contractSize': market['contractSize'],
-            'entryPrice': self.safe_number(position, 'entryPrice'),
-            'markPrice': None,
+            'entryPrice': self.safe_number_2(position, 'entryPrice', 'closeOpenPrice'),
+            'markPrice': self.safe_number_2(position, 'markPrice', 'calMarkPrice'),
+            'lastPrice': self.safe_number(position, 'closePrice'),
             'notional': None,
-            'leverage': self.safe_integer(position, 'leverage'),
+            'leverage': self.safe_integer_2(position, 'leverage', 'endLeverage'),
             'collateral': collateral,
             'initialMargin': collateral,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
-            'liquidationPrice': None,
+            'realizedPnl': self.safe_number_2(position, 'realizedProfit', 'closeProfit'),
+            'liquidationPrice': self.parse_number(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': None,
             'marginRatio': None,
@@ -4640,13 +5061,13 @@ class xt(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://doc.xt.com/#transfersubTransferPost
+        https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
 
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from -  spot, swap, leverage, finance
         :param str toAccount: account to transfer to - spot, swap, leverage, finance
-        :param dict params: extra parameters specific to the whitebit api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if self.markets is None:
@@ -4679,7 +5100,7 @@ class xt(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: Any, currency: Currency = None):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'result'),
@@ -4696,7 +5117,7 @@ class xt(Exchange, ImplicitAPI):
         """
         set margin mode to 'cross' or 'isolated'
 
-        https://doc.xt.com/#futures_userchangePositionType
+        https://doc.xt.com/docs/futures/User/Change%20Position%20Type
 
         :param str marginMode: 'cross' or 'isolated'
         :param str [symbol]: required
@@ -4719,14 +5140,20 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = 'ISOLATED'
         posSide = self.safe_string_upper(params, 'positionSide')
-        if posSide is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"')
+        self.check_required_argument('setMarginMode', posSide, 'positionSide', ['LONG', 'SHORT'])
+        params = self.omit(params, 'positionSide')
         request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
         }
-        response = await self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('setMarginMode', market, params)
+        response: dict
+        if subType == 'inverse':
+            response = await self.privateInversePostFutureUserV1PositionChangeType(self.extend(request, params))
+        else:
+            response = await self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
         #
         # {
         #     "error": {
@@ -4744,9 +5171,9 @@ class xt(Exchange, ImplicitAPI):
         """
         cancels an order and places a new order
 
-        https://doc.xt.com/#orderorderUpdate
-        https://doc.xt.com/#futures_orderupdate
-        https://doc.xt.com/#futures_entrustupdateProfit
+        https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+        https://doc.xt.com/docs/futures/Order/update-orders
+        https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -4829,7 +5256,7 @@ class xt(Exchange, ImplicitAPI):
         result = response if (market['swap']) else self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: Any, method: Any, headers: Any, body: Any, response: Any, requestHeaders: Any, requestBody: Any):
         #
         # spot: error
         #
@@ -4895,7 +5322,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Any = None):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -4921,8 +5348,12 @@ class xt(Exchange, ImplicitAPI):
             body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 id = 'CCXT'
+                if body is None:
+                    raise NullResponse(self.id + ' sign() returned empty body')
                 if payload.find('future') > -1:
                     body['clientMedia'] = id
+                    if body is None:
+                        raise NullResponse(self.id + ' sign() returned empty body')
                 else:
                     body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))

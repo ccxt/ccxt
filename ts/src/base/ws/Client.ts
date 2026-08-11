@@ -3,6 +3,7 @@ import { Future } from './Future.js';
 
 import {
     isNode,
+    isBun,
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
@@ -21,6 +22,15 @@ if (isNode) {
     import (/* webpackMode: "eager" */ 'fflate').then ((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch (() => {});
 }
 
+// platform checks are likewise resolved once at module load so the send/ping
+// hot paths stay branch-cheap:
+// - usesNodeWsPackage: the 'ws' npm package is in use (node-style send callbacks, connection.ping ())
+// - bunHasNativePing: bun's native WebSocket exposes ping () as a non-standard extension
+// - hasPing: the active WebSocket implementation supports connection.ping ()
+const usesNodeWsPackage = isNode && !isBun;
+const bunHasNativePing = isBun && (typeof (globalThis as any).WebSocket !== 'undefined') && (typeof (globalThis as any).WebSocket.prototype.ping === 'function');
+const hasPing = usesNodeWsPackage || bunHasNativePing;
+
 export default class Client {
     connected: Promise<any>
 
@@ -32,6 +42,9 @@ export default class Client {
 
     // @ts-ignore: 2564
     rejections: Dictionary<any>
+
+    // @ts-ignore: 2564
+    pendingResults: Dictionary<any>
 
     // @ts-ignore: 2564
     keepAlive: number
@@ -95,6 +108,7 @@ export default class Client {
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
+            pendingResults: {}, // latest value resolved without a waiter, per message hash
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -124,6 +138,16 @@ export default class Client {
     }
 
     future (messageHash: string) {
+        // a value that arrived while no future existed satisfies this
+        // consumer immediately, the spent future intentionally stays out of
+        // the map so the next consumer waits for fresh data
+        if (messageHash in this.pendingResults) {
+            const pending = this.pendingResults[messageHash]
+            delete this.pendingResults[messageHash]
+            const spent = Future ()
+            spent.resolve (pending)
+            return spent
+        }
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future ()
         }
@@ -139,10 +163,20 @@ export default class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if ((messageHash !== undefined) && (messageHash in this.futures)) {
-            const promise = this.futures[messageHash]
-            promise.resolve (result)
-            delete this.futures[messageHash]
+        if (messageHash !== undefined) {
+            if (messageHash in this.futures) {
+                const promise = this.futures[messageHash]
+                promise.resolve (result)
+                delete this.futures[messageHash]
+            } else {
+                // no consumer future right now, keep the latest value so the
+                // next future() call is resolved with it instead of waiting
+                // for data that already arrived. A successful resolve after a
+                // retained error means the stream recovered, the stale error
+                // must not fail a later waiter
+                this.pendingResults[messageHash] = result
+                delete this.rejections[messageHash]
+            }
         }
         return result
     }
@@ -161,11 +195,14 @@ export default class Client {
                 // instead we store the rejection for later
                 this.rejections[messageHash] = result
             }
+            // stale pre-error values must not satisfy post-error consumers
+            delete this.pendingResults[messageHash]
         } else {
             const messageHashes = Object.keys (this.futures)
             for (let i = 0; i < messageHashes.length; i++) {
                 this.reject (result, messageHashes[i])
             }
+            this.pendingResults = {}
         }
         return result
     }
@@ -241,9 +278,10 @@ export default class Client {
                     this.send (message).catch ((error) => {
                         this.onError (error);
                     });
-                } else if (isNode) {
+                } else if (hasPing) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    // under bun the native WebSocket implements ping () as a non-standard extension
                     this.connection.ping ()
                 } else {
                     // browsers handle ping-pong automatically therefore
@@ -330,7 +368,8 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = Future ()
-        if (isNode) {
+        if (usesNodeWsPackage) {
+            // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete (error: any) {
@@ -358,20 +397,37 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (typeof message !== 'string') {
-            if (this.gunzip || this.inflate) {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-                if (this.gunzip) {
-                    arrayBuffer = gunzipSync (arrayBuffer)
-                } else if (this.inflate) {
-                    arrayBuffer = inflateRawSync (arrayBuffer)
-                }
-                message = utf8.encode (arrayBuffer)
-            } else {
-                if (this.decompressBinary) {
-                    message = message.toString ()
+        try {
+            if (typeof message !== 'string') {
+                if (this.gunzip || this.inflate) {
+                    arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                    if (this.gunzip) {
+                        arrayBuffer = gunzipSync (arrayBuffer)
+                    } else if (this.inflate) {
+                        arrayBuffer = inflateRawSync (arrayBuffer)
+                    }
+                    message = utf8.encode (arrayBuffer)
+                } else {
+                    if (this.decompressBinary) {
+                        message = message.toString ()
+                    }
                 }
             }
+        } catch (error) {
+            // a frame that cannot be decompressed/decoded is connection-fatal:
+            // the stream is corrupt or misaligned, so no subsequent frame can
+            // be trusted either. the error must be handled here, at the throw
+            // site - if it escaped onMessage it would be lost: on node it
+            // would reject the fire-and-forget deliverLoop promise
+            // (WsClient.ts) and crash the process as an unhandled rejection,
+            // on browsers/bun the host event dispatch swallows handler
+            // exceptions silently. established error semantics: onError
+            // normalizes the error, sets this.error, rejects all pending
+            // futures and notifies the exchange, then close () tears the
+            // connection down
+            this.onError (error)
+            this.close ()
+            return
         }
         try {
             if (isJsonEncodedObject (message)) {

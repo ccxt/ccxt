@@ -391,7 +391,7 @@ func (this *Krakenfutures) CancelOrders(ids []string, options ...CancelOrdersOpt
  * @name krakenfutures#cancelAllOrders
  * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
  * @description Cancels all orders on the exchange, including trigger orders
- * @param {str} symbol Unified market symbol
+ * @param {string} [symbol] Unified market symbol
  * @param {dict} [params] Exchange specific params
  * @returns Response from exchange api
  */
@@ -574,7 +574,8 @@ func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (
 /**
  * @method
  * @name krakenfutures#fetchClosedOrders
- * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
  * @description Gets all closed orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.
@@ -1175,10 +1176,10 @@ func (this *Krakenfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
 func (this *Krakenfutures) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Krakenfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Krakenfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Krakenfutures) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1286,7 +1287,7 @@ func (this *Krakenfutures) FetchPosition(symbol string, options ...FetchPosition
 func (this *Krakenfutures) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Krakenfutures) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Krakenfutures) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1301,7 +1302,7 @@ func (this *Krakenfutures) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 func (this *Krakenfutures) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Krakenfutures) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Krakenfutures) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -1427,7 +1428,7 @@ func (this *Krakenfutures) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Krakenfutures) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Krakenfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Krakenfutures) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1472,7 +1473,7 @@ func (this *Krakenfutures) FetchTradesWs(symbol string, options ...FetchTradesWs
 func (this *Krakenfutures) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Krakenfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Krakenfutures) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

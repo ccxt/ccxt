@@ -188,9 +188,15 @@ func (this *CoinsphCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"openapi/v1/ping":    1,
-					"openapi/v1/time":    1,
-					"openapi/v1/user/ip": 1,
+					"openapi/v1/ping": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/time": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/user/ip": map[string]any{
+						"cost": 1,
+					},
 					"openapi/quote/v1/ticker/24hr": map[string]any{
 						"cost":                 1,
 						"noSymbolAndNoSymbols": 40,
@@ -204,97 +210,235 @@ func (this *CoinsphCore) Describe() any {
 						"cost":     1,
 						"noSymbol": 2,
 					},
-					"openapi/v1/exchangeInfo": 10,
+					"openapi/v1/exchangeInfo": map[string]any{
+						"cost": 10,
+					},
 					"openapi/quote/v1/depth": map[string]any{
 						"cost":    1,
 						"byLimit": []any{[]any{101, 5}, []any{0, 1}},
 					},
-					"openapi/quote/v1/klines":   1,
-					"openapi/quote/v1/trades":   1,
-					"openapi/v1/pairs":          1,
-					"openapi/quote/v1/avgPrice": 1,
+					"openapi/quote/v1/klines": map[string]any{
+						"cost": 1,
+					},
+					"openapi/quote/v1/trades": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/pairs": map[string]any{
+						"cost": 1,
+					},
+					"openapi/quote/v1/avgPrice": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"openapi/v1/check-sys-status":                  1,
-					"openapi/wallet/v1/config/getall":              10,
-					"openapi/wallet/v1/deposit/address":            10,
-					"openapi/wallet/v1/deposit/history":            1,
-					"openapi/wallet/v1/withdraw/history":           1,
-					"openapi/wallet/v1/withdraw/address-whitelist": 1,
-					"openapi/v1/account":                           10,
-					"openapi/v1/api-keys":                          1,
+					"openapi/v1/check-sys-status": map[string]any{
+						"cost": 1,
+					},
+					"openapi/wallet/v1/config/getall": map[string]any{
+						"cost": 10,
+					},
+					"openapi/wallet/v1/deposit/address": map[string]any{
+						"cost": 10,
+					},
+					"openapi/wallet/v1/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/wallet/v1/withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/wallet/v1/withdraw/address-whitelist": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/account": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/api-keys": map[string]any{
+						"cost": 1,
+					},
 					"openapi/v1/openOrders": map[string]any{
 						"cost":     3,
 						"noSymbol": 40,
 					},
-					"openapi/v1/asset/tradeFee": 1,
-					"openapi/v1/order":          2,
+					"openapi/v1/asset/tradeFee": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/order": map[string]any{
+						"cost": 2,
+					},
 					"openapi/v1/historyOrders": map[string]any{
 						"cost":     10,
 						"noSymbol": 40,
 					},
-					"openapi/v1/myTrades":                                        10,
-					"openapi/v1/capital/deposit/history":                         1,
-					"openapi/v1/capital/withdraw/history":                        1,
-					"openapi/v3/payment-request/get-payment-request":             1,
-					"merchant-api/v1/get-invoices":                               1,
-					"openapi/account/v3/crypto-accounts":                         1,
-					"openapi/transfer/v3/transfers/{id}":                         1,
-					"openapi/v1/sub-account/list":                                10,
-					"openapi/v1/sub-account/asset":                               10,
-					"openapi/v1/sub-account/transfer/universal-transfer-history": 10,
-					"openapi/v1/sub-account/transfer/sub-history":                10,
-					"openapi/v1/sub-account/apikey/ip-restriction":               10,
-					"openapi/v1/sub-account/wallet/deposit/address":              1,
-					"openapi/v1/sub-account/wallet/deposit/history":              1,
-					"openapi/v1/fund-collect/get-fund-record":                    1,
-					"openapi/v1/asset/transaction/history":                       20,
+					"openapi/v1/myTrades": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/capital/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/capital/withdraw/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v3/payment-request/get-payment-request": map[string]any{
+						"cost": 1,
+					},
+					"merchant-api/v1/get-invoices": map[string]any{
+						"cost": 1,
+					},
+					"openapi/account/v3/crypto-accounts": map[string]any{
+						"cost": 1,
+					},
+					"openapi/transfer/v3/transfers/{id}": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/sub-account/list": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/sub-account/asset": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/sub-account/transfer/universal-transfer-history": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/sub-account/transfer/sub-history": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/sub-account/apikey/ip-restriction": map[string]any{
+						"cost": 10,
+					},
+					"openapi/v1/sub-account/wallet/deposit/address": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/sub-account/wallet/deposit/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/fund-collect/get-fund-record": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/asset/transaction/history": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"openapi/wallet/v1/withdraw/apply":                    600,
-					"openapi/v1/order/test":                               1,
-					"openapi/v1/order":                                    1,
-					"openapi/v1/order/cancelReplace":                      1,
-					"openapi/v1/capital/withdraw/apply":                   1,
-					"openapi/v1/capital/deposit/apply":                    1,
-					"openapi/v3/payment-request/payment-requests":         1,
-					"openapi/v3/payment-request/delete-payment-request":   1,
-					"openapi/v3/payment-request/payment-request-reminder": 1,
-					"openapi/v1/userDataStream":                           1,
-					"merchant-api/v1/invoices":                            1,
-					"merchant-api/v1/invoices-cancel":                     1,
-					"openapi/convert/v1/get-supported-trading-pairs":      1,
-					"openapi/convert/v1/get-quote":                        1,
-					"openapi/convert/v1/accept-quote":                     1,
-					"openapi/convert/v1/query-order-history":              1,
-					"openapi/otc-trade/v1/get-supported-trading-pairs":    1,
-					"openapi/otc-trade/v1/create-rfq":                     1,
-					"openapi/otc-trade/v1/accept-rfq":                     1,
-					"openapi/otc-trade/v1/manual-settle":                  1,
-					"openapi/otc-trade/v1/query-order-history":            1,
-					"openapi/fiat/v1/support-channel":                     1,
-					"openapi/fiat/v1/cash-out":                            1,
-					"openapi/fiat/v1/history":                             1,
-					"openapi/migration/v4/sellorder":                      1,
-					"openapi/migration/v4/validate-field":                 1,
-					"openapi/transfer/v3/transfers":                       1,
-					"openapi/transfer/v4/transfers":                       1,
-					"openapi/v1/sub-account/create":                       30,
-					"openapi/v1/sub-account/transfer/universal-transfer":  100,
-					"openapi/v1/sub-account/transfer/sub-to-master":       100,
-					"openapi/v1/sub-account/apikey/add-ip-restriction":    30,
-					"openapi/v1/sub-account/apikey/delete-ip-restriction": 30,
-					"openapi/v1/fund-collect/collect-from-sub-account":    1,
+					"openapi/wallet/v1/withdraw/apply": map[string]any{
+						"cost": 600,
+					},
+					"openapi/v1/order/test": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/order": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/order/cancelReplace": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/capital/withdraw/apply": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/capital/deposit/apply": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v3/payment-request/payment-requests": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v3/payment-request/delete-payment-request": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v3/payment-request/payment-request-reminder": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
+					"merchant-api/v1/invoices": map[string]any{
+						"cost": 1,
+					},
+					"merchant-api/v1/invoices-cancel": map[string]any{
+						"cost": 1,
+					},
+					"openapi/convert/v1/get-supported-trading-pairs": map[string]any{
+						"cost": 1,
+					},
+					"openapi/convert/v1/get-quote": map[string]any{
+						"cost": 1,
+					},
+					"openapi/convert/v1/accept-quote": map[string]any{
+						"cost": 1,
+					},
+					"openapi/convert/v1/query-order-history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/otc-trade/v1/get-supported-trading-pairs": map[string]any{
+						"cost": 1,
+					},
+					"openapi/otc-trade/v1/create-rfq": map[string]any{
+						"cost": 1,
+					},
+					"openapi/otc-trade/v1/accept-rfq": map[string]any{
+						"cost": 1,
+					},
+					"openapi/otc-trade/v1/manual-settle": map[string]any{
+						"cost": 1,
+					},
+					"openapi/otc-trade/v1/query-order-history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/fiat/v1/support-channel": map[string]any{
+						"cost": 1,
+					},
+					"openapi/fiat/v1/cash-out": map[string]any{
+						"cost": 1,
+					},
+					"openapi/fiat/v1/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/migration/v4/sellorder": map[string]any{
+						"cost": 1,
+					},
+					"openapi/migration/v4/validate-field": map[string]any{
+						"cost": 1,
+					},
+					"openapi/transfer/v3/transfers": map[string]any{
+						"cost": 1,
+					},
+					"openapi/transfer/v4/transfers": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/sub-account/create": map[string]any{
+						"cost": 30,
+					},
+					"openapi/v1/sub-account/transfer/universal-transfer": map[string]any{
+						"cost": 100,
+					},
+					"openapi/v1/sub-account/transfer/sub-to-master": map[string]any{
+						"cost": 100,
+					},
+					"openapi/v1/sub-account/apikey/add-ip-restriction": map[string]any{
+						"cost": 30,
+					},
+					"openapi/v1/sub-account/apikey/delete-ip-restriction": map[string]any{
+						"cost": 30,
+					},
+					"openapi/v1/fund-collect/collect-from-sub-account": map[string]any{
+						"cost": 1,
+					},
 				},
 				"put": map[string]any{
-					"openapi/v1/userDataStream": 1,
+					"openapi/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"openapi/v1/order":          1,
-					"openapi/v1/openOrders":     1,
-					"openapi/v1/userDataStream": 1,
+					"openapi/v1/order": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/openOrders": map[string]any{
+						"cost": 1,
+					},
+					"openapi/v1/userDataStream": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -334,10 +478,10 @@ func (this *CoinsphCore) Describe() any {
 				"method": "publicGetOpenapiQuoteV1Ticker24hr",
 			},
 			"networks": map[string]any{
-				"TRC20": "TRX",
-				"ERC20": "ETH",
-				"BEP20": "BSC",
-				"ARB":   "ARBITRUM",
+				"TRC20":    "TRX",
+				"ERC20":    "ETH",
+				"BEP20":    "BSC",
+				"ARBITRUM": "ARBITRUM",
 			},
 		},
 		"features": map[string]any{
@@ -632,26 +776,28 @@ func (this *CoinsphCore) ParseCurrency(rawCurrency any) any {
 		var networkItem any = GetValue(networkList, j)
 		var network any = this.SafeString(networkItem, "network")
 		var networkCode any = this.NetworkIdToCode(network, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"info":      networkItem,
-			"id":        network,
-			"network":   networkCode,
-			"active":    nil,
-			"deposit":   this.SafeBool(networkItem, "depositEnable"),
-			"withdraw":  this.SafeBool(networkItem, "withdrawEnable"),
-			"fee":       this.SafeNumber(networkItem, "withdrawFee"),
-			"precision": this.SafeNumber(networkItem, "withdrawIntegerMultiple"),
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(networkItem, "withdrawMin"),
-					"max": this.SafeNumber(networkItem, "withdrawMax"),
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      networkItem,
+				"id":        network,
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   this.SafeBool(networkItem, "depositEnable"),
+				"withdraw":  this.SafeBool(networkItem, "withdrawEnable"),
+				"fee":       this.SafeNumber(networkItem, "withdrawFee"),
+				"precision": this.SafeNumber(networkItem, "withdrawIntegerMultiple"),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(networkItem, "withdrawMin"),
+						"max": this.SafeNumber(networkItem, "withdrawMax"),
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
-				},
-			},
-		})
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -679,7 +825,7 @@ func (this *CoinsphCore) CalculateRateLimiterCost(api any, method any, path any,
 	} else if IsTrue(IsTrue((InOp(config, "byNumberOfSymbols"))) && IsTrue((InOp(params, "symbols")))) {
 		var symbols any = GetValue(params, "symbols")
 		var symbolsAmount any = GetArrayLength(symbols)
-		var byNumberOfSymbols any = GetValue(config, "byNumberOfSymbols")
+		var byNumberOfSymbols any = this.SafeList(config, "byNumberOfSymbols", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byNumberOfSymbols)); i++ {
 			var entry any = GetValue(byNumberOfSymbols, i)
 			if IsTrue(IsGreaterThanOrEqual(symbolsAmount, GetValue(entry, 0))) {
@@ -688,7 +834,7 @@ func (this *CoinsphCore) CalculateRateLimiterCost(api any, method any, path any,
 		}
 	} else if IsTrue(IsTrue((InOp(config, "byLimit"))) && IsTrue((InOp(params, "limit")))) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = GetValue(config, "byLimit")
+		var byLimit any = this.SafeList(config, "byLimit", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byLimit)); i++ {
 			var entry any = GetValue(byLimit, i)
 			if IsTrue(IsGreaterThanOrEqual(limit, GetValue(entry, 0))) {
@@ -933,8 +1079,8 @@ func (this *CoinsphCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88912 := (<-this.LoadMarkets())
-			PanicOnError(retRes88912)
+			retRes89112 := (<-this.LoadMarkets())
+			PanicOnError(retRes89112)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -991,8 +1137,8 @@ func (this *CoinsphCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92812 := (<-this.LoadMarkets())
-			PanicOnError(retRes92812)
+			retRes93012 := (<-this.LoadMarkets())
+			PanicOnError(retRes93012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1111,7 +1257,7 @@ func (this *CoinsphCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinsphCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1124,8 +1270,8 @@ func (this *CoinsphCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103912 := (<-this.LoadMarkets())
-			PanicOnError(retRes103912)
+			retRes104112 := (<-this.LoadMarkets())
+			PanicOnError(retRes104112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1188,8 +1334,8 @@ func (this *CoinsphCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes108212 := (<-this.LoadMarkets())
-			PanicOnError(retRes108212)
+			retRes108412 := (<-this.LoadMarkets())
+			PanicOnError(retRes108412)
 		}
 		var market any = this.Market(symbol)
 		var interval any = this.SafeString(this.Timeframes, timeframe)
@@ -1223,7 +1369,6 @@ func (this *CoinsphCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 
 		response := (<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, params)))
 		PanicOnError(response)
-
 		//
 		//     [
 		//         [
@@ -1241,7 +1386,9 @@ func (this *CoinsphCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		//         ]
 		//     ]
 		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+		var ohlcvs any = this.ToArray(response)
+
+		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 		return nil
 
 	}()
@@ -1277,8 +1424,8 @@ func (this *CoinsphCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes115812 := (<-this.LoadMarkets())
-			PanicOnError(retRes115812)
+			retRes116112 := (<-this.LoadMarkets())
+			PanicOnError(retRes116112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1345,8 +1492,8 @@ func (this *CoinsphCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes120512 := (<-this.LoadMarkets())
-			PanicOnError(retRes120512)
+			retRes120812 := (<-this.LoadMarkets())
+			PanicOnError(retRes120812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1402,9 +1549,9 @@ func (this *CoinsphCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan an
 			"orderId": id,
 		}
 
-		retRes124115 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes124115)
-		ch <- retRes124115
+		retRes124415 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes124415)
+		ch <- retRes124415
 		return nil
 
 	}()
@@ -1516,8 +1663,8 @@ func (this *CoinsphCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes134112 := (<-this.LoadMarkets())
-			PanicOnError(retRes134112)
+			retRes134412 := (<-this.LoadMarkets())
+			PanicOnError(retRes134412)
 		}
 
 		response := (<-this.PrivateGetOpenapiV1Account(params))
@@ -1564,7 +1711,9 @@ func (this *CoinsphCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1596,8 +1745,8 @@ func (this *CoinsphCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes140512 := (<-this.LoadMarkets())
-			PanicOnError(retRes140512)
+			retRes141012 := (<-this.LoadMarkets())
+			PanicOnError(retRes141012)
 		}
 		var market any = this.Market(symbol)
 		var testOrder any = this.SafeBool(params, "test", false)
@@ -1713,7 +1862,7 @@ func (this *CoinsphCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @description fetches information on an order made by the user
  * @see https://docs.coins.ph/rest-api/#query-order-user_data
  * @param {int|string} id order id
- * @param {string} symbol not used by coinsph fetchOrder ()
+ * @param {string} symbol not used by fetchOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1728,8 +1877,8 @@ func (this *CoinsphCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes151712 := (<-this.LoadMarkets())
-			PanicOnError(retRes151712)
+			retRes152212 := (<-this.LoadMarkets())
+			PanicOnError(retRes152212)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
@@ -1776,8 +1925,8 @@ func (this *CoinsphCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes154412 := (<-this.LoadMarkets())
-			PanicOnError(retRes154412)
+			retRes154912 := (<-this.LoadMarkets())
+			PanicOnError(retRes154912)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1825,8 +1974,8 @@ func (this *CoinsphCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes157212 := (<-this.LoadMarkets())
-			PanicOnError(retRes157212)
+			retRes157712 := (<-this.LoadMarkets())
+			PanicOnError(retRes157712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1856,7 +2005,7 @@ func (this *CoinsphCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @description cancels an open order
  * @see https://docs.coins.ph/rest-api/#cancel-order-trade
  * @param {string} id order id
- * @param {string} symbol not used by coinsph cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1871,8 +2020,8 @@ func (this *CoinsphCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160112 := (<-this.LoadMarkets())
-			PanicOnError(retRes160112)
+			retRes160612 := (<-this.LoadMarkets())
+			PanicOnError(retRes160612)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
@@ -1916,8 +2065,8 @@ func (this *CoinsphCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes162912 := (<-this.LoadMarkets())
-			PanicOnError(retRes162912)
+			retRes163412 := (<-this.LoadMarkets())
+			PanicOnError(retRes163412)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -2133,8 +2282,8 @@ func (this *CoinsphCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183612 := (<-this.LoadMarkets())
-			PanicOnError(retRes183612)
+			retRes184112 := (<-this.LoadMarkets())
+			PanicOnError(retRes184112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2178,8 +2327,8 @@ func (this *CoinsphCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes186612 := (<-this.LoadMarkets())
-			PanicOnError(retRes186612)
+			retRes187112 := (<-this.LoadMarkets())
+			PanicOnError(retRes187112)
 		}
 
 		response := (<-this.PrivateGetOpenapiV1AssetTradeFee(params))
@@ -2199,8 +2348,9 @@ func (this *CoinsphCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var fee any = this.ParseTradingFee(GetValue(response, i))
+		var fees any = this.ToArray(response)
+		for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
+			var fee any = this.ParseTradingFee(GetValue(fees, i))
 			var symbol any = GetValue(fee, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
 				AddElementToObject(result, symbol, fee)
@@ -2243,7 +2393,7 @@ func (this *CoinsphCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @see https://docs.coins.ph/rest-api/#withdrawuser_data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
- * @param {string} address not used by coinsph withdraw ()
+ * @param {string} address not used by withdraw ()
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
@@ -2260,7 +2410,7 @@ func (this *CoinsphCore) Withdraw(code any, amount any, address any, optionalArg
 		var options any = this.SafeValue(this.Options, "withdraw")
 		var warning any = this.SafeBool(options, "warning", true)
 		if IsTrue(warning) {
-			panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options[\\'withdraw\\'][\\'warning\\'] = false to make a withdrawal to your coins_ph account")))
+			panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")))
 		}
 		var networkCode any = this.SafeString(params, "network")
 		var networkId any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.NetworkCodeToId(networkCode, code))
@@ -2269,8 +2419,8 @@ func (this *CoinsphCore) Withdraw(code any, amount any, address any, optionalArg
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes193912 := (<-this.LoadMarkets())
-			PanicOnError(retRes193912)
+			retRes194512 := (<-this.LoadMarkets())
+			PanicOnError(retRes194512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2321,8 +2471,8 @@ func (this *CoinsphCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes197012 := (<-this.LoadMarkets())
-			PanicOnError(retRes197012)
+			retRes197612 := (<-this.LoadMarkets())
+			PanicOnError(retRes197612)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2402,8 +2552,8 @@ func (this *CoinsphCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes203012 := (<-this.LoadMarkets())
-			PanicOnError(retRes203012)
+			retRes203612 := (<-this.LoadMarkets())
+			PanicOnError(retRes203612)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2594,8 +2744,8 @@ func (this *CoinsphCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220412 := (<-this.LoadMarkets())
-			PanicOnError(retRes220412)
+			retRes221012 := (<-this.LoadMarkets())
+			PanicOnError(retRes221012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

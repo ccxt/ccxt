@@ -297,7 +297,7 @@ func (this *Btcmarkets) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Btcmarkets) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -453,7 +453,7 @@ func (this *Btcmarkets) CreateOrder(symbol string, typeVar string, side string, 
  * @description cancel multiple orders
  * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
  * @param {string[]} ids order ids
- * @param {string} symbol not used by btcmarkets cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -487,7 +487,7 @@ func (this *Btcmarkets) CancelOrders(ids []string, options ...CancelOrdersOption
  * @description cancels an open order
  * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
  * @param {string} id order id
- * @param {string} symbol not used by btcmarket cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -920,10 +920,10 @@ func (this *Btcmarkets) FetchDepositAddresses(options ...FetchDepositAddressesOp
 func (this *Btcmarkets) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Btcmarkets) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Btcmarkets) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Btcmarkets) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1046,7 +1046,7 @@ func (this *Btcmarkets) FetchPosition(symbol string, options ...FetchPositionOpt
 func (this *Btcmarkets) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcmarkets) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Btcmarkets) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1064,7 +1064,7 @@ func (this *Btcmarkets) FetchPositionsRisk(options ...FetchPositionsRiskOptions)
 func (this *Btcmarkets) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcmarkets) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Btcmarkets) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Btcmarkets) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1184,7 +1184,7 @@ func (this *Btcmarkets) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Btcmarkets) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Btcmarkets) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Btcmarkets) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1229,7 +1229,7 @@ func (this *Btcmarkets) FetchTradesWs(symbol string, options ...FetchTradesWsOpt
 func (this *Btcmarkets) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Btcmarkets) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Btcmarkets) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Btcmarkets) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

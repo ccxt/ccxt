@@ -36,6 +36,7 @@ class exmo extends exmo$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -122,67 +123,67 @@ class exmo extends exmo$1["default"] {
             },
             'api': {
                 'web': {
-                    'get': [
-                        'ctrl/feesAndLimits',
-                        'en/docs/fees',
-                    ],
+                    'get': {
+                        'ctrl/feesAndLimits': { 'cost': 1 },
+                        'en/docs/fees': { 'cost': 1 },
+                    },
                 },
                 'public': {
-                    'get': [
-                        'currency',
-                        'currency/list/extended',
-                        'order_book',
-                        'pair_settings',
-                        'ticker',
-                        'trades',
-                        'candles_history',
-                        'required_amount',
-                        'payments/providers/crypto/list',
-                    ],
+                    'get': {
+                        'currency': { 'cost': 1 },
+                        'currency/list/extended': { 'cost': 1 },
+                        'order_book': { 'cost': 1 },
+                        'pair_settings': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'candles_history': { 'cost': 1 },
+                        'required_amount': { 'cost': 1 },
+                        'payments/providers/crypto/list': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'user_info',
-                        'order_create',
-                        'order_cancel',
-                        'stop_market_order_create',
-                        'stop_market_order_cancel',
-                        'user_open_orders',
-                        'user_trades',
-                        'user_cancelled_orders',
-                        'order_trades',
-                        'deposit_address',
-                        'withdraw_crypt',
-                        'withdraw_get_txid',
-                        'excode_create',
-                        'excode_load',
-                        'code_check',
-                        'wallet_history',
-                        'wallet_operations',
-                        'margin/user/order/create',
-                        'margin/user/order/update',
-                        'margin/user/order/cancel',
-                        'margin/user/position/close',
-                        'margin/user/position/margin_add',
-                        'margin/user/position/margin_remove',
-                        'margin/currency/list',
-                        'margin/pair/list',
-                        'margin/settings',
-                        'margin/funding/list',
-                        'margin/user/info',
-                        'margin/user/order/list',
-                        'margin/user/order/history',
-                        'margin/user/order/trades',
-                        'margin/user/order/max_quantity',
-                        'margin/user/position/list',
-                        'margin/user/position/margin_remove_info',
-                        'margin/user/position/margin_add_info',
-                        'margin/user/wallet/list',
-                        'margin/user/wallet/history',
-                        'margin/user/trade/list',
-                        'margin/trades',
-                        'margin/liquidation/feed',
-                    ],
+                    'post': {
+                        'user_info': { 'cost': 1 },
+                        'order_create': { 'cost': 1 },
+                        'order_cancel': { 'cost': 1 },
+                        'stop_market_order_create': { 'cost': 1 },
+                        'stop_market_order_cancel': { 'cost': 1 },
+                        'user_open_orders': { 'cost': 1 },
+                        'user_trades': { 'cost': 1 },
+                        'user_cancelled_orders': { 'cost': 1 },
+                        'order_trades': { 'cost': 1 },
+                        'deposit_address': { 'cost': 1 },
+                        'withdraw_crypt': { 'cost': 1 },
+                        'withdraw_get_txid': { 'cost': 1 },
+                        'excode_create': { 'cost': 1 },
+                        'excode_load': { 'cost': 1 },
+                        'code_check': { 'cost': 1 },
+                        'wallet_history': { 'cost': 1 },
+                        'wallet_operations': { 'cost': 1 },
+                        'margin/user/order/create': { 'cost': 1 },
+                        'margin/user/order/update': { 'cost': 1 },
+                        'margin/user/order/cancel': { 'cost': 1 },
+                        'margin/user/position/close': { 'cost': 1 },
+                        'margin/user/position/margin_add': { 'cost': 1 },
+                        'margin/user/position/margin_remove': { 'cost': 1 },
+                        'margin/currency/list': { 'cost': 1 },
+                        'margin/pair/list': { 'cost': 1 },
+                        'margin/settings': { 'cost': 1 },
+                        'margin/funding/list': { 'cost': 1 },
+                        'margin/user/info': { 'cost': 1 },
+                        'margin/user/order/list': { 'cost': 1 },
+                        'margin/user/order/history': { 'cost': 1 },
+                        'margin/user/order/trades': { 'cost': 1 },
+                        'margin/user/order/max_quantity': { 'cost': 1 },
+                        'margin/user/position/list': { 'cost': 1 },
+                        'margin/user/position/margin_remove_info': { 'cost': 1 },
+                        'margin/user/position/margin_add_info': { 'cost': 1 },
+                        'margin/user/wallet/list': { 'cost': 1 },
+                        'margin/user/wallet/history': { 'cost': 1 },
+                        'margin/user/trade/list': { 'cost': 1 },
+                        'margin/trades': { 'cost': 1 },
+                        'margin/liquidation/feed': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -470,8 +471,9 @@ class exmo extends exmo$1["default"] {
         //     }
         //
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const fee = this.safeValue(response, market['id'], {});
             const makerString = this.safeString(fee, 'commission_maker_percent');
@@ -573,7 +575,9 @@ class exmo extends exmo$1["default"] {
                 const typeInner = this.safeString(provider, 'type');
                 const commissionDesc = this.safeString(provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue(commissionDesc);
-                result[code][typeInner] = fee;
+                if (code !== undefined && typeInner !== undefined) {
+                    result[code][typeInner] = fee;
+                }
             }
             result[code]['info'] = providers;
         }
@@ -655,21 +659,25 @@ class exmo extends exmo$1["default"] {
             }
             const network = this.safeValue(result['networks'], networkCode);
             if (network === undefined) {
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+            }
+            if ((networkCode !== undefined) && (type !== undefined)) {
+                result['networks'][networkCode][type] = {
+                    'fee': this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)),
+                    'percentage': percentage,
                 };
             }
-            result['networks'][networkCode][type] = {
-                'fee': this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)),
-                'percentage': percentage,
-            };
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -746,37 +754,42 @@ class exmo extends exmo$1["default"] {
                 const provider = providers[j];
                 const name = this.safeString(provider, 'name');
                 // get network-id by removing extra things
+                if (name === undefined) {
+                    throw new errors.ExchangeError(this.id + ' parseCurrency() missing name');
+                }
                 let networkId = name.replace(currencyId + ' ', '');
                 networkId = networkId.replace('(', '');
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace(replaceChar, '');
                 const networkCode = this.networkIdToCode(networkId, code);
-                if (!(networkCode in networks)) {
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
+                if ((networkCode === undefined) || !(networkCode in networks)) {
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': undefined,
+                            'withdraw': undefined,
+                            'fee': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'info': [], // set as array, because of multiple network sub-entries
-                    };
+                            'info': [], // set as array, because of multiple network sub-entries
+                        };
+                    }
                 }
                 const typeInner = this.safeString(provider, 'type');
                 const minValue = this.safeString(provider, 'min');
                 const maxValue = this.safeString(provider, 'max');
                 const activeProvider = this.safeBool(provider, 'enabled');
-                const networkEntry = networks[networkCode];
+                const networkEntry = this.safeValue(networks, networkCode);
                 if (typeInner === 'deposit') {
                     networkEntry['deposit'] = activeProvider;
                     networkEntry['limits']['deposit']['min'] = minValue;
@@ -790,7 +803,9 @@ class exmo extends exmo$1["default"] {
                 const info = this.safeList(networkEntry, 'info', []);
                 info.push(provider);
                 networkEntry['info'] = info;
-                networks[networkCode] = networkEntry;
+                if (networkCode !== undefined) {
+                    networks[networkCode] = networkEntry;
+                }
             }
         }
         return this.safeCurrencyStructure({
@@ -1056,7 +1071,9 @@ class exmo extends exmo$1["default"] {
                 account['used'] = this.safeString(item, 'used');
                 account['free'] = this.safeString(item, 'free');
                 account['total'] = this.safeString(item, 'balance');
-                result[currency] = account;
+                if (currency !== undefined) {
+                    result[currency] = account;
+                }
             }
         }
         else {
@@ -1073,7 +1090,9 @@ class exmo extends exmo$1["default"] {
                 if (currencyId in used) {
                     account['used'] = this.safeString(used, currencyId);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1137,7 +1156,7 @@ class exmo extends exmo$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1196,7 +1215,8 @@ class exmo extends exmo$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = this.safeSymbol(marketId);
-            result[symbol] = this.parseOrderBook(response[marketId], symbol, undefined, 'bid', 'ask');
+            const rawOrderBook = this.safeDict(response, marketId, {});
+            result[symbol] = this.parseOrderBook(rawOrderBook, symbol, undefined, 'bid', 'ask');
         }
         return result;
     }
@@ -1296,7 +1316,7 @@ class exmo extends exmo$1["default"] {
         }
         const response = await this.publicGetTicker(params);
         const market = this.market(symbol);
-        return this.parseTicker(response[market['id']], market);
+        return this.parseTicker(this.safeValue(response, market['id']), market);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1726,7 +1746,7 @@ class exmo extends exmo$1["default"] {
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
      * @param {string} id order id
-     * @param {string} symbol not used by exmo cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true to cancel a trigger order
      * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
@@ -1892,7 +1912,11 @@ class exmo extends exmo$1["default"] {
             //
         }
         const trades = this.safeList(response, 'trades');
-        return this.parseTrades(trades, market, since, limit);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
     /**
      * @method
@@ -2177,7 +2201,7 @@ class exmo extends exmo$1["default"] {
             await this.loadMarkets();
         }
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchCanceledOrders', params);
         if (marginMode === 'cross') {
             throw new errors.BadRequest(this.id + ' only supports isolated margin');
         }
@@ -2325,7 +2349,7 @@ class exmo extends exmo$1["default"] {
         const symbols = Object.keys(tradesBySymbol);
         const numSymbols = symbols.length;
         if (numSymbols === 1) {
-            return this.markets[symbols[0]];
+            return this.market(symbols[0]);
         }
         return undefined;
     }
@@ -2456,7 +2480,9 @@ class exmo extends exmo$1["default"] {
                 const numParts = parts.length;
                 if (numParts === 2) {
                     address = this.safeString(parts, 1);
-                    address = address.replace(' ', '');
+                    if (address !== undefined) {
+                        address = address.replace(' ', '');
+                    }
                 }
             }
         }
@@ -2565,7 +2591,8 @@ class exmo extends exmo$1["default"] {
         //       ],
         //     }
         //
-        return this.parseTransactions(response['history'], currency, since, limit);
+        const history = this.safeList(response, 'history', []);
+        return this.parseTransactions(history, currency, since, limit);
     }
     /**
      * @method
@@ -2848,6 +2875,9 @@ class exmo extends exmo$1["default"] {
             if (!success) {
                 let code = undefined;
                 const message = this.safeString2(response, 'error', 'errmsg');
+                if (message === undefined) {
+                    throw new errors.ExchangeError(this.id + ' handleErrors() missing message');
+                }
                 const errorParts = message.split(':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {

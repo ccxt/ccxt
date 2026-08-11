@@ -23,8 +23,8 @@ public partial class coinbase : Exchange
                 { "CORS", true },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
-                { "future", false },
+                { "swap", true },
+                { "future", true },
                 { "option", false },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
@@ -119,6 +119,7 @@ public partial class coinbase : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchOrdersByStatus", true },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
@@ -144,6 +145,7 @@ public partial class coinbase : Exchange
                 { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -164,123 +166,305 @@ public partial class coinbase : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "currencies", 10.6 },
-                            { "currencies/crypto", 10.6 },
-                            { "time", 10.6 },
-                            { "exchange-rates", 10.6 },
-                            { "users/{user_id}", 10.6 },
-                            { "prices/{symbol}/buy", 10.6 },
-                            { "prices/{symbol}/sell", 10.6 },
-                            { "prices/{symbol}/spot", 10.6 },
+                            { "currencies", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "currencies/crypto", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "time", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "exchange-rates", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "users/{user_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "prices/{symbol}/buy", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "prices/{symbol}/sell", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "prices/{symbol}/spot", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "accounts", 10.6 },
-                            { "accounts/{account_id}", 10.6 },
-                            { "accounts/{account_id}/addresses", 10.6 },
-                            { "accounts/{account_id}/addresses/{address_id}", 10.6 },
-                            { "accounts/{account_id}/addresses/{address_id}/transactions", 10.6 },
-                            { "accounts/{account_id}/transactions", 10.6 },
-                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
-                            { "accounts/{account_id}/buys", 10.6 },
-                            { "accounts/{account_id}/buys/{buy_id}", 10.6 },
-                            { "accounts/{account_id}/sells", 10.6 },
-                            { "accounts/{account_id}/sells/{sell_id}", 10.6 },
-                            { "accounts/{account_id}/deposits", 10.6 },
-                            { "accounts/{account_id}/deposits/{deposit_id}", 10.6 },
-                            { "accounts/{account_id}/withdrawals", 10.6 },
-                            { "accounts/{account_id}/withdrawals/{withdrawal_id}", 10.6 },
-                            { "payment-methods", 10.6 },
-                            { "payment-methods/{payment_method_id}", 10.6 },
-                            { "user", 10.6 },
-                            { "user/auth", 10.6 },
+                            { "accounts", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/addresses", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/addresses/{address_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/addresses/{address_id}/transactions", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions/{transaction_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/buys", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/buys/{buy_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/sells", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/sells/{sell_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/deposits", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/deposits/{deposit_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/withdrawals", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "payment-methods", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "payment-methods/{payment_method_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "user", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "user/auth", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "accounts", 10.6 },
-                            { "accounts/{account_id}/primary", 10.6 },
-                            { "accounts/{account_id}/addresses", 10.6 },
-                            { "accounts/{account_id}/transactions", 10.6 },
-                            { "accounts/{account_id}/transactions/{transaction_id}/complete", 10.6 },
-                            { "accounts/{account_id}/transactions/{transaction_id}/resend", 10.6 },
-                            { "accounts/{account_id}/buys", 10.6 },
-                            { "accounts/{account_id}/buys/{buy_id}/commit", 10.6 },
-                            { "accounts/{account_id}/sells", 10.6 },
-                            { "accounts/{account_id}/sells/{sell_id}/commit", 10.6 },
-                            { "accounts/{account_id}/deposits", 10.6 },
-                            { "accounts/{account_id}/deposits/{deposit_id}/commit", 10.6 },
-                            { "accounts/{account_id}/withdrawals", 10.6 },
-                            { "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", 10.6 },
+                            { "accounts", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/primary", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/addresses", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions/{transaction_id}/complete", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions/{transaction_id}/resend", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/buys", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/buys/{buy_id}/commit", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/sells", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/sells/{sell_id}/commit", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/deposits", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/deposits/{deposit_id}/commit", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/withdrawals", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "accounts/{account_id}", 10.6 },
-                            { "user", 10.6 },
+                            { "accounts/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "user", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "accounts/{id}", 10.6 },
-                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
+                            { "accounts/{id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
+                            { "accounts/{account_id}/transactions/{transaction_id}", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                     } },
                 } },
                 { "v3", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "brokerage/time", 3 },
-                            { "brokerage/market/product_book", 3 },
-                            { "brokerage/market/products", 3 },
-                            { "brokerage/market/products/{product_id}", 3 },
-                            { "brokerage/market/products/{product_id}/candles", 3 },
-                            { "brokerage/market/products/{product_id}/ticker", 3 },
+                            { "brokerage/time", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/market/product_book", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/market/products", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/market/products/{product_id}", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/market/products/{product_id}/candles", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/market/products/{product_id}/ticker", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "brokerage/accounts", 1 },
-                            { "brokerage/accounts/{account_uuid}", 1 },
-                            { "brokerage/orders/historical/batch", 1 },
-                            { "brokerage/orders/historical/fills", 1 },
-                            { "brokerage/orders/historical/{order_id}", 1 },
-                            { "brokerage/products", 3 },
-                            { "brokerage/products/{product_id}", 3 },
-                            { "brokerage/products/{product_id}/candles", 3 },
-                            { "brokerage/products/{product_id}/ticker", 3 },
-                            { "brokerage/best_bid_ask", 3 },
-                            { "brokerage/product_book", 3 },
-                            { "brokerage/transaction_summary", 3 },
-                            { "brokerage/portfolios", 1 },
-                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
-                            { "brokerage/convert/trade/{trade_id}", 1 },
-                            { "brokerage/cfm/balance_summary", 1 },
-                            { "brokerage/cfm/positions", 1 },
-                            { "brokerage/cfm/positions/{product_id}", 1 },
-                            { "brokerage/cfm/sweeps", 1 },
-                            { "brokerage/intx/portfolio/{portfolio_uuid}", 1 },
-                            { "brokerage/intx/positions/{portfolio_uuid}", 1 },
-                            { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", 1 },
-                            { "brokerage/payment_methods", 1 },
-                            { "brokerage/payment_methods/{payment_method_id}", 1 },
-                            { "brokerage/key_permissions", 1 },
+                            { "brokerage/accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/accounts/{account_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/historical/batch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/historical/fills", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/historical/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/products", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/products/{product_id}", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/products/{product_id}/candles", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/products/{product_id}/ticker", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/best_bid_ask", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/product_book", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/transaction_summary", new Dictionary<string, object>() {
+                                { "cost", 3 },
+                            } },
+                            { "brokerage/portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/portfolios/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/convert/trade/{trade_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/balance_summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/positions/{product_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/sweeps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/portfolio/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/positions/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/payment_methods", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/payment_methods/{payment_method_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/key_permissions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "brokerage/orders", 1 },
-                            { "brokerage/orders/batch_cancel", 1 },
-                            { "brokerage/orders/edit", 1 },
-                            { "brokerage/orders/edit_preview", 1 },
-                            { "brokerage/orders/preview", 1 },
-                            { "brokerage/portfolios", 1 },
-                            { "brokerage/portfolios/move_funds", 1 },
-                            { "brokerage/convert/quote", 1 },
-                            { "brokerage/convert/trade/{trade_id}", 1 },
-                            { "brokerage/cfm/sweeps/schedule", 1 },
-                            { "brokerage/intx/allocate", 1 },
-                            { "brokerage/orders/close_position", 1 },
+                            { "brokerage/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/batch_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/edit_preview", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/preview", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/portfolios", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/portfolios/move_funds", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/convert/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/convert/trade/{trade_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/sweeps/schedule", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/allocate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/orders/close_position", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
-                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                            { "brokerage/portfolios/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
-                            { "brokerage/cfm/sweeps", 1 },
+                            { "brokerage/portfolios/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/sweeps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -845,7 +1029,7 @@ public partial class coinbase : Exchange
      * @ignore
      * @description fetch sells
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMySells ()
+     * @param {string} symbol not used by fetchMySells ()
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -862,7 +1046,8 @@ public partial class coinbase : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         object sells = await this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query));
-        return this.parseTrades(getValue(sells, "data"), null, since, limit);
+        object sellsData = this.safeList(sells, "data", new List<object>() {});
+        return this.parseTrades(sellsData, null, since, limit);
     }
 
     /**
@@ -871,7 +1056,7 @@ public partial class coinbase : Exchange
      * @ignore
      * @description fetch buys
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMyBuys ()
+     * @param {string} symbol not used by fetchMyBuys ()
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -888,7 +1073,8 @@ public partial class coinbase : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         object buys = await this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query));
-        return this.parseTrades(getValue(buys, "data"), null, since, limit);
+        object buysData = this.safeList(buys, "data", new List<object>() {});
+        return this.parseTrades(buysData, null, since, limit);
     }
 
     public async virtual Task<object> fetchTransactionsWithMethod(object method, object code = null, object since = null, object limit = null, object parameters = null)
@@ -951,7 +1137,7 @@ public partial class coinbase : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object currencyType = null;
-        var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
+        var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "currencyType");
         currencyType = ((IList<object>)currencyTypeparametersVariable)[0];
         parameters = ((IList<object>)currencyTypeparametersVariable)[1];
         if (isTrue(isEqual(currencyType, "crypto")))
@@ -2041,36 +2227,48 @@ public partial class coinbase : Exchange
             object id = this.safeString2(currency, "id", "code");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)((string)name)).ToLower();
-            ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)((string)name)).ToLower();
+            }
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
+            }
             object type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "type", type },
-                { "name", name },
-                { "active", true },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "networks", new Dictionary<string, object>() {} },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_size") },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", currency },
+                    { "id", id },
+                    { "code", code },
+                    { "type", type },
+                    { "name", name },
+                    { "active", true },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(currency, "min_size") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            });
+                });
+            }
             if (isTrue(!isEqual(assetId, null)))
             {
                 object lowerCaseName = ((string)((string)name)).ToLower();
-                ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                }
                 ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
             }
         }
@@ -2079,15 +2277,18 @@ public partial class coinbase : Exchange
         {
             object currencyId = getValue(ratesIds, i);
             object code = this.safeCurrencyCode(currencyId);
-            if (!isTrue((inOp(result, code))))
+            if (isTrue(isTrue((isEqual(code, null))) || !isTrue((inOp(result, code)))))
             {
-                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                    { "info", new Dictionary<string, object>() {} },
-                    { "id", currencyId },
-                    { "code", code },
-                    { "type", "crypto" },
-                    { "networks", new Dictionary<string, object>() {} },
-                });
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                        { "info", new Dictionary<string, object>() {} },
+                        { "id", currencyId },
+                        { "code", code },
+                        { "type", "crypto" },
+                        { "networks", new Dictionary<string, object>() {} },
+                    });
+                }
             }
         }
         ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
@@ -2515,7 +2716,10 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["free"] = Precise.stringAdd(getValue(account, "free"), total);
                         ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
                     }
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = account;
+                    }
                 }
             } else if (isTrue(this.inArray(type, v3Accounts)))
             {
@@ -2541,7 +2745,10 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(getValue(account, "used"), used);
                         ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
                     }
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = account;
+                    }
                 }
             }
         }
@@ -2704,7 +2911,8 @@ public partial class coinbase : Exchange
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
         object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
-        object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object ledger = this.parseLedger(data, currency, since, limit);
         object length = getArrayLength(ledger);
         if (isTrue(isEqual(length, 0)))
         {
@@ -2743,7 +2951,7 @@ public partial class coinbase : Exchange
             { "pro_deposit", "transaction" },
             { "pro_withdrawal", "transaction" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -3631,7 +3839,7 @@ public partial class coinbase : Exchange
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string} id order id
-     * @param {string} symbol not used by coinbase cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3652,7 +3860,7 @@ public partial class coinbase : Exchange
      * @description cancel multiple orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by coinbase cancelOrders()
+     * @param {string} symbol not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3867,7 +4075,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -3955,7 +4163,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -4072,7 +4280,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000);
         }
         return await this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters);
     }
@@ -4133,7 +4341,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "end"});
+        object until = this.safeInteger2(parameters, "until", "end");
         parameters = this.omit(parameters, new List<object>() {"until"});
         object duration = this.parseTimeframe(timeframe);
         object requestedDuration = multiply(limit, duration);
@@ -4323,7 +4531,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -4374,7 +4582,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -5139,12 +5347,72 @@ public partial class coinbase : Exchange
 
     /**
      * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "funds", new Dictionary<string, object>() {
+                { "value", this.currencyToPrecision(code, amount) },
+                { "currency", getValue(currency, "id") },
+            } },
+            { "source_portfolio_uuid", fromAccount },
+            { "target_portfolio_uuid", toAccount },
+        };
+        object response = await this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, parameters));
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        object transfer = this.parseTransfer(response, currency);
+        ((IDictionary<string,object>)transfer)["amount"] = amount;
+        ((IDictionary<string,object>)transfer)["status"] = "ok";
+        return transfer;
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        object currencyCode = this.safeCurrencyCode(null, currency);
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "currency", currencyCode },
+            { "amount", null },
+            { "fromAccount", this.safeString(transfer, "source_portfolio_uuid") },
+            { "toAccount", this.safeString(transfer, "target_portfolio_uuid") },
+            { "status", null },
+        };
+    }
+
+    /**
+     * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the coinbase api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -5467,9 +5735,9 @@ public partial class coinbase : Exchange
         object taker_fee = this.safeNumber(data, "taker_fee_rate");
         object maker_fee = this.safeNumber(data, "maker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             if (isTrue(isTrue((isTrue(isSpot) && isTrue(getValue(market, "spot")))) || isTrue((!isTrue(isSpot) && !isTrue(getValue(market, "spot"))))))
             {

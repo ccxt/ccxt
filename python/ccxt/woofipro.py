@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -56,6 +56,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
@@ -66,6 +67,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchAllGreeks': False,
                 'fetchBalance': True,
@@ -104,7 +106,9 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -118,8 +122,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -162,7 +166,7 @@ class woofipro(Exchange, ImplicitAPI):
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
-                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
                 ],
                 'fees': [
                     'https://dex.woo.org/en/orderly',
@@ -176,133 +180,133 @@ class woofipro(Exchange, ImplicitAPI):
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': {'cost': 1},
+                            'public/broker/name': {'cost': 1},
+                            'public/chain_info/{broker_id}': {'cost': 1},
+                            'public/system_info': {'cost': 1},
+                            'public/vault_balance': {'cost': 1},
+                            'public/insurancefund': {'cost': 1},
+                            'public/chain_info': {'cost': 1},
+                            'faucet/usdc': {'cost': 1},
+                            'public/account': {'cost': 1},
+                            'get_account': {'cost': 1},
+                            'registration_nonce': {'cost': 1},
+                            'get_orderly_key': {'cost': 1},
+                            'public/liquidation': {'cost': 1},
+                            'public/liquidated_positions': {'cost': 1},
+                            'public/config': {'cost': 1},
+                            'public/campaign/ranking': {'cost': 10},
+                            'public/campaign/stats': {'cost': 10},
+                            'public/campaign/user': {'cost': 10},
+                            'public/campaign/stats/details': {'cost': 10},
+                            'public/campaigns': {'cost': 10},
+                            'public/points/leaderboard': {'cost': 1},
+                            'client/points': {'cost': 1},
+                            'public/points/epoch': {'cost': 1},
+                            'public/points/epoch_dates': {'cost': 1},
+                            'public/referral/check_ref_code': {'cost': 1},
+                            'public/referral/verify_ref_code': {'cost': 1},
+                            'referral/admin_info': {'cost': 1},
+                            'referral/info': {'cost': 1},
+                            'referral/referee_info': {'cost': 1},
+                            'referral/referee_rebate_summary': {'cost': 1},
+                            'referral/referee_history': {'cost': 1},
+                            'referral/referral_history': {'cost': 1},
+                            'referral/rebate_summary': {'cost': 1},
+                            'client/distribution_history': {'cost': 1},
+                            'tv/config': {'cost': 1},
+                            'tv/history': {'cost': 1},
+                            'tv/symbol_info': {'cost': 1},
+                            'public/funding_rate_history': {'cost': 1},
+                            'public/funding_rate/{symbol}': {'cost': 0.33},
+                            'public/funding_rates': {'cost': 1},
+                            'public/info': {'cost': 1},
+                            'public/info/{symbol}': {'cost': 1},
+                            'public/market_trades': {'cost': 1},
+                            'public/token': {'cost': 1},
+                            'public/futures': {'cost': 1},
+                            'public/futures/{symbol}': {'cost': 1},
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': {'cost': 6},
+                            'client/orderly_key_ip_restriction': {'cost': 6},
+                            'order/{oid}': {'cost': 1},
+                            'client/order/{client_order_id}': {'cost': 1},
+                            'algo/order/{oid}': {'cost': 1},
+                            'algo/client/order/{client_order_id}': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'algo/orders': {'cost': 1},
+                            'trade/{tid}': {'cost': 1},
+                            'trades': {'cost': 1},
+                            'order/{oid}/trades': {'cost': 1},
+                            'client/liquidator_liquidations': {'cost': 1},
+                            'liquidations': {'cost': 1},
+                            'asset/history': {'cost': 60},
+                            'client/holding': {'cost': 1},
+                            'withdraw_nonce': {'cost': 1},
+                            'settle_nonce': {'cost': 1},
+                            'pnl_settlement/history': {'cost': 1},
+                            'volume/user/daily': {'cost': 60},
+                            'volume/user/stats': {'cost': 60},
+                            'client/statistics': {'cost': 60},
+                            'client/info': {'cost': 60},
+                            'client/statistics/daily': {'cost': 60},
+                            'positions': {'cost': 3.33},
+                            'position/{symbol}': {'cost': 3.33},
+                            'funding_fee/history': {'cost': 30},
+                            'notification/inbox/notifications': {'cost': 60},
+                            'notification/inbox/unread': {'cost': 60},
+                            'volume/broker/daily': {'cost': 60},
+                            'broker/fee_rate/default': {'cost': 10},
+                            'broker/user_info': {'cost': 10},
+                            'orderbook/{symbol}': {'cost': 1},
+                            'kline': {'cost': 1},
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': {'cost': 1},
+                            'client/set_orderly_key_ip_restriction': {'cost': 6},
+                            'client/reset_orderly_key_ip_restriction': {'cost': 6},
+                            'order': {'cost': 1},
+                            'batch-order': {'cost': 10},
+                            'algo/order': {'cost': 1},
+                            'liquidation': {'cost': 1},
+                            'claim_insurance_fund': {'cost': 1},
+                            'withdraw_request': {'cost': 1},
+                            'settle_pnl': {'cost': 1},
+                            'notification/inbox/mark_read': {'cost': 60},
+                            'notification/inbox/mark_read_all': {'cost': 60},
+                            'client/leverage': {'cost': 120},
+                            'client/maintenance_config': {'cost': 60},
+                            'delegate_signer': {'cost': 10},
+                            'delegate_orderly_key': {'cost': 10},
+                            'delegate_settle_pnl': {'cost': 10},
+                            'delegate_withdraw_request': {'cost': 10},
+                            'broker/fee_rate/set': {'cost': 10},
+                            'broker/fee_rate/set_default': {'cost': 10},
+                            'broker/fee_rate/default': {'cost': 10},
+                            'referral/create': {'cost': 10},
+                            'referral/update': {'cost': 10},
+                            'referral/bind': {'cost': 10},
+                            'referral/edit_split': {'cost': 10},
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': {'cost': 1},
+                            'algo/order': {'cost': 1},
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': {'cost': 1},
+                            'algo/order': {'cost': 1},
+                            'client/order': {'cost': 1},
+                            'algo/client/order': {'cost': 1},
+                            'algo/orders': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'batch-order': {'cost': 1},
+                            'client/batch-order': {'cost': 1},
                         },
                     },
                 },
@@ -453,11 +457,11 @@ class woofipro(Exchange, ImplicitAPI):
         super(woofipro, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -493,7 +497,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -540,6 +544,8 @@ class woofipro(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(market, 'symbol')
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
         marketType = 'swap'
         baseId = self.safe_string(parts, 1)
@@ -549,7 +555,7 @@ class woofipro(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -597,13 +603,13 @@ class woofipro(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        }
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woofipro
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -652,8 +658,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -692,10 +698,12 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(tokenRows)):
             token = tokenRows[i]
             parsed = self.parse_currency({'_token': token, '_indexedChains': indexedChains})
+            if parsed is None:
+                raise ExchangeError(self.id + ' fetchCurrencies() could not resolve parsed')
             result[parsed['code']] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         token = self.safe_dict(rawCurrency, '_token', {})
         currencyId = self.safe_string(token, 'token')
         networks = self.safe_list(token, 'chain_details', [])
@@ -706,28 +714,29 @@ class woofipro(Exchange, ImplicitAPI):
             networkEntry = networks[j]
             networkId = self.safe_string(networkEntry, 'chain_id')
             networkRow = self.safe_dict(indexedChains, networkId)
-            networkName = self.safe_string(networkRow, 'name')
+            networkName = self.safe_string(networkRow, 'name', networkId)
             networkCode = self.network_id_to_code(networkName, code)
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
-                'info': {'network': networkEntry, 'networkRow': networkRow},
-            }
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
+                    'info': {'network': networkEntry, 'networkRow': networkRow},
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'name': None,
@@ -751,7 +760,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
+    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -801,7 +810,7 @@ class woofipro(Exchange, ImplicitAPI):
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
         feeCost = self.safe_string(fee, 'cost')
-        if feeCost is not None:
+        if (fee is not None) and (feeCost is not None):
             fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
@@ -830,7 +839,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -866,7 +875,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -907,7 +916,7 @@ class woofipro(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -921,7 +930,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate interval
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -933,7 +942,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -968,7 +977,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate for multiple markets
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -999,11 +1008,258 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rates(rows, symbols)
 
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        return self.parse_ticker(data, market)
+
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "index_price": 64185.4,
+        #             "mark_price": 64171.0,
+        #             "sum_unitary_funding": 26522.3,
+        #             "est_funding_rate": 0.0001,
+        #             "last_funding_rate": 0.00010041,
+        #             "next_funding_time": 1786032000000,
+        #             "open_interest": 110.64612,
+        #             "24h_open": 64105.6,
+        #             "24h_close": 64180.0,
+        #             "24h_high": 64941.0,
+        #             "24h_low": 63837.6,
+        #             "24h_volume": 102.2817,
+        #             "24h_amount": 6595662.199482
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def parse_open_interest(self, interest: Any, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(interest, 'timestamp')
+        amount = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': amount,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "open_interest": 110.64612,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        return self.parse_open_interest(data, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+        """
+        retrieves the open interest for a list of contract trading pairs
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "index_price": 64185.4,
+        #             "mark_price": 64171.0,
+        #             "open_interest": 110.64612,
+        #             "24h_volume": 102.2817,
+        #             "24h_amount": 6595662.199482
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            interest = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_open_interest(interest))
+        return self.filter_by_array(result, 'symbol', symbols)
+
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1064,7 +1320,7 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1100,7 +1356,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -1160,7 +1416,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -1199,8 +1455,9 @@ class woofipro(Exchange, ImplicitAPI):
         maker = self.safe_string(data, 'futures_maker_fee_rate')
         taker = self.safe_string(data, 'futures_taker_fee_rate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1215,12 +1472,12 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1253,7 +1510,7 @@ class woofipro(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1266,7 +1523,7 @@ class woofipro(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1371,9 +1628,9 @@ class woofipro(Exchange, ImplicitAPI):
         if success is not None:
             status = 'NEW' if (success) else 'REJECTED'
         side = self.safe_string_lower(order, 'side')
-        filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
+        filled = self.safe_string_n(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed'])
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
-        remaining = Precise.string_sub(cost, filled)
+        remaining = Precise.string_sub(amount, filled)
         fee = self.safe_value_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
@@ -1454,7 +1711,11 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -1468,6 +1729,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         market = self.market(symbol)
         orderSide = side.upper()
         request = {
@@ -1511,16 +1774,10 @@ class woofipro(Exchange, ImplicitAPI):
             request['algo_type'] = 'STOP'
         elif hasStopLoss or hasTakeProfit:
             request['algo_type'] = 'TP_SL'
-            outterOrder = {
-                'symbol': market['id'],
-                'reduce_only': False,
-                'algo_type': 'POSITIONAL_TP_SL',
-                'child_orders': [],
-            }
-            childOrders = outterOrder['child_orders']
+            childOrders = []
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if hasStopLoss:
-                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'price', stopLoss)
                 stopLossOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1530,7 +1787,7 @@ class woofipro(Exchange, ImplicitAPI):
                 }
                 childOrders.append(stopLossOrder)
             if hasTakeProfit:
-                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'price', takeProfit)
                 takeProfitOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1538,7 +1795,13 @@ class woofipro(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder.append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
+            outterOrder = {
+                'symbol': market['id'],
+                'reduce_only': False,
+                'algo_type': 'POSITIONAL_TP_SL',
+                'child_orders': childOrders,
+            }
             request['child_orders'] = [outterOrder]
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
@@ -1547,8 +1810,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1616,7 +1879,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1670,8 +1933,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1703,6 +1966,8 @@ class woofipro(Exchange, ImplicitAPI):
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
         response = None
+        if side is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
         if isConditional:
             response = self.v1PrivatePutAlgoOrder(self.extend(request, params))
         else:
@@ -1743,10 +2008,10 @@ class woofipro(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
@@ -1809,7 +2074,8 @@ class woofipro(Exchange, ImplicitAPI):
         else:
             extendParams['id'] = id
         if trigger:
-            return self.extend(self.parse_order(response), extendParams)
+            parsedResponse = {} if (response is None) else response
+            return self.extend(self.parse_order(parsedResponse), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
@@ -1817,8 +2083,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
@@ -1854,11 +2120,11 @@ class woofipro(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1900,10 +2166,10 @@ class woofipro(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
 
         fetches information on an order made by the user
         :param str id: the order id
@@ -1965,14 +2231,15 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         orders = self.safe_dict(response, 'data', response)
-        return self.parse_order(orders, market)
+        parsedOrders = {} if (orders is None) else orders
+        return self.parse_order(parsedOrders, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2055,8 +2322,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2078,8 +2345,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2101,7 +2368,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -2147,7 +2414,7 @@ class woofipro(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2207,7 +2474,7 @@ class woofipro(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2217,15 +2484,16 @@ class woofipro(Exchange, ImplicitAPI):
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
-            account['frozen'] = self.safe_string(balance, 'frozen')
-            result[code] = account
+            account['used'] = self.safe_string(balance, 'frozen')
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -2323,7 +2591,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
@@ -2334,7 +2602,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2394,7 +2662,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2411,7 +2679,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2428,7 +2696,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -2451,7 +2719,10 @@ class woofipro(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        return self.parse_transactions(rows, currency, since, limit, params)
+        rowsList = []
+        if rows is not None:
+            rowsList = rows
+        return self.parse_transactions(rowsList, currency, since, limit, params)
 
     def get_withdraw_nonce(self, params={}):
         response = self.v1PrivateGetWithdrawNonce(params)
@@ -2467,24 +2738,24 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2558,7 +2829,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
@@ -2572,7 +2843,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2616,7 +2887,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
 
         :param int [leverage]: the rate of leverage
         :param str [symbol]: unified market symbol
@@ -2701,10 +2972,10 @@ class woofipro(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: Str, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
 
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
@@ -2744,14 +3015,14 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2805,7 +3076,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2860,7 +3131,7 @@ class woofipro(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchTransactionFees extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchTransactionFees(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testFetchTransactionFees(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

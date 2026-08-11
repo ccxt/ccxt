@@ -175,7 +175,7 @@ func (this *Onetrading) FetchTickers(options ...FetchTickersOptions) (Tickers, e
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Onetrading) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -308,7 +308,7 @@ func (this *Onetrading) CreateOrder(symbol string, typeVar string, side string, 
  * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
  * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -341,7 +341,7 @@ func (this *Onetrading) CancelOrder(id string, options ...CancelOrderOptions) (O
  * @name onetrading#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -773,10 +773,10 @@ func (this *Onetrading) FetchDeposits(options ...FetchDepositsOptions) ([]Transa
 func (this *Onetrading) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Onetrading) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Onetrading) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Onetrading) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Onetrading) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Onetrading) FetchFreeBalance(params ...any) (Balance, error) {
@@ -899,7 +899,7 @@ func (this *Onetrading) FetchPosition(symbol string, options ...FetchPositionOpt
 func (this *Onetrading) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Onetrading) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Onetrading) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Onetrading) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -917,7 +917,7 @@ func (this *Onetrading) FetchPositionsRisk(options ...FetchPositionsRiskOptions)
 func (this *Onetrading) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Onetrading) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Onetrading) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Onetrading) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -1040,7 +1040,7 @@ func (this *Onetrading) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Onetrading) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Onetrading) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Onetrading) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Onetrading) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1085,7 +1085,7 @@ func (this *Onetrading) FetchTradesWs(symbol string, options ...FetchTradesWsOpt
 func (this *Onetrading) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Onetrading) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Onetrading) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Onetrading) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

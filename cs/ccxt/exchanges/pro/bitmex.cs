@@ -388,7 +388,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -793,9 +793,9 @@ public partial class bitmex : ccxt.bitmex
         await this.authenticate();
         object subscriptionHash = "position";
         object messageHash = "positions";
-        if (!isTrue(this.isEmpty((IList<string>)(symbols))))
+        if (!isTrue(this.isEmpty(symbols)))
         {
-            messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
@@ -1219,7 +1219,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 object orderId = this.safeString(currentOrder, "orderID");
-                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, ((string)orderId));
+                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, orderId);
                 object rawOrder = currentOrder;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {
@@ -1394,7 +1394,7 @@ public partial class bitmex : ccxt.bitmex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1591,7 +1591,7 @@ public partial class bitmex : ccxt.bitmex
         object table = this.safeString(message, "table");
         object interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
         object timeframe = this.findTimeframe(interval);
-        object duration = this.parseTimeframe(((string)timeframe));
+        object duration = this.parseTimeframe(timeframe);
         object candles = this.safeValue(message, "data", new List<object>() {});
         object results = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
@@ -1603,7 +1603,7 @@ public partial class bitmex : ccxt.bitmex
             object messageHash = add(add(table, ":"), getValue(market, "id"));
             object result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1900,7 +1900,7 @@ public partial class bitmex : ccxt.bitmex
                 { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
-            object method = this.safeValue(methods, ((string)table));
+            object method = this.safeValue(methods, table);
             if (isTrue(isEqual(method, null)))
             {
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});

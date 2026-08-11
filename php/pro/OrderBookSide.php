@@ -18,12 +18,10 @@ const tmp = array();
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
     public $depth;
-    public $n;
 
     public function __construct($deltas = array(), $depth = null) {
         parent::__construct();
         $this->depth = $depth ? $depth : PHP_INT_MAX;
-        $this->n = PHP_INT_MAX;
         $this->index = array();
 
         foreach ($deltas as $delta) {
@@ -58,10 +56,29 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             array_splice($tmp, $index, 1);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 
     public function store($price, $size, $id = null) {
         $this->storeArray(array($price, $size));
+    }
+
+    protected function assertIndexAligned() {
+        // the parallel index and data arrays have exactly one invariant and a
+        // desync surfaces as corruption only several mutations later, so trip
+        // at the first desynced mutation instead; zero cost in production,
+        // zend.assertions set to -1 compiles asserts out, see
+        // https://github.com/ccxt/ccxt/pull/29603 and
+        // https://github.com/ccxt/ccxt/issues/26967
+        assert(count($this->index) === parent::count(), 'ccxt OrderBookSide index and data desynced: index=' . count($this->index) . ' data=' . parent::count());
+    }
+
+    public function copy() {
+        $deltas = array();
+        foreach ($this as $delta) {
+            $deltas[] = $delta;
+        }
+        return new static($deltas, $this->depth);
     }
 
     public function limit() {
@@ -72,32 +89,11 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             array_splice($tmp, -$difference);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 
     public function JsonSerialize () : array {
-        $copy = $this->getArrayCopy();
-        if ($this->n > count($this)) {
-            return $copy;
-        } else {
-            return array_slice($copy, 0, $this->n);
-        }
-    }
-
-    #[\ReturnTypeWillChange]
-    public function offsetExists($key) {
-        return $key < $this->n && parent::offsetExists($key);
-    }
-
-    #[\ReturnTypeWillChange]
-    public function offsetGet($key) {
-        if ($key < $this->n) {
-            return parent::offsetGet($key);
-        }
-    }
-
-    #[\ReturnTypeWillChange]
-    public function count() {
-        return min($this->n, parent::count());
+        return $this->getArrayCopy();
     }
 
     #[\ReturnTypeWillChange]
@@ -147,6 +143,7 @@ class CountedOrderBookSide extends OrderBookSide {
             array_splice($tmp, $index, 1);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 }
 
@@ -159,6 +156,22 @@ class IndexedOrderBookSide extends OrderBookSide {
     public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
         $this->hashmap = array();
         parent::__construct($deltas, $depth);
+    }
+
+    public function limit() {
+        // remove the trimmed rows' ids from the hashmap before the trim,
+        // python already did, php and js leaked them and the next delta for
+        // a trimmed id walked off the live region, see the python
+        // remove_index hook for the reference behavior
+        $difference = count($this) - $this->depth;
+        if ($difference > 0) {
+            $tmp = $this->getArrayCopy();
+            $total = count($tmp);
+            for ($i = $total - $difference; $i < $total; $i++) {
+                unset($this->hashmap[$tmp[$i][2]]);
+            }
+        }
+        parent::limit();
     }
 
     public function store($price, $size, $id = null) {
@@ -180,22 +193,32 @@ class IndexedOrderBookSide extends OrderBookSide {
                 // in case price is not set
                 $delta[0] = abs($index_price);
                 if ($index_price === $old_price) {
+                    // bounded so a stale hashmap entry degrades to a clean
+                    // reinsert below instead of walking off the live region
                     $index = bisectLeft($this->index, $index_price);
-                    while ($this[$index][2] != $id) {
+                    $total = count($this);
+                    while ($index < $total && $this[$index][2] != $id) {
                         $index++;
                     }
-                    $this[$index] = $delta;
-                    return;
+                    if ($index < $total) {
+                        $this[$index] = $delta;
+                        $this->assertIndexAligned();
+                        return;
+                    }
                 } else {
-                    // remove old price from index
+                    // remove old price from index, bounded, a stale
+                    // hashmap entry has nothing to remove
                     $old_index = bisectLeft($this->index, $old_price);
-                    while ($this[$old_index][2] != $id) {
+                    $total = count($this);
+                    while ($old_index < $total && $this[$old_index][2] != $id) {
                         $old_index++;
                     }
-                    array_splice($this->index, $old_index, 1);
-                    $tmp = $this->exchangeArray(tmp);
-                    array_splice($tmp, $old_index, 1);
-                    $this->exchangeArray($tmp);
+                    if ($old_index < $total) {
+                        array_splice($this->index, $old_index, 1);
+                        $tmp = $this->exchangeArray(tmp);
+                        array_splice($tmp, $old_index, 1);
+                        $this->exchangeArray($tmp);
+                    }
                 }
             }
             // insert new price level into the orderbook
@@ -208,17 +231,22 @@ class IndexedOrderBookSide extends OrderBookSide {
             $tmp = $this->exchangeArray(tmp);
             array_splice($tmp, $index, 0, array($delta));
             $this->exchangeArray($tmp);
+            $this->assertIndexAligned();
         } else if (array_key_exists($id, $this->hashmap)) {
             $old_price = $this->hashmap[$id];
             $index = bisectLeft($this->index, $old_price);
-            while ($this[$index][2] != $id) {
+            $total = count($this);
+            while ($index < $total && $this[$index][2] != $id) {
                 $index++;
             }
-            array_splice($this->index, $index, 1);
-            $tmp = $this->exchangeArray(tmp);
-            array_splice($tmp, $index, 1);
-            $this->exchangeArray($tmp);
+            if ($index < $total) {
+                array_splice($this->index, $index, 1);
+                $tmp = $this->exchangeArray(tmp);
+                array_splice($tmp, $index, 1);
+                $this->exchangeArray($tmp);
+            }
             unset($this->hashmap[$id]);
+            $this->assertIndexAligned();
         }
     }
 }

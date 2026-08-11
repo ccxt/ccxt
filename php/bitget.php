@@ -192,731 +192,731 @@ class bitget extends Exchange {
                 'public' => array(
                     'common' => array(
                         'get' => array(
-                            'v2/public/annoucements' => 1,
-                            'v2/public/time' => 1,
+                            'v2/public/annoucements' => array( 'cost' => 1 ),
+                            'v2/public/time' => array( 'cost' => 1 ),
                         ),
                     ),
                     'spot' => array(
                         'get' => array(
-                            'spot/v1/notice/queryAllNotices' => 1, // 20 times/1s (IP) => 20/20 = 1
-                            'spot/v1/public/time' => 1,
-                            'spot/v1/public/currencies' => 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
-                            'spot/v1/public/products' => 1,
-                            'spot/v1/public/product' => 1,
-                            'spot/v1/market/ticker' => 1,
-                            'spot/v1/market/tickers' => 1,
-                            'spot/v1/market/fills' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/market/fills-history' => 2,
-                            'spot/v1/market/candles' => 1,
-                            'spot/v1/market/depth' => 1,
-                            'spot/v1/market/spot-vip-level' => 2,
-                            'spot/v1/market/merge-depth' => 1,
-                            'spot/v1/market/history-candles' => 1,
-                            'spot/v1/public/loan/coinInfos' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/spot/public/coins' => 6.6667,
-                            'v2/spot/public/symbols' => 1,
-                            'v2/spot/market/vip-fee-rate' => 2,
-                            'v2/spot/market/tickers' => 1,
-                            'v2/spot/market/merge-depth' => 1,
-                            'v2/spot/market/orderbook' => 1,
-                            'v2/spot/market/candles' => 1,
-                            'v2/spot/market/history-candles' => 1,
-                            'v2/spot/market/fills' => 2,
-                            'v2/spot/market/fills-history' => 2,
+                            'spot/v1/notice/queryAllNotices' => array( 'cost' => 1 ), // 20 times/1s (IP) => 20/20 = 1
+                            'spot/v1/public/time' => array( 'cost' => 1 ),
+                            'spot/v1/public/currencies' => array( 'cost' => 6.6667 ), // 3 times/1s (IP) => 20/3 = 6.6667
+                            'spot/v1/public/products' => array( 'cost' => 1 ),
+                            'spot/v1/public/product' => array( 'cost' => 1 ),
+                            'spot/v1/market/ticker' => array( 'cost' => 1 ),
+                            'spot/v1/market/tickers' => array( 'cost' => 1 ),
+                            'spot/v1/market/fills' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/market/fills-history' => array( 'cost' => 2 ),
+                            'spot/v1/market/candles' => array( 'cost' => 1 ),
+                            'spot/v1/market/depth' => array( 'cost' => 1 ),
+                            'spot/v1/market/spot-vip-level' => array( 'cost' => 2 ),
+                            'spot/v1/market/merge-depth' => array( 'cost' => 1 ),
+                            'spot/v1/market/history-candles' => array( 'cost' => 1 ),
+                            'spot/v1/public/loan/coinInfos' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'v2/spot/public/coins' => array( 'cost' => 6.6667 ),
+                            'v2/spot/public/symbols' => array( 'cost' => 1 ),
+                            'v2/spot/market/vip-fee-rate' => array( 'cost' => 2 ),
+                            'v2/spot/market/tickers' => array( 'cost' => 1 ),
+                            'v2/spot/market/merge-depth' => array( 'cost' => 1 ),
+                            'v2/spot/market/orderbook' => array( 'cost' => 1 ),
+                            'v2/spot/market/candles' => array( 'cost' => 1 ),
+                            'v2/spot/market/history-candles' => array( 'cost' => 1 ),
+                            'v2/spot/market/fills' => array( 'cost' => 2 ),
+                            'v2/spot/market/fills-history' => array( 'cost' => 2 ),
                         ),
                     ),
                     'mix' => array(
                         'get' => array(
-                            'mix/v1/market/contracts' => 1,
-                            'mix/v1/market/depth' => 1,
-                            'mix/v1/market/ticker' => 1,
-                            'mix/v1/market/tickers' => 1,
-                            'mix/v1/market/contract-vip-level' => 2,
-                            'mix/v1/market/fills' => 1,
-                            'mix/v1/market/fills-history' => 2,
-                            'mix/v1/market/candles' => 1,
-                            'mix/v1/market/index' => 1,
-                            'mix/v1/market/funding-time' => 1,
-                            'mix/v1/market/history-fundRate' => 1,
-                            'mix/v1/market/current-fundRate' => 1,
-                            'mix/v1/market/open-interest' => 1,
-                            'mix/v1/market/mark-price' => 1,
-                            'mix/v1/market/symbol-leverage' => 1,
-                            'mix/v1/market/queryPositionLever' => 1,
-                            'mix/v1/market/open-limit' => 1,
-                            'mix/v1/market/history-candles' => 1,
-                            'mix/v1/market/history-index-candles' => 1,
-                            'mix/v1/market/history-mark-candles' => 1,
-                            'mix/v1/market/merge-depth' => 1,
-                            'v2/mix/market/vip-fee-rate' => 2,
-                            'v2/mix/market/union-interest-rate-history' => 4,
-                            'v2/mix/market/exchange-rate' => 4,
-                            'v2/mix/market/discount-rate' => 4,
-                            'v2/mix/market/merge-depth' => 1,
-                            'v2/mix/market/ticker' => 1,
-                            'v2/mix/market/tickers' => 1,
-                            'v2/mix/market/fills' => 1,
-                            'v2/mix/market/fills-history' => 2,
-                            'v2/mix/market/candles' => 1,
-                            'v2/mix/market/history-candles' => 1,
-                            'v2/mix/market/history-index-candles' => 1,
-                            'v2/mix/market/history-mark-candles' => 1,
-                            'v2/mix/market/open-interest' => 1,
-                            'v2/mix/market/funding-time' => 1,
-                            'v2/mix/market/symbol-price' => 1,
-                            'v2/mix/market/history-fund-rate' => 1,
-                            'v2/mix/market/current-fund-rate' => 1,
-                            'v2/mix/market/oi-limit' => 2,
-                            'v2/mix/market/contracts' => 1,
-                            'v2/mix/market/query-position-lever' => 2,
-                            'v2/mix/market/account-long-short' => 20,
+                            'mix/v1/market/contracts' => array( 'cost' => 1 ),
+                            'mix/v1/market/depth' => array( 'cost' => 1 ),
+                            'mix/v1/market/ticker' => array( 'cost' => 1 ),
+                            'mix/v1/market/tickers' => array( 'cost' => 1 ),
+                            'mix/v1/market/contract-vip-level' => array( 'cost' => 2 ),
+                            'mix/v1/market/fills' => array( 'cost' => 1 ),
+                            'mix/v1/market/fills-history' => array( 'cost' => 2 ),
+                            'mix/v1/market/candles' => array( 'cost' => 1 ),
+                            'mix/v1/market/index' => array( 'cost' => 1 ),
+                            'mix/v1/market/funding-time' => array( 'cost' => 1 ),
+                            'mix/v1/market/history-fundRate' => array( 'cost' => 1 ),
+                            'mix/v1/market/current-fundRate' => array( 'cost' => 1 ),
+                            'mix/v1/market/open-interest' => array( 'cost' => 1 ),
+                            'mix/v1/market/mark-price' => array( 'cost' => 1 ),
+                            'mix/v1/market/symbol-leverage' => array( 'cost' => 1 ),
+                            'mix/v1/market/queryPositionLever' => array( 'cost' => 1 ),
+                            'mix/v1/market/open-limit' => array( 'cost' => 1 ),
+                            'mix/v1/market/history-candles' => array( 'cost' => 1 ),
+                            'mix/v1/market/history-index-candles' => array( 'cost' => 1 ),
+                            'mix/v1/market/history-mark-candles' => array( 'cost' => 1 ),
+                            'mix/v1/market/merge-depth' => array( 'cost' => 1 ),
+                            'v2/mix/market/vip-fee-rate' => array( 'cost' => 2 ),
+                            'v2/mix/market/union-interest-rate-history' => array( 'cost' => 4 ),
+                            'v2/mix/market/exchange-rate' => array( 'cost' => 4 ),
+                            'v2/mix/market/discount-rate' => array( 'cost' => 4 ),
+                            'v2/mix/market/merge-depth' => array( 'cost' => 1 ),
+                            'v2/mix/market/ticker' => array( 'cost' => 1 ),
+                            'v2/mix/market/tickers' => array( 'cost' => 1 ),
+                            'v2/mix/market/fills' => array( 'cost' => 1 ),
+                            'v2/mix/market/fills-history' => array( 'cost' => 2 ),
+                            'v2/mix/market/candles' => array( 'cost' => 1 ),
+                            'v2/mix/market/history-candles' => array( 'cost' => 1 ),
+                            'v2/mix/market/history-index-candles' => array( 'cost' => 1 ),
+                            'v2/mix/market/history-mark-candles' => array( 'cost' => 1 ),
+                            'v2/mix/market/open-interest' => array( 'cost' => 1 ),
+                            'v2/mix/market/funding-time' => array( 'cost' => 1 ),
+                            'v2/mix/market/symbol-price' => array( 'cost' => 1 ),
+                            'v2/mix/market/history-fund-rate' => array( 'cost' => 1 ),
+                            'v2/mix/market/current-fund-rate' => array( 'cost' => 1 ),
+                            'v2/mix/market/oi-limit' => array( 'cost' => 2 ),
+                            'v2/mix/market/contracts' => array( 'cost' => 1 ),
+                            'v2/mix/market/query-position-lever' => array( 'cost' => 2 ),
+                            'v2/mix/market/account-long-short' => array( 'cost' => 20 ),
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
-                            'margin/v1/cross/public/interestRateAndLimit' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
-                            'v2/margin/currencies' => 2,
-                            'v2/margin/market/long-short-ratio' => 20,
+                            'margin/v1/cross/public/interestRateAndLimit' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies' => array( 'cost' => 1 ), // 20 times/1s (IP) => 20/20 = 1
+                            'v2/margin/currencies' => array( 'cost' => 2 ),
+                            'v2/margin/market/long-short-ratio' => array( 'cost' => 20 ),
                         ),
                     ),
                     'earn' => array(
                         'get' => array(
-                            'v2/earn/loan/public/coinInfos' => 2,
-                            'v2/earn/loan/public/hour-interest' => 2,
+                            'v2/earn/loan/public/coinInfos' => array( 'cost' => 2 ),
+                            'v2/earn/loan/public/hour-interest' => array( 'cost' => 2 ),
                         ),
                     ),
                     'uta' => array(
                         'get' => array(
-                            'v3/market/instruments' => 1,
-                            'v3/market/tickers' => 1,
-                            'v3/market/orderbook' => 1,
-                            'v3/market/fills' => 1,
-                            'v3/market/proof-of-reserves' => 1,
-                            'v3/market/open-interest' => 1,
-                            'v3/market/candles' => 1,
-                            'v3/market/history-candles' => 1,
-                            'v3/market/current-fund-rate' => 1,
-                            'v3/market/history-fund-rate' => 1,
-                            'v3/market/risk-reserve' => 1,
-                            'v3/market/discount-rate' => 1,
-                            'v3/market/margin-loans' => 1,
-                            'v3/market/position-tier' => 1,
-                            'v3/market/oi-limit' => 2,
-                            'v3/market/index-components' => 2,
+                            'v3/market/instruments' => array( 'cost' => 1 ),
+                            'v3/market/tickers' => array( 'cost' => 1 ),
+                            'v3/market/orderbook' => array( 'cost' => 1 ),
+                            'v3/market/fills' => array( 'cost' => 1 ),
+                            'v3/market/proof-of-reserves' => array( 'cost' => 1 ),
+                            'v3/market/open-interest' => array( 'cost' => 1 ),
+                            'v3/market/candles' => array( 'cost' => 1 ),
+                            'v3/market/history-candles' => array( 'cost' => 1 ),
+                            'v3/market/current-fund-rate' => array( 'cost' => 1 ),
+                            'v3/market/history-fund-rate' => array( 'cost' => 1 ),
+                            'v3/market/risk-reserve' => array( 'cost' => 1 ),
+                            'v3/market/discount-rate' => array( 'cost' => 1 ),
+                            'v3/market/margin-loans' => array( 'cost' => 1 ),
+                            'v3/market/position-tier' => array( 'cost' => 1 ),
+                            'v3/market/oi-limit' => array( 'cost' => 2 ),
+                            'v3/market/index-components' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'get' => array(
-                            'spot/v1/wallet/deposit-address' => 4,
-                            'spot/v1/wallet/withdrawal-list' => 1,
-                            'spot/v1/wallet/deposit-list' => 1,
-                            'spot/v1/account/getInfo' => 20,
-                            'spot/v1/account/assets' => 2,
-                            'spot/v1/account/assets-lite' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'spot/v1/convert/currencies' => 2,
-                            'spot/v1/convert/convert-record' => 2,
-                            'spot/v1/loan/ongoing-orders' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/debts' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/orderInfo' => 1,
-                            'v2/spot/trade/unfilled-orders' => 1,
-                            'v2/spot/trade/history-orders' => 1,
-                            'v2/spot/trade/fills' => 2,
-                            'v2/spot/trade/current-plan-order' => 1,
-                            'v2/spot/trade/history-plan-order' => 1,
-                            'v2/spot/account/info' => 20,
-                            'v2/spot/account/assets' => 2,
-                            'v2/spot/account/subaccount-assets' => 2,
-                            'v2/spot/account/bills' => 2,
-                            'v2/spot/account/transferRecords' => 1,
-                            'v2/account/funding-assets' => 2,
-                            'v2/account/bot-assets' => 2,
-                            'v2/account/all-account-balance' => 20,
-                            'v2/spot/wallet/deposit-address' => 2,
-                            'v2/spot/wallet/deposit-records' => 2,
-                            'v2/spot/wallet/withdrawal-records' => 2,
-                            'v2/spot/account/upgrade-status' => 20,
+                            'spot/v1/wallet/deposit-address' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/withdrawal-list' => array( 'cost' => 1 ),
+                            'spot/v1/wallet/deposit-list' => array( 'cost' => 1 ),
+                            'spot/v1/account/getInfo' => array( 'cost' => 20 ),
+                            'spot/v1/account/assets' => array( 'cost' => 2 ),
+                            'spot/v1/account/assets-lite' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'spot/v1/convert/currencies' => array( 'cost' => 2 ),
+                            'spot/v1/convert/convert-record' => array( 'cost' => 2 ),
+                            'spot/v1/loan/ongoing-orders' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/orderInfo' => array( 'cost' => 1 ),
+                            'v2/spot/trade/unfilled-orders' => array( 'cost' => 1 ),
+                            'v2/spot/trade/history-orders' => array( 'cost' => 1 ),
+                            'v2/spot/trade/fills' => array( 'cost' => 2 ),
+                            'v2/spot/trade/current-plan-order' => array( 'cost' => 1 ),
+                            'v2/spot/trade/history-plan-order' => array( 'cost' => 1 ),
+                            'v2/spot/account/info' => array( 'cost' => 20 ),
+                            'v2/spot/account/assets' => array( 'cost' => 2 ),
+                            'v2/spot/account/subaccount-assets' => array( 'cost' => 2 ),
+                            'v2/spot/account/bills' => array( 'cost' => 2 ),
+                            'v2/spot/account/transferRecords' => array( 'cost' => 1 ),
+                            'v2/account/funding-assets' => array( 'cost' => 2 ),
+                            'v2/account/bot-assets' => array( 'cost' => 2 ),
+                            'v2/account/all-account-balance' => array( 'cost' => 20 ),
+                            'v2/spot/wallet/deposit-address' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/deposit-records' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/withdrawal-records' => array( 'cost' => 2 ),
+                            'v2/spot/account/upgrade-status' => array( 'cost' => 20 ),
                         ),
                         'post' => array(
-                            'spot/v1/wallet/transfer' => 4,
-                            'spot/v1/wallet/transfer-v2' => 4,
-                            'spot/v1/wallet/subTransfer' => 10,
-                            'spot/v1/wallet/withdrawal' => 4,
-                            'spot/v1/wallet/withdrawal-v2' => 4,
-                            'spot/v1/wallet/withdrawal-inner' => 4,
-                            'spot/v1/wallet/withdrawal-inner-v2' => 4,
-                            'spot/v1/account/sub-account-spot-assets' => 200,
-                            'spot/v1/account/bills' => 2,
-                            'spot/v1/trade/orders' => 2,
-                            'spot/v1/trade/batch-orders' => 4,
-                            'spot/v1/trade/cancel-order' => 2,
-                            'spot/v1/trade/cancel-order-v2' => 2,
-                            'spot/v1/trade/cancel-symbol-order' => 2,
-                            'spot/v1/trade/cancel-batch-orders' => 4,
-                            'spot/v1/trade/cancel-batch-orders-v2' => 4,
-                            'spot/v1/trade/orderInfo' => 1,
-                            'spot/v1/trade/open-orders' => 1,
-                            'spot/v1/trade/history' => 1,
-                            'spot/v1/trade/fills' => 1,
-                            'spot/v1/plan/placePlan' => 1,
-                            'spot/v1/plan/modifyPlan' => 1,
-                            'spot/v1/plan/cancelPlan' => 1,
-                            'spot/v1/plan/currentPlan' => 1,
-                            'spot/v1/plan/historyPlan' => 1,
-                            'spot/v1/plan/batchCancelPlan' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/convert/quoted-price' => 4,
-                            'spot/v1/convert/trade' => 4,
-                            'spot/v1/loan/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/getRemovableFollower' => 2,
-                            'spot/v1/trace/user/removeFollower' => 2,
-                            'spot/v1/trace/profit/totalProfitInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/place-order' => 2,
-                            'v2/spot/trade/cancel-order' => 2,
-                            'v2/spot/trade/batch-orders' => 20,
-                            'v2/spot/trade/batch-cancel-order' => 2,
-                            'v2/spot/trade/cancel-symbol-order' => 4,
-                            'v2/spot/trade/place-plan-order' => 1,
-                            'v2/spot/trade/modify-plan-order' => 1,
-                            'v2/spot/trade/cancel-plan-order' => 1,
-                            'v2/spot/trade/cancel-replace-order' => 2,
-                            'v2/spot/trade/batch-cancel-plan-order' => 2,
-                            'v2/spot/wallet/transfer' => 2,
-                            'v2/spot/wallet/subaccount-transfer' => 2,
-                            'v2/spot/wallet/withdrawal' => 2,
-                            'v2/spot/wallet/cancel-withdrawal' => 2,
-                            'v2/spot/wallet/modify-deposit-account' => 2,
-                            'v2/spot/account/upgrade' => 20,
+                            'spot/v1/wallet/transfer' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/transfer-v2' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/subTransfer' => array( 'cost' => 10 ),
+                            'spot/v1/wallet/withdrawal' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/withdrawal-v2' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/withdrawal-inner' => array( 'cost' => 4 ),
+                            'spot/v1/wallet/withdrawal-inner-v2' => array( 'cost' => 4 ),
+                            'spot/v1/account/sub-account-spot-assets' => array( 'cost' => 200 ),
+                            'spot/v1/account/bills' => array( 'cost' => 2 ),
+                            'spot/v1/trade/orders' => array( 'cost' => 2 ),
+                            'spot/v1/trade/batch-orders' => array( 'cost' => 4 ),
+                            'spot/v1/trade/cancel-order' => array( 'cost' => 2 ),
+                            'spot/v1/trade/cancel-order-v2' => array( 'cost' => 2 ),
+                            'spot/v1/trade/cancel-symbol-order' => array( 'cost' => 2 ),
+                            'spot/v1/trade/cancel-batch-orders' => array( 'cost' => 4 ),
+                            'spot/v1/trade/cancel-batch-orders-v2' => array( 'cost' => 4 ),
+                            'spot/v1/trade/orderInfo' => array( 'cost' => 1 ),
+                            'spot/v1/trade/open-orders' => array( 'cost' => 1 ),
+                            'spot/v1/trade/history' => array( 'cost' => 1 ),
+                            'spot/v1/trade/fills' => array( 'cost' => 1 ),
+                            'spot/v1/plan/placePlan' => array( 'cost' => 1 ),
+                            'spot/v1/plan/modifyPlan' => array( 'cost' => 1 ),
+                            'spot/v1/plan/cancelPlan' => array( 'cost' => 1 ),
+                            'spot/v1/plan/currentPlan' => array( 'cost' => 1 ),
+                            'spot/v1/plan/historyPlan' => array( 'cost' => 1 ),
+                            'spot/v1/plan/batchCancelPlan' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/convert/quoted-price' => array( 'cost' => 4 ),
+                            'spot/v1/convert/trade' => array( 'cost' => 4 ),
+                            'spot/v1/loan/borrow' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/getRemovableFollower' => array( 'cost' => 2 ),
+                            'spot/v1/trace/user/removeFollower' => array( 'cost' => 2 ),
+                            'spot/v1/trace/profit/totalProfitInfo' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/place-order' => array( 'cost' => 2 ),
+                            'v2/spot/trade/cancel-order' => array( 'cost' => 2 ),
+                            'v2/spot/trade/batch-orders' => array( 'cost' => 20 ),
+                            'v2/spot/trade/batch-cancel-order' => array( 'cost' => 2 ),
+                            'v2/spot/trade/cancel-symbol-order' => array( 'cost' => 4 ),
+                            'v2/spot/trade/place-plan-order' => array( 'cost' => 1 ),
+                            'v2/spot/trade/modify-plan-order' => array( 'cost' => 1 ),
+                            'v2/spot/trade/cancel-plan-order' => array( 'cost' => 1 ),
+                            'v2/spot/trade/cancel-replace-order' => array( 'cost' => 2 ),
+                            'v2/spot/trade/batch-cancel-plan-order' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/transfer' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/subaccount-transfer' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/withdrawal' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/cancel-withdrawal' => array( 'cost' => 2 ),
+                            'v2/spot/wallet/modify-deposit-account' => array( 'cost' => 2 ),
+                            'v2/spot/account/upgrade' => array( 'cost' => 20 ),
                         ),
                     ),
                     'mix' => array(
                         'get' => array(
-                            'mix/v1/account/account' => 2,
-                            'mix/v1/account/accounts' => 2,
-                            'mix/v1/position/singlePosition' => 2,
-                            'mix/v1/position/singlePosition-v2' => 2,
-                            'mix/v1/position/allPosition' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/history-position' => 1,
-                            'mix/v1/account/accountBill' => 2,
-                            'mix/v1/account/accountBusinessBill' => 4,
-                            'mix/v1/order/current' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/history' => 2,
-                            'mix/v1/order/historyProductType' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/detail' => 2,
-                            'mix/v1/order/fills' => 2,
-                            'mix/v1/order/allFills' => 2,
-                            'mix/v1/plan/currentPlan' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/plan/historyPlan' => 2,
-                            'mix/v1/trace/currentTrack' => 2,
-                            'mix/v1/trace/followerOrder' => 2,
-                            'mix/v1/trace/followerHistoryOrders' => 2,
-                            'mix/v1/trace/historyTrack' => 2,
-                            'mix/v1/trace/summary' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trade/profitDateList' => 2,
-                            'mix/v1/trace/waitProfitDateList' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols' => 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderList' => 2,
-                            'mix/v1/trace/traderDetail' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/queryTraceConfig' => 2,
-                            'v2/mix/account/account' => 2,
-                            'v2/mix/account/accounts' => 2,
-                            'v2/mix/account/sub-account-assets' => 200,
-                            'v2/mix/account/interest-history' => 4,
-                            'v2/mix/account/max-open' => 1,
-                            'v2/mix/account/liq-price' => 1,
-                            'v2/mix/account/open-count' => 2,
-                            'v2/mix/account/bill' => 2,
-                            'v2/mix/account/transfer-limits' => 20,
-                            'v2/mix/account/union-config' => 20,
-                            'v2/mix/account/switch-union-usdt' => 20,
-                            'v2/mix/account/isolated-symbols' => 2,
-                            'v2/mix/market/query-position-lever' => 2,
-                            'v2/mix/position/single-position' => 2,
-                            'v2/mix/position/all-position' => 4,
-                            'v2/mix/position/adlRank' => 4,
-                            'v2/mix/position/history-position' => 1,
-                            'v2/mix/order/detail' => 2,
-                            'v2/mix/order/fills' => 2,
-                            'v2/mix/order/fill-history' => 2,
-                            'v2/mix/order/orders-pending' => 2,
-                            'v2/mix/order/orders-history' => 2,
-                            'v2/mix/order/plan-sub-order' => 2,
-                            'v2/mix/order/orders-plan-pending' => 2,
-                            'v2/mix/order/orders-plan-history' => 2,
-                            'v2/mix/market/position-long-short' => 20,
+                            'mix/v1/account/account' => array( 'cost' => 2 ),
+                            'mix/v1/account/accounts' => array( 'cost' => 2 ),
+                            'mix/v1/position/singlePosition' => array( 'cost' => 2 ),
+                            'mix/v1/position/singlePosition-v2' => array( 'cost' => 2 ),
+                            'mix/v1/position/allPosition' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/history-position' => array( 'cost' => 1 ),
+                            'mix/v1/account/accountBill' => array( 'cost' => 2 ),
+                            'mix/v1/account/accountBusinessBill' => array( 'cost' => 4 ),
+                            'mix/v1/order/current' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/history' => array( 'cost' => 2 ),
+                            'mix/v1/order/historyProductType' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/detail' => array( 'cost' => 2 ),
+                            'mix/v1/order/fills' => array( 'cost' => 2 ),
+                            'mix/v1/order/allFills' => array( 'cost' => 2 ),
+                            'mix/v1/plan/currentPlan' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/plan/historyPlan' => array( 'cost' => 2 ),
+                            'mix/v1/trace/currentTrack' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerOrder' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerHistoryOrders' => array( 'cost' => 2 ),
+                            'mix/v1/trace/historyTrack' => array( 'cost' => 2 ),
+                            'mix/v1/trace/summary' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trade/profitDateList' => array( 'cost' => 2 ),
+                            'mix/v1/trace/waitProfitDateList' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols' => array( 'cost' => 1 ), // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderList' => array( 'cost' => 2 ),
+                            'mix/v1/trace/traderDetail' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/queryTraceConfig' => array( 'cost' => 2 ),
+                            'v2/mix/account/account' => array( 'cost' => 2 ),
+                            'v2/mix/account/accounts' => array( 'cost' => 2 ),
+                            'v2/mix/account/sub-account-assets' => array( 'cost' => 200 ),
+                            'v2/mix/account/interest-history' => array( 'cost' => 4 ),
+                            'v2/mix/account/max-open' => array( 'cost' => 1 ),
+                            'v2/mix/account/liq-price' => array( 'cost' => 1 ),
+                            'v2/mix/account/open-count' => array( 'cost' => 2 ),
+                            'v2/mix/account/bill' => array( 'cost' => 2 ),
+                            'v2/mix/account/transfer-limits' => array( 'cost' => 20 ),
+                            'v2/mix/account/union-config' => array( 'cost' => 20 ),
+                            'v2/mix/account/switch-union-usdt' => array( 'cost' => 20 ),
+                            'v2/mix/account/isolated-symbols' => array( 'cost' => 2 ),
+                            'v2/mix/market/query-position-lever' => array( 'cost' => 2 ),
+                            'v2/mix/position/single-position' => array( 'cost' => 2 ),
+                            'v2/mix/position/all-position' => array( 'cost' => 4 ),
+                            'v2/mix/position/adlRank' => array( 'cost' => 4 ),
+                            'v2/mix/position/history-position' => array( 'cost' => 1 ),
+                            'v2/mix/order/detail' => array( 'cost' => 2 ),
+                            'v2/mix/order/fills' => array( 'cost' => 2 ),
+                            'v2/mix/order/fill-history' => array( 'cost' => 2 ),
+                            'v2/mix/order/orders-pending' => array( 'cost' => 2 ),
+                            'v2/mix/order/orders-history' => array( 'cost' => 2 ),
+                            'v2/mix/order/plan-sub-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/orders-plan-pending' => array( 'cost' => 2 ),
+                            'v2/mix/order/orders-plan-history' => array( 'cost' => 2 ),
+                            'v2/mix/market/position-long-short' => array( 'cost' => 20 ),
                         ),
                         'post' => array(
-                            'mix/v1/account/sub-account-contract-assets' => 200, // 0.1 times/1s (UID) => 20/0.1 = 200
-                            'mix/v1/account/open-count' => 1,
-                            'mix/v1/account/setLeverage' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMargin' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/placeOrder' => 2,
-                            'mix/v1/order/batch-orders' => 2,
-                            'mix/v1/order/cancel-order' => 2,
-                            'mix/v1/order/cancel-batch-orders' => 2,
-                            'mix/v1/order/modifyOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/order/cancel-symbol-orders' => 2,
-                            'mix/v1/order/cancel-all-orders' => 2,
-                            'mix/v1/order/close-all-positions' => 20,
-                            'mix/v1/plan/placePlan' => 2,
-                            'mix/v1/plan/modifyPlan' => 2,
-                            'mix/v1/plan/modifyPlanPreset' => 2,
-                            'mix/v1/plan/placeTPSL' => 2,
-                            'mix/v1/plan/placeTrailStop' => 2,
-                            'mix/v1/plan/placePositionsTPSL' => 2,
-                            'mix/v1/plan/modifyTPSLPlan' => 2,
-                            'mix/v1/plan/cancelPlan' => 2,
-                            'mix/v1/plan/cancelSymbolPlan' => 2,
-                            'mix/v1/plan/cancelAllPlan' => 2,
-                            'mix/v1/trace/closeTrackOrder' => 2,
-                            'mix/v1/trace/modifyTPSL' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/closeTrackOrderBySymbol' => 2,
-                            'mix/v1/trace/setUpCopySymbols' => 2,
-                            'mix/v1/trace/followerSetBatchTraceConfig' => 2,
-                            'mix/v1/trace/followerCloseByTrackingNo' => 2,
-                            'mix/v1/trace/followerCloseByAll' => 2,
-                            'mix/v1/trace/followerSetTpsl' => 2,
-                            'mix/v1/trace/cancelCopyTrader' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/mix/account/set-auto-margin' => 4,
-                            'v2/mix/account/set-leverage' => 4,
-                            'v2/mix/account/set-all-leverage' => 4,
-                            'v2/mix/account/set-margin' => 4,
-                            'v2/mix/account/set-asset-mode' => 10,
-                            'v2/mix/account/set-margin-mode' => 4,
-                            'v2/mix/account/union-convert' => 20,
-                            'v2/mix/account/set-position-mode' => 4,
-                            'v2/mix/order/place-order' => 2,
-                            'v2/mix/order/click-backhand' => 20,
-                            'v2/mix/order/batch-place-order' => 20,
-                            'v2/mix/order/modify-order' => 2,
-                            'v2/mix/order/cancel-order' => 2,
-                            'v2/mix/order/batch-cancel-orders' => 2,
-                            'v2/mix/order/close-positions' => 20,
-                            'v2/mix/order/cancel-all-orders' => 20,
-                            'v2/mix/order/place-tpsl-order' => 2,
-                            'v2/mix/order/place-pos-tpsl' => 2,
-                            'v2/mix/order/place-plan-order' => 2,
-                            'v2/mix/order/modify-tpsl-order' => 2,
-                            'v2/mix/order/modify-plan-order' => 2,
-                            'v2/mix/order/cancel-plan-order' => 2,
+                            'mix/v1/account/sub-account-contract-assets' => array( 'cost' => 200 ), // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'mix/v1/account/open-count' => array( 'cost' => 1 ),
+                            'mix/v1/account/setLeverage' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/placeOrder' => array( 'cost' => 2 ),
+                            'mix/v1/order/batch-orders' => array( 'cost' => 2 ),
+                            'mix/v1/order/cancel-order' => array( 'cost' => 2 ),
+                            'mix/v1/order/cancel-batch-orders' => array( 'cost' => 2 ),
+                            'mix/v1/order/modifyOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/order/cancel-symbol-orders' => array( 'cost' => 2 ),
+                            'mix/v1/order/cancel-all-orders' => array( 'cost' => 2 ),
+                            'mix/v1/order/close-all-positions' => array( 'cost' => 20 ),
+                            'mix/v1/plan/placePlan' => array( 'cost' => 2 ),
+                            'mix/v1/plan/modifyPlan' => array( 'cost' => 2 ),
+                            'mix/v1/plan/modifyPlanPreset' => array( 'cost' => 2 ),
+                            'mix/v1/plan/placeTPSL' => array( 'cost' => 2 ),
+                            'mix/v1/plan/placeTrailStop' => array( 'cost' => 2 ),
+                            'mix/v1/plan/placePositionsTPSL' => array( 'cost' => 2 ),
+                            'mix/v1/plan/modifyTPSLPlan' => array( 'cost' => 2 ),
+                            'mix/v1/plan/cancelPlan' => array( 'cost' => 2 ),
+                            'mix/v1/plan/cancelSymbolPlan' => array( 'cost' => 2 ),
+                            'mix/v1/plan/cancelAllPlan' => array( 'cost' => 2 ),
+                            'mix/v1/trace/closeTrackOrder' => array( 'cost' => 2 ),
+                            'mix/v1/trace/modifyTPSL' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/closeTrackOrderBySymbol' => array( 'cost' => 2 ),
+                            'mix/v1/trace/setUpCopySymbols' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerSetBatchTraceConfig' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerCloseByTrackingNo' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerCloseByAll' => array( 'cost' => 2 ),
+                            'mix/v1/trace/followerSetTpsl' => array( 'cost' => 2 ),
+                            'mix/v1/trace/cancelCopyTrader' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/mix/account/set-auto-margin' => array( 'cost' => 4 ),
+                            'v2/mix/account/set-leverage' => array( 'cost' => 4 ),
+                            'v2/mix/account/set-all-leverage' => array( 'cost' => 4 ),
+                            'v2/mix/account/set-margin' => array( 'cost' => 4 ),
+                            'v2/mix/account/set-asset-mode' => array( 'cost' => 10 ),
+                            'v2/mix/account/set-margin-mode' => array( 'cost' => 4 ),
+                            'v2/mix/account/union-convert' => array( 'cost' => 20 ),
+                            'v2/mix/account/set-position-mode' => array( 'cost' => 4 ),
+                            'v2/mix/order/place-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/click-backhand' => array( 'cost' => 20 ),
+                            'v2/mix/order/batch-place-order' => array( 'cost' => 20 ),
+                            'v2/mix/order/modify-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/cancel-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/batch-cancel-orders' => array( 'cost' => 2 ),
+                            'v2/mix/order/close-positions' => array( 'cost' => 20 ),
+                            'v2/mix/order/cancel-all-orders' => array( 'cost' => 20 ),
+                            'v2/mix/order/place-tpsl-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/place-pos-tpsl' => array( 'cost' => 2 ),
+                            'v2/mix/order/place-plan-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/modify-tpsl-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/modify-plan-order' => array( 'cost' => 2 ),
+                            'v2/mix/order/cancel-plan-order' => array( 'cost' => 2 ),
                         ),
                     ),
                     'user' => array(
                         'get' => array(
-                            'user/v1/fee/query' => 2,
-                            'user/v1/sub/virtual-list' => 2,
-                            'user/v1/sub/virtual-api-list' => 2,
-                            'user/v1/tax/spot-record' => 1,
-                            'user/v1/tax/future-record' => 1,
-                            'user/v1/tax/margin-record' => 1,
-                            'user/v1/tax/p2p-record' => 1,
-                            'v2/user/virtual-subaccount-list' => 2,
-                            'v2/user/virtual-subaccount-apikey-list' => 2,
+                            'user/v1/fee/query' => array( 'cost' => 2 ),
+                            'user/v1/sub/virtual-list' => array( 'cost' => 2 ),
+                            'user/v1/sub/virtual-api-list' => array( 'cost' => 2 ),
+                            'user/v1/tax/spot-record' => array( 'cost' => 1 ),
+                            'user/v1/tax/future-record' => array( 'cost' => 1 ),
+                            'user/v1/tax/margin-record' => array( 'cost' => 1 ),
+                            'user/v1/tax/p2p-record' => array( 'cost' => 1 ),
+                            'v2/user/virtual-subaccount-list' => array( 'cost' => 2 ),
+                            'v2/user/virtual-subaccount-apikey-list' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'user/v1/sub/virtual-create' => 4,
-                            'user/v1/sub/virtual-modify' => 4,
-                            'user/v1/sub/virtual-api-batch-create' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'user/v1/sub/virtual-api-create' => 4,
-                            'user/v1/sub/virtual-api-modify' => 4,
-                            'v2/user/create-virtual-subaccount' => 4,
-                            'v2/user/modify-virtual-subaccount' => 4,
-                            'v2/user/batch-create-subaccount-and-apikey' => 20,
-                            'v2/user/create-virtual-subaccount-apikey' => 4,
-                            'v2/user/modify-virtual-subaccount-apikey' => 4,
+                            'user/v1/sub/virtual-create' => array( 'cost' => 4 ),
+                            'user/v1/sub/virtual-modify' => array( 'cost' => 4 ),
+                            'user/v1/sub/virtual-api-batch-create' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-create' => array( 'cost' => 4 ),
+                            'user/v1/sub/virtual-api-modify' => array( 'cost' => 4 ),
+                            'v2/user/create-virtual-subaccount' => array( 'cost' => 4 ),
+                            'v2/user/modify-virtual-subaccount' => array( 'cost' => 4 ),
+                            'v2/user/batch-create-subaccount-and-apikey' => array( 'cost' => 20 ),
+                            'v2/user/create-virtual-subaccount-apikey' => array( 'cost' => 4 ),
+                            'v2/user/modify-virtual-subaccount-apikey' => array( 'cost' => 4 ),
                         ),
                     ),
                     'p2p' => array(
                         'get' => array(
-                            'p2p/v1/merchant/merchantList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/p2p/merchantList' => 2,
-                            'v2/p2p/merchantInfo' => 2,
-                            'v2/p2p/orderList' => 2,
-                            'v2/p2p/advList' => 2,
+                            'p2p/v1/merchant/merchantList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/p2p/merchantList' => array( 'cost' => 2 ),
+                            'v2/p2p/merchantInfo' => array( 'cost' => 2 ),
+                            'v2/p2p/orderList' => array( 'cost' => 2 ),
+                            'v2/p2p/advList' => array( 'cost' => 2 ),
                         ),
                     ),
                     'broker' => array(
                         'get' => array(
-                            'broker/v1/account/info' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-list' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-email' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/subaccount-transfer' => 1, // unknown
-                            'broker/v1/account/subaccount-deposit' => 1, // unknown
-                            'broker/v1/account/subaccount-withdrawal' => 1, // unknown
-                            'broker/v1/account/sub-api-list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/info' => 2,
-                            'v2/broker/account/subaccount-list' => 20,
-                            'v2/broker/account/subaccount-email' => 2,
-                            'v2/broker/account/subaccount-spot-assets' => 2,
-                            'v2/broker/account/subaccount-future-assets' => 2,
-                            'v2/broker/manage/subaccount-apikey-list' => 2,
+                            'broker/v1/account/info' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer' => array( 'cost' => 1 ), // unknown
+                            'broker/v1/account/subaccount-deposit' => array( 'cost' => 1 ), // unknown
+                            'broker/v1/account/subaccount-withdrawal' => array( 'cost' => 1 ), // unknown
+                            'broker/v1/account/sub-api-list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/info' => array( 'cost' => 2 ),
+                            'v2/broker/account/subaccount-list' => array( 'cost' => 20 ),
+                            'v2/broker/account/subaccount-email' => array( 'cost' => 2 ),
+                            'v2/broker/account/subaccount-spot-assets' => array( 'cost' => 2 ),
+                            'v2/broker/account/subaccount-future-assets' => array( 'cost' => 2 ),
+                            'v2/broker/manage/subaccount-apikey-list' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'broker/v1/account/sub-create' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email' => 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-address' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/modify-subaccount-email' => 2,
-                            'v2/broker/account/create-subaccount' => 20,
-                            'v2/broker/account/modify-subaccount' => 20,
-                            'v2/broker/account/subaccount-address' => 2,
-                            'v2/broker/account/subaccount-withdrawal' => 2,
-                            'v2/broker/account/set-subaccount-autotransfer' => 2,
-                            'v2/broker/manage/create-subaccount-apikey' => 2,
-                            'v2/broker/manage/modify-subaccount-apikey' => 2,
+                            'broker/v1/account/sub-create' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/modify-subaccount-email' => array( 'cost' => 2 ),
+                            'v2/broker/account/create-subaccount' => array( 'cost' => 20 ),
+                            'v2/broker/account/modify-subaccount' => array( 'cost' => 20 ),
+                            'v2/broker/account/subaccount-address' => array( 'cost' => 2 ),
+                            'v2/broker/account/subaccount-withdrawal' => array( 'cost' => 2 ),
+                            'v2/broker/account/set-subaccount-autotransfer' => array( 'cost' => 2 ),
+                            'v2/broker/manage/create-subaccount-apikey' => array( 'cost' => 2 ),
+                            'v2/broker/manage/modify-subaccount-apikey' => array( 'cost' => 2 ),
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
-                            'margin/v1/cross/account/riskRate' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/history' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/margin/crossed/borrow-history' => 2,
-                            'v2/margin/crossed/repay-history' => 2,
-                            'v2/margin/crossed/interest-history' => 2,
-                            'v2/margin/crossed/liquidation-history' => 2,
-                            'v2/margin/crossed/financial-records' => 2,
-                            'v2/margin/crossed/account/assets' => 2,
-                            'v2/margin/crossed/account/risk-rate' => 2,
-                            'v2/margin/crossed/account/max-borrowable-amount' => 2,
-                            'v2/margin/crossed/account/max-transfer-out-amount' => 2,
-                            'v2/margin/crossed/interest-rate-and-limit' => 2,
-                            'v2/margin/crossed/tier-data' => 2,
-                            'v2/margin/crossed/open-orders' => 2,
-                            'v2/margin/crossed/history-orders' => 2,
-                            'v2/margin/crossed/fills' => 2,
-                            'v2/margin/isolated/borrow-history' => 2,
-                            'v2/margin/isolated/repay-history' => 2,
-                            'v2/margin/isolated/interest-history' => 2,
-                            'v2/margin/isolated/liquidation-history' => 2,
-                            'v2/margin/isolated/financial-records' => 2,
-                            'v2/margin/isolated/account/assets' => 2,
-                            'v2/margin/isolated/account/risk-rate' => 2,
-                            'v2/margin/isolated/account/max-borrowable-amount' => 2,
-                            'v2/margin/isolated/account/max-transfer-out-amount' => 2,
-                            'v2/margin/isolated/interest-rate-and-limit' => 2,
-                            'v2/margin/isolated/tier-data' => 2,
-                            'v2/margin/isolated/open-orders' => 2,
-                            'v2/margin/isolated/history-orders' => 2,
-                            'v2/margin/isolated/fills' => 2,
+                            'margin/v1/cross/account/riskRate' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets' => array( 'cost' => 2 ), // 10 times/1s (IP) => 20/10 = 2
+                            'v2/margin/crossed/borrow-history' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/repay-history' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/interest-history' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/liquidation-history' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/financial-records' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/assets' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/risk-rate' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/max-borrowable-amount' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/max-transfer-out-amount' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/interest-rate-and-limit' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/tier-data' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/open-orders' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/history-orders' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/fills' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/borrow-history' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/repay-history' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/interest-history' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/liquidation-history' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/financial-records' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/assets' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/risk-rate' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/max-borrowable-amount' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/max-transfer-out-amount' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/interest-rate-and-limit' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/tier-data' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/open-orders' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/history-orders' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/fills' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'margin/v1/cross/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/margin/crossed/account/borrow' => 2,
-                            'v2/margin/crossed/account/repay' => 2,
-                            'v2/margin/crossed/account/flash-repay' => 2,
-                            'v2/margin/crossed/account/query-flash-repay-status' => 2,
-                            'v2/margin/crossed/place-order' => 2,
-                            'v2/margin/crossed/batch-place-order' => 2,
-                            'v2/margin/crossed/cancel-order' => 2,
-                            'v2/margin/crossed/batch-cancel-order' => 2,
-                            'v2/margin/isolated/account/borrow' => 2,
-                            'v2/margin/isolated/account/repay' => 2,
-                            'v2/margin/isolated/account/flash-repay' => 2,
-                            'v2/margin/isolated/account/query-flash-repay-status' => 2,
-                            'v2/margin/isolated/place-order' => 2,
-                            'v2/margin/isolated/batch-place-order' => 2,
-                            'v2/margin/isolated/cancel-order' => 2,
-                            'v2/margin/isolated/batch-cancel-order' => 2,
+                            'margin/v1/cross/account/borrow' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder' => array( 'cost' => 4 ), // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder' => array( 'cost' => 2 ), // 10 times/1s (UID) => 20/10 = 2
+                            'v2/margin/crossed/account/borrow' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/repay' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/flash-repay' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/account/query-flash-repay-status' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/place-order' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/batch-place-order' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/cancel-order' => array( 'cost' => 2 ),
+                            'v2/margin/crossed/batch-cancel-order' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/borrow' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/repay' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/flash-repay' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/account/query-flash-repay-status' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/place-order' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/batch-place-order' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/cancel-order' => array( 'cost' => 2 ),
+                            'v2/margin/isolated/batch-cancel-order' => array( 'cost' => 2 ),
                         ),
                     ),
                     'copy' => array(
                         'get' => array(
-                            'v2/copy/mix-trader/order-current-track' => 2,
-                            'v2/copy/mix-trader/order-history-track' => 2,
-                            'v2/copy/mix-trader/order-total-detail' => 2,
-                            'v2/copy/mix-trader/profit-history-summarys' => 1,
-                            'v2/copy/mix-trader/profit-history-details' => 1,
-                            'v2/copy/mix-trader/profit-details' => 1,
-                            'v2/copy/mix-trader/profits-group-coin-date' => 1,
-                            'v2/copy/mix-trader/config-query-symbols' => 1,
-                            'v2/copy/mix-trader/config-query-followers' => 2,
-                            'v2/copy/mix-follower/query-current-orders' => 2,
-                            'v2/copy/mix-follower/query-history-orders' => 1,
-                            'v2/copy/mix-follower/query-settings' => 2,
-                            'v2/copy/mix-follower/query-traders' => 2,
-                            'v2/copy/mix-follower/query-quantity-limit' => 2,
-                            'v2/copy/mix-broker/query-traders' => 2,
-                            'v2/copy/mix-broker/query-history-traces' => 2,
-                            'v2/copy/mix-broker/query-current-traces' => 2,
-                            'v2/copy/spot-trader/profit-summarys' => 2,
-                            'v2/copy/spot-trader/profit-history-details' => 2,
-                            'v2/copy/spot-trader/profit-details' => 2,
-                            'v2/copy/spot-trader/order-total-detail' => 2,
-                            'v2/copy/spot-trader/order-history-track' => 2,
-                            'v2/copy/spot-trader/order-current-track' => 2,
-                            'v2/copy/spot-trader/config-query-settings' => 2,
-                            'v2/copy/spot-trader/config-query-followers' => 2,
-                            'v2/copy/spot-follower/query-traders' => 2,
-                            'v2/copy/spot-follower/query-trader-symbols' => 2,
-                            'v2/copy/spot-follower/query-settings' => 2,
-                            'v2/copy/spot-follower/query-history-orders' => 2,
-                            'v2/copy/spot-follower/query-current-orders' => 2,
+                            'v2/copy/mix-trader/order-current-track' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/order-history-track' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/order-total-detail' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/profit-history-summarys' => array( 'cost' => 1 ),
+                            'v2/copy/mix-trader/profit-history-details' => array( 'cost' => 1 ),
+                            'v2/copy/mix-trader/profit-details' => array( 'cost' => 1 ),
+                            'v2/copy/mix-trader/profits-group-coin-date' => array( 'cost' => 1 ),
+                            'v2/copy/mix-trader/config-query-symbols' => array( 'cost' => 1 ),
+                            'v2/copy/mix-trader/config-query-followers' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/query-current-orders' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/query-history-orders' => array( 'cost' => 1 ),
+                            'v2/copy/mix-follower/query-settings' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/query-traders' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/query-quantity-limit' => array( 'cost' => 2 ),
+                            'v2/copy/mix-broker/query-traders' => array( 'cost' => 2 ),
+                            'v2/copy/mix-broker/query-history-traces' => array( 'cost' => 2 ),
+                            'v2/copy/mix-broker/query-current-traces' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/profit-summarys' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/profit-history-details' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/profit-details' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/order-total-detail' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/order-history-track' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/order-current-track' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/config-query-settings' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/config-query-followers' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/query-traders' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/query-trader-symbols' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/query-settings' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/query-history-orders' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/query-current-orders' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'v2/copy/mix-trader/order-modify-tpsl' => 2,
-                            'v2/copy/mix-trader/order-close-positions' => 2,
-                            'v2/copy/mix-trader/config-setting-symbols' => 2,
-                            'v2/copy/mix-trader/config-setting-base' => 2,
-                            'v2/copy/mix-trader/config-remove-follower' => 2,
-                            'v2/copy/mix-follower/setting-tpsl' => 1,
-                            'v2/copy/mix-follower/settings' => 2,
-                            'v2/copy/mix-follower/close-positions' => 2,
-                            'v2/copy/mix-follower/cancel-trader' => 4,
-                            'v2/copy/spot-trader/order-modify-tpsl' => 2,
-                            'v2/copy/spot-trader/order-close-tracking' => 2,
-                            'v2/copy/spot-trader/config-setting-symbols' => 2,
-                            'v2/copy/spot-trader/config-remove-follower' => 2,
-                            'v2/copy/spot-follower/stop-order' => 2,
-                            'v2/copy/spot-follower/settings' => 2,
-                            'v2/copy/spot-follower/setting-tpsl' => 2,
-                            'v2/copy/spot-follower/order-close-tracking' => 2,
-                            'v2/copy/spot-follower/cancel-trader' => 2,
+                            'v2/copy/mix-trader/order-modify-tpsl' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/order-close-positions' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/config-setting-symbols' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/config-setting-base' => array( 'cost' => 2 ),
+                            'v2/copy/mix-trader/config-remove-follower' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/setting-tpsl' => array( 'cost' => 1 ),
+                            'v2/copy/mix-follower/settings' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/close-positions' => array( 'cost' => 2 ),
+                            'v2/copy/mix-follower/cancel-trader' => array( 'cost' => 4 ),
+                            'v2/copy/spot-trader/order-modify-tpsl' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/order-close-tracking' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/config-setting-symbols' => array( 'cost' => 2 ),
+                            'v2/copy/spot-trader/config-remove-follower' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/stop-order' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/settings' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/setting-tpsl' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/order-close-tracking' => array( 'cost' => 2 ),
+                            'v2/copy/spot-follower/cancel-trader' => array( 'cost' => 2 ),
                         ),
                     ),
                     'tax' => array(
                         'get' => array(
-                            'v2/tax/spot-record' => 20,
-                            'v2/tax/future-record' => 20,
-                            'v2/tax/margin-record' => 20,
-                            'v2/tax/p2p-record' => 20,
+                            'v2/tax/spot-record' => array( 'cost' => 20 ),
+                            'v2/tax/future-record' => array( 'cost' => 20 ),
+                            'v2/tax/margin-record' => array( 'cost' => 20 ),
+                            'v2/tax/p2p-record' => array( 'cost' => 20 ),
                         ),
                     ),
                     'convert' => array(
                         'get' => array(
-                            'v2/convert/currencies' => 2,
-                            'v2/convert/quoted-price' => 2,
-                            'v2/convert/convert-record' => 2,
-                            'v2/convert/bgb-convert-coin-list' => 2,
-                            'v2/convert/bgb-convert-records' => 2,
+                            'v2/convert/currencies' => array( 'cost' => 2 ),
+                            'v2/convert/quoted-price' => array( 'cost' => 2 ),
+                            'v2/convert/convert-record' => array( 'cost' => 2 ),
+                            'v2/convert/bgb-convert-coin-list' => array( 'cost' => 2 ),
+                            'v2/convert/bgb-convert-records' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'v2/convert/trade' => 2,
-                            'v2/convert/bgb-convert' => 2,
+                            'v2/convert/trade' => array( 'cost' => 2 ),
+                            'v2/convert/bgb-convert' => array( 'cost' => 2 ),
                         ),
                     ),
                     'earn' => array(
                         'get' => array(
-                            'v2/earn/savings/product' => 2,
-                            'v2/earn/savings/account' => 2,
-                            'v2/earn/savings/assets' => 2,
-                            'v2/earn/savings/records' => 2,
-                            'v2/earn/savings/subscribe-info' => 2,
-                            'v2/earn/savings/subscribe-result' => 2,
-                            'v2/earn/savings/redeem-result' => 2,
-                            'v2/earn/sharkfin/product' => 2,
-                            'v2/earn/sharkfin/account' => 2,
-                            'v2/earn/sharkfin/assets' => 2,
-                            'v2/earn/sharkfin/records' => 2,
-                            'v2/earn/sharkfin/subscribe-info' => 2,
-                            'v2/earn/sharkfin/subscribe-result' => 4,
-                            'v2/earn/loan/ongoing-orders' => 2,
-                            'v2/earn/loan/repay-history' => 2,
-                            'v2/earn/loan/revise-history' => 2,
-                            'v2/earn/loan/borrow-history' => 2,
-                            'v2/earn/loan/debts' => 2,
-                            'v2/earn/loan/reduces' => 2,
-                            'v2/earn/account/assets' => 2,
+                            'v2/earn/savings/product' => array( 'cost' => 2 ),
+                            'v2/earn/savings/account' => array( 'cost' => 2 ),
+                            'v2/earn/savings/assets' => array( 'cost' => 2 ),
+                            'v2/earn/savings/records' => array( 'cost' => 2 ),
+                            'v2/earn/savings/subscribe-info' => array( 'cost' => 2 ),
+                            'v2/earn/savings/subscribe-result' => array( 'cost' => 2 ),
+                            'v2/earn/savings/redeem-result' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/product' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/account' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/assets' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/records' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/subscribe-info' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/subscribe-result' => array( 'cost' => 4 ),
+                            'v2/earn/loan/ongoing-orders' => array( 'cost' => 2 ),
+                            'v2/earn/loan/repay-history' => array( 'cost' => 2 ),
+                            'v2/earn/loan/revise-history' => array( 'cost' => 2 ),
+                            'v2/earn/loan/borrow-history' => array( 'cost' => 2 ),
+                            'v2/earn/loan/debts' => array( 'cost' => 2 ),
+                            'v2/earn/loan/reduces' => array( 'cost' => 2 ),
+                            'v2/earn/account/assets' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'v2/earn/savings/subscribe' => 2,
-                            'v2/earn/savings/redeem' => 2,
-                            'v2/earn/sharkfin/subscribe' => 2,
-                            'v2/earn/loan/borrow' => 2,
-                            'v2/earn/loan/repay' => 2,
-                            'v2/earn/loan/revise-pledge' => 2,
+                            'v2/earn/savings/subscribe' => array( 'cost' => 2 ),
+                            'v2/earn/savings/redeem' => array( 'cost' => 2 ),
+                            'v2/earn/sharkfin/subscribe' => array( 'cost' => 2 ),
+                            'v2/earn/loan/borrow' => array( 'cost' => 2 ),
+                            'v2/earn/loan/repay' => array( 'cost' => 2 ),
+                            'v2/earn/loan/revise-pledge' => array( 'cost' => 2 ),
                         ),
                     ),
                     'common' => array(
                         'get' => array(
-                            'v2/common/trade-rate' => 2,
+                            'v2/common/trade-rate' => array( 'cost' => 2 ),
                         ),
                     ),
                     'uta' => array(
                         'get' => array(
-                            'v3/account/assets' => 1,
-                            'v3/account/funding-assets' => 1,
-                            'v3/account/settings' => 1,
-                            'v3/account/financial-records' => 1,
-                            'v3/account/repayable-coins' => 2,
-                            'v3/account/payment-coins' => 2,
-                            'v3/account/convert-records' => 1,
-                            'v3/account/deduct-info' => 20,
-                            'v3/account/fee-rate' => 6.6667,
-                            'v3/account/switch-status' => 4,
-                            'v3/account/max-transferable' => 6.6667,
-                            'v3/account/open-interest-limit' => 4,
-                            'v3/account/sub-unified-assets' => 20,
-                            'v3/account/transferable-coins' => 2,
-                            'v3/account/sub-transfer-record' => 4,
-                            'v3/account/deposit-address' => 2,
-                            'v3/account/sub-deposit-address' => 2,
-                            'v3/account/deposit-records' => 2,
-                            'v3/account/sub-deposit-records' => 2,
-                            'v3/account/withdrawal-records' => 2,
-                            'v3/broker/sub-list' => 1,
-                            'v3/broker/all-sub-deposit-withdrawal' => 1,
-                            'v3/broker/commission' => 1,
-                            'v3/broker/query-sub-apikey' => 1,
-                            'v3/ins-loan/transfered' => 6.6667,
-                            'v3/ins-loan/symbols' => 6.6667,
-                            'v3/ins-loan/risk-unit' => 6.6667,
-                            'v3/ins-loan/repaid-history' => 6.6667,
-                            'v3/ins-loan/product-infos' => 6.6667,
-                            'v3/ins-loan/loan-order' => 6.6667,
-                            'v3/ins-loan/ltv-convert' => 6.6667,
-                            'v3/ins-loan/ensure-coins-convert' => 6.6667,
-                            'v3/loan/coins' => 2,
-                            'v3/loan/interest' => 2,
-                            'v3/loan/borrow-ongoing' => 2,
-                            'v3/loan/borrow-history' => 2,
-                            'v3/loan/repay-history' => 2,
-                            'v3/loan/pledge-rate-history' => 2,
-                            'v3/loan/debts' => 2,
-                            'v3/loan/reduces' => 2,
-                            'v3/position/current-position' => 1,
-                            'v3/position/history-position' => 1,
-                            'v3/position/adlRank' => 20,
-                            'v3/tax/records' => 20,
-                            'v3/trade/order-info' => 1,
-                            'v3/trade/unfilled-orders' => 1,
-                            'v3/trade/unfilled-strategy-orders' => 1,
-                            'v3/trade/history-orders' => 1,
-                            'v3/trade/history-strategy-orders' => 1,
-                            'v3/trade/fills' => 1,
-                            'v3/user/sub-list' => 2,
-                            'v3/user/sub-api-list' => 2,
+                            'v3/account/assets' => array( 'cost' => 1 ),
+                            'v3/account/funding-assets' => array( 'cost' => 1 ),
+                            'v3/account/settings' => array( 'cost' => 1 ),
+                            'v3/account/financial-records' => array( 'cost' => 1 ),
+                            'v3/account/repayable-coins' => array( 'cost' => 2 ),
+                            'v3/account/payment-coins' => array( 'cost' => 2 ),
+                            'v3/account/convert-records' => array( 'cost' => 1 ),
+                            'v3/account/deduct-info' => array( 'cost' => 20 ),
+                            'v3/account/fee-rate' => array( 'cost' => 6.6667 ),
+                            'v3/account/switch-status' => array( 'cost' => 4 ),
+                            'v3/account/max-transferable' => array( 'cost' => 6.6667 ),
+                            'v3/account/open-interest-limit' => array( 'cost' => 4 ),
+                            'v3/account/sub-unified-assets' => array( 'cost' => 20 ),
+                            'v3/account/transferable-coins' => array( 'cost' => 2 ),
+                            'v3/account/sub-transfer-record' => array( 'cost' => 4 ),
+                            'v3/account/deposit-address' => array( 'cost' => 2 ),
+                            'v3/account/sub-deposit-address' => array( 'cost' => 2 ),
+                            'v3/account/deposit-records' => array( 'cost' => 2 ),
+                            'v3/account/sub-deposit-records' => array( 'cost' => 2 ),
+                            'v3/account/withdrawal-records' => array( 'cost' => 2 ),
+                            'v3/broker/sub-list' => array( 'cost' => 1 ),
+                            'v3/broker/all-sub-deposit-withdrawal' => array( 'cost' => 1 ),
+                            'v3/broker/commission' => array( 'cost' => 1 ),
+                            'v3/broker/query-sub-apikey' => array( 'cost' => 1 ),
+                            'v3/ins-loan/transfered' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/symbols' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/risk-unit' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/repaid-history' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/product-infos' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/loan-order' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/ltv-convert' => array( 'cost' => 6.6667 ),
+                            'v3/ins-loan/ensure-coins-convert' => array( 'cost' => 6.6667 ),
+                            'v3/loan/coins' => array( 'cost' => 2 ),
+                            'v3/loan/interest' => array( 'cost' => 2 ),
+                            'v3/loan/borrow-ongoing' => array( 'cost' => 2 ),
+                            'v3/loan/borrow-history' => array( 'cost' => 2 ),
+                            'v3/loan/repay-history' => array( 'cost' => 2 ),
+                            'v3/loan/pledge-rate-history' => array( 'cost' => 2 ),
+                            'v3/loan/debts' => array( 'cost' => 2 ),
+                            'v3/loan/reduces' => array( 'cost' => 2 ),
+                            'v3/position/current-position' => array( 'cost' => 1 ),
+                            'v3/position/history-position' => array( 'cost' => 1 ),
+                            'v3/position/adlRank' => array( 'cost' => 20 ),
+                            'v3/tax/records' => array( 'cost' => 20 ),
+                            'v3/trade/order-info' => array( 'cost' => 1 ),
+                            'v3/trade/unfilled-orders' => array( 'cost' => 1 ),
+                            'v3/trade/unfilled-strategy-orders' => array( 'cost' => 1 ),
+                            'v3/trade/history-orders' => array( 'cost' => 1 ),
+                            'v3/trade/history-strategy-orders' => array( 'cost' => 1 ),
+                            'v3/trade/fills' => array( 'cost' => 1 ),
+                            'v3/user/sub-list' => array( 'cost' => 2 ),
+                            'v3/user/sub-api-list' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
-                            'v3/account/set-leverage' => 2,
-                            'v3/account/set-hold-mode' => 2,
-                            'v3/account/repay' => 4,
-                            'v3/account/switch-deduct' => 20,
-                            'v3/account/deposit-account' => 20,
-                            'v3/account/switch' => 20,
-                            'v3/account/adjust-account-mode' => 20,
-                            'v3/account/transfer' => 4,
-                            'v3/account/sub-transfer' => 4,
-                            'v3/account/sub-master-transfer' => 4,
-                            'v3/account/max-open-available' => 4,
-                            'v3/account/withdrawal' => 20,
-                            'v3/broker/create-sub' => 1,
-                            'v3/broker/modify-sub' => 1,
-                            'v3/broker/sub-withdrawal' => 1,
-                            'v3/broker/sub-deposit-address' => 1,
-                            'v3/broker/create-sub-apikey' => 1,
-                            'v3/broker/modify-sub-apikey' => 1,
-                            'v3/broker/delete-sub-apikey' => 1,
-                            'v3/ins-loan/bind-uid' => 6.6667,
-                            'v3/loan/borrow' => 2,
-                            'v3/loan/repay' => 2,
-                            'v3/loan/revise-pledge' => 2,
-                            'v3/trade/place-order' => 2,
-                            'v3/trade/place-strategy-order' => 2,
-                            'v3/trade/modify-order' => 2,
-                            'v3/trade/modify-strategy-order' => 2,
-                            'v3/trade/cancel-order' => 2,
-                            'v3/trade/cancel-strategy-order' => 2,
-                            'v3/trade/place-batch' => 4,
-                            'v3/trade/batch-modify-order' => 2,
-                            'v3/trade/cancel-batch' => 4,
-                            'v3/trade/cancel-symbol-order' => 4,
-                            'v3/trade/close-positions' => 4,
-                            'v3/trade/countdown-cancel-all' => 20,
-                            'v3/user/create-sub' => 2,
-                            'v3/user/freeze-sub' => 2,
-                            'v3/user/create-sub-api' => 2,
-                            'v3/user/update-sub-api' => 2,
-                            'v3/user/delete-sub-api' => 2,
+                            'v3/account/set-leverage' => array( 'cost' => 2 ),
+                            'v3/account/set-hold-mode' => array( 'cost' => 2 ),
+                            'v3/account/repay' => array( 'cost' => 4 ),
+                            'v3/account/switch-deduct' => array( 'cost' => 20 ),
+                            'v3/account/deposit-account' => array( 'cost' => 20 ),
+                            'v3/account/switch' => array( 'cost' => 20 ),
+                            'v3/account/adjust-account-mode' => array( 'cost' => 20 ),
+                            'v3/account/transfer' => array( 'cost' => 4 ),
+                            'v3/account/sub-transfer' => array( 'cost' => 4 ),
+                            'v3/account/sub-master-transfer' => array( 'cost' => 4 ),
+                            'v3/account/max-open-available' => array( 'cost' => 4 ),
+                            'v3/account/withdrawal' => array( 'cost' => 20 ),
+                            'v3/broker/create-sub' => array( 'cost' => 1 ),
+                            'v3/broker/modify-sub' => array( 'cost' => 1 ),
+                            'v3/broker/sub-withdrawal' => array( 'cost' => 1 ),
+                            'v3/broker/sub-deposit-address' => array( 'cost' => 1 ),
+                            'v3/broker/create-sub-apikey' => array( 'cost' => 1 ),
+                            'v3/broker/modify-sub-apikey' => array( 'cost' => 1 ),
+                            'v3/broker/delete-sub-apikey' => array( 'cost' => 1 ),
+                            'v3/ins-loan/bind-uid' => array( 'cost' => 6.6667 ),
+                            'v3/loan/borrow' => array( 'cost' => 2 ),
+                            'v3/loan/repay' => array( 'cost' => 2 ),
+                            'v3/loan/revise-pledge' => array( 'cost' => 2 ),
+                            'v3/trade/place-order' => array( 'cost' => 2 ),
+                            'v3/trade/place-strategy-order' => array( 'cost' => 2 ),
+                            'v3/trade/modify-order' => array( 'cost' => 2 ),
+                            'v3/trade/modify-strategy-order' => array( 'cost' => 2 ),
+                            'v3/trade/cancel-order' => array( 'cost' => 2 ),
+                            'v3/trade/cancel-strategy-order' => array( 'cost' => 2 ),
+                            'v3/trade/place-batch' => array( 'cost' => 4 ),
+                            'v3/trade/batch-modify-order' => array( 'cost' => 2 ),
+                            'v3/trade/cancel-batch' => array( 'cost' => 4 ),
+                            'v3/trade/cancel-symbol-order' => array( 'cost' => 4 ),
+                            'v3/trade/close-positions' => array( 'cost' => 4 ),
+                            'v3/trade/countdown-cancel-all' => array( 'cost' => 20 ),
+                            'v3/user/create-sub' => array( 'cost' => 2 ),
+                            'v3/user/freeze-sub' => array( 'cost' => 2 ),
+                            'v3/user/create-sub-api' => array( 'cost' => 2 ),
+                            'v3/user/update-sub-api' => array( 'cost' => 2 ),
+                            'v3/user/delete-sub-api' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -1471,65 +1471,68 @@ class bitget extends Exchange {
             ),
             'options' => array(
                 'uta' => null,
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
-                'timeframes' => array(
-                    'spot' => array(
-                        '1m' => '1min',
-                        '5m' => '5min',
-                        '3m' => '3min',
-                        '15m' => '15min',
-                        '30m' => '30min',
-                        '1h' => '1h',
-                        '4h' => '4h',
-                        '6h' => '6Hutc',
-                        '12h' => '12Hutc',
-                        '1d' => '1Dutc',
-                        '3d' => '3Dutc',
-                        '1w' => '1Wutc',
-                        '1M' => '1Mutc',
-                    ),
-                    'swap' => array(
-                        '1m' => '1m',
-                        '3m' => '3m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
-                        '1h' => '1H',
-                        '2h' => '2H',
-                        '4h' => '4H',
-                        '6h' => '6Hutc',
-                        '12h' => '12Hutc',
-                        '1d' => '1Dutc',
-                        '3d' => '3Dutc',
-                        '1w' => '1Wutc',
-                        '1M' => '1Mutc',
-                    ),
-                    'uta' => array(
-                        '1m' => '1m',
-                        '3m' => '3m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
-                        '1h' => '1H',
-                        '2h' => '2H',
-                        '4h' => '4H',
-                        '6h' => '6H',
-                        '12h' => '12H',
-                        '1d' => '1D',
-                    ),
-                ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                ),
                 'broker' => 'p4sve',
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
                 ),
                 'fetchOHLCV' => array(
+                    'timeframes' => array(
+                        'spot' => array(
+                            '1m' => '1min',
+                            '5m' => '5min',
+                            '3m' => '3min',
+                            '15m' => '15min',
+                            '30m' => '30min',
+                            '1h' => '1h',
+                            '4h' => '4h',
+                            '6h' => '6Hutc',
+                            '12h' => '12Hutc',
+                            '1d' => '1Dutc',
+                            '3d' => '3Dutc',
+                            '1w' => '1Wutc',
+                            '1M' => '1Mutc',
+                        ),
+                        'swap' => array(
+                            '1m' => '1m',
+                            '3m' => '3m',
+                            '5m' => '5m',
+                            '15m' => '15m',
+                            '30m' => '30m',
+                            '1h' => '1H',
+                            '2h' => '2H',
+                            '4h' => '4H',
+                            '6h' => '6Hutc',
+                            '12h' => '12Hutc',
+                            '1d' => '1Dutc',
+                            '3d' => '3Dutc',
+                            '1w' => '1Wutc',
+                            '1M' => '1Mutc',
+                        ),
+                        'uta' => array(
+                            '1m' => '1m',
+                            '3m' => '3m',
+                            '5m' => '5m',
+                            '15m' => '15m',
+                            '30m' => '30m',
+                            '1h' => '1H',
+                            '2h' => '2H',
+                            '4h' => '4H',
+                            '6h' => '6H',
+                            '12h' => '12H',
+                            '1d' => '1D',
+                        ),
+                    ),
                     // ### Timeframe settings ###
                     // after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1583,6 +1586,7 @@ class bitget extends Exchange {
                     'method' => 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 ),
                 'accountsByType' => array(
+                    'funding' => 'spot',
                     'spot' => 'spot',
                     'cross' => 'crossed_margin',
                     'isolated' => 'isolated_margin',
@@ -1590,6 +1594,8 @@ class bitget extends Exchange {
                     'usdc_swap' => 'usdc_futures',
                     'future' => 'coin_futures',
                     'p2p' => 'p2p',
+                    'uta' => 'uta',
+                    'unified' => 'uta',
                 ),
                 'accountsById' => array(
                     'spot' => 'spot',
@@ -1599,6 +1605,7 @@ class bitget extends Exchange {
                     'usdc_futures' => 'usdc_swap',
                     'coin_futures' => 'future',
                     'p2p' => 'p2p',
+                    'uta' => 'uta',
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
@@ -1611,8 +1618,8 @@ class bitget extends Exchange {
                     'ATOM' => 'ATOM',
                     'ACA' => 'AcalaToken',
                     'APT' => 'Aptos',
-                    'ARBONE' => 'ArbitrumOne',
-                    'ARBNOVA' => 'ArbitrumNova',
+                    'ARBITRUM' => 'ArbitrumOne',
+                    'ARBITRUM_NOVA' => 'ArbitrumNova',
                     'AVAXC' => 'C-Chain',
                     'AVAXX' => 'X-Chain',
                     'AR' => 'Arweave',
@@ -1693,7 +1700,7 @@ class bitget extends Exchange {
                     // 'CADUCEUS' => 'CMP',
                     // 'CONFLUX' => 'CFX', // CFXeSpace is different
                     // 'CERE' => 'CERE',
-                    // 'CANTO' => 'CANTO',
+                    'CANTO' => 'CANTO-EVM', // live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
                     'VIC' => 'VICTION',
@@ -1703,9 +1710,10 @@ class bitget extends Exchange {
                 'fetchPositions' => array(
                     'method' => 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 ),
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // fiat currencies on deposit page
-                'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
+                'fetchCurrencies' => array(
+                    // fiat currencies on deposit page
+                    'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
+                ),
             ),
             'rollingWindowSize' => 1000.0,
             'features' => array(
@@ -1909,7 +1917,7 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
-    public function handle_uta_and_params($params, ?string $methodName, bool $defaultValue = false) {
+    public function handle_uta_and_params(mixed $params, ?string $methodName, bool $defaultValue = false) {
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta');
         if ($uta !== null) {
@@ -1978,7 +1986,7 @@ class bitget extends Exchange {
         return $this->fetch_default_markets($params);
     }
 
-    public function fetch_default_markets($params): array {
+    public function fetch_default_markets(mixed $params): array {
         $types = null;
         $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
         $defaultMarkets = array( 'spot', 'swap' );
@@ -2017,9 +2025,27 @@ class bitget extends Exchange {
             $firstData = $this->safe_dict($data, 0, array());
             $isBorrowable = $this->safe_bool($firstData, 'isBorrowable');
             if ($fetchMargins && $isBorrowable !== null) {
-                $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
-                $this->options['crossMarginPairsData'] = $keysList;
-                $this->options['isolatedMarginPairsData'] = $keysList;
+                // cross and isolated availability are per-$symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                $crossKeys = array();
+                $isolatedKeys = array();
+                for ($j = 0; $j < count($data); $j++) {
+                    $entry = $this->safe_dict($data, $j, array());
+                    $entrySymbol = $this->safe_string($entry, 'symbol');
+                    $entryBorrowable = $this->safe_bool($entry, 'isBorrowable', true);
+                    if ($entryBorrowable && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
+                        $crossKeys[] = $entrySymbol;
+                    }
+                    $isolatedBase = $this->safe_bool($entry, 'isIsolatedBaseBorrowable', true);
+                    $isolatedQuote = $this->safe_bool_2($entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
+                    if ($entryBorrowable && ($isolatedBase || $isolatedQuote)) {
+                        $isolatedKeys[] = $entrySymbol;
+                    }
+                }
+                $this->options['crossMarginPairsData'] = $crossKeys;
+                $this->options['isolatedMarginPairsData'] = $isolatedKeys;
             } else {
                 $markets = $this->array_concat($markets, $data);
             }
@@ -2233,7 +2259,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_uta_markets($params): array {
+    public function fetch_uta_markets(mixed $params): array {
         $subTypes = array( 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' );
         $promises = array();
         for ($i = 0; $i < count($subTypes); $i++) {
@@ -2529,7 +2555,7 @@ class bitget extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $entry = $rawCurrency;
         $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
         $code = $this->safe_currency_code($id);
@@ -2546,6 +2572,9 @@ class bitget extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chain');
             $network = $this->network_id_to_code($networkId, $code);
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' requires a $network argument');
+            }
             $network = strtoupper($network);
             $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
             $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
@@ -2739,7 +2768,7 @@ class bitget extends Exchange {
         return $this->parse_market_leverage_tiers($result, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         // swap and future
         //
@@ -3147,7 +3176,7 @@ class bitget extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "BTC",
@@ -3185,7 +3214,7 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4214,7 +4243,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($data, ?array $market = null) {
+    public function parse_trading_fee(mixed $data, ?array $market = null) {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -4226,7 +4255,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1645911960000",
@@ -4252,7 +4281,7 @@ class bitget extends Exchange {
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
          * @see https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
@@ -4262,25 +4291,25 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
          * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
          * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @param {string} [$params->price] *swap only* "mark" (to fetch mark price $candles) or "index" (to fetch index price $candles)
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $defaultLimit = 100; // default 100, max 1000
         $maxLimitForRecentEndpoint = 1000;
-        $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-$candles" endpoint, but "historical-$candles" support only max 200
         $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
         $useHistoryEndpointForPagination = $this->safe_bool($params, 'useHistoryEndpointForPagination', true);
         $paginate = false;
@@ -4295,14 +4324,15 @@ class bitget extends Exchange {
         );
         $marketType = null;
         $timeframes = null;
+        $timeframesOption = $this->handle_option('fetchOHLCV', 'timeframes');
         $uta = null;
         list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOHLCV', false);
         if ($uta) {
-            $timeframes = $this->options['timeframes']['uta'];
+            $timeframes = $timeframesOption['uta'];
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
         } else {
             $marketType = $market['spot'] ? 'spot' : 'swap';
-            $timeframes = $this->options['timeframes'][$marketType];
+            $timeframes = $timeframesOption[$marketType];
             $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
         }
         $msInDay = 86400000;
@@ -4360,7 +4390,7 @@ class bitget extends Exchange {
         $historicalEndpointNeeded = false;
         if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || $useHistoryEndpoint) {
             $historicalEndpointNeeded = true;
-            // only for "historical-candles" - ensure we use correct max $limit
+            // only for "historical-$candles" - ensure we use correct max $limit
             $limit = min($limit, $maxLimitForHistoryEndpoint);
             $limitMultipliedDuration = $limit * $duration;
             $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
@@ -4435,8 +4465,13 @@ class bitget extends Exchange {
             return array(); // happens when a new token is listed
         }
         //  array( ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] )
-        $data = $this->safe_list($response, 'data', $response);
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        } else {
+            $candles = $this->safe_list($response, 'data', array());
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array()): array {
@@ -4450,10 +4485,12 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-$assets
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-$assets
          * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+         * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {string} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->type] 'funding' to fetch the $uta funding-account $assets ($uta only, classic accounts route funding through 'spot')
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -4468,9 +4505,15 @@ class bitget extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         if ($uta) {
-            $response = $this->privateUtaGetV3AccountAssets($this->extend($request, $params));
-            $results = $this->safe_dict($response, 'data', array());
-            $assets = $this->safe_list($results, 'assets', array());
+            $assets = null;
+            if ($marketType === 'funding') {
+                $response = $this->privateUtaGetV3AccountFundingAssets($this->extend($request, $params));
+                $assets = $this->safe_list($response, 'data', array());
+            } else {
+                $response = $this->privateUtaGetV3AccountAssets($this->extend($request, $params));
+                $results = $this->safe_dict($response, 'data', array());
+                $assets = $this->safe_list($results, 'assets', array());
+            }
             return $this->parse_uta_balance($assets);
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
@@ -4605,12 +4648,30 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        // funding $uta
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1750396239013,
+        //         "data" => array(
+        //             {
+        //                 "coin" => "BGB",
+        //                 "available" => "0.01",
+        //                 "frozen" => "0",
+        //                 "balance" => "0.01"
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_balance($data);
     }
 
-    public function parse_uta_balance($balance): array {
+    public function parse_uta_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
+        //
+        // uta
         //
         //     {
         //         "coin" => "USDT",
@@ -4622,21 +4683,32 @@ class bitget extends Exchange {
         //         "locked" => "0"
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "coin" => "BGB",
+        //         "available" => "0.01",
+        //         "frozen" => "0",
+        //         "balance" => "0.01"
+        //     }
+        //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
             $account = $this->account();
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $account['debt'] = $this->safe_string($entry, 'debt');
-            $account['used'] = $this->safe_string($entry, 'locked');
+            $account['used'] = $this->safe_string_2($entry, 'locked', 'frozen');
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
         //
         // spot
@@ -4710,7 +4782,9 @@ class bitget extends Exchange {
                     $account['used'] = Precise::string_add($frozen, $locked);
                 }
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -5215,7 +5289,13 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_uta_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -5300,8 +5380,11 @@ class bitget extends Exchange {
             $exchangeSpecificTifParam = $this->safe_string($params, 'timeInForce');
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
-            $defaultTimeInForce = $this->safe_string_upper($this->options, 'defaultTimeInForce');
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTimeInForce);
+            $timeInForce = null;
+            list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            if ($timeInForce !== null) {
+                $timeInForce = strtoupper($timeInForce);
+            }
             if ($postOnly) {
                 $request['timeInForce'] = 'post_only';
             } elseif ($timeInForce === 'GTC') {
@@ -5332,7 +5415,13 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $marketType = null;
         $marginMode = null;
@@ -5385,8 +5474,11 @@ class bitget extends Exchange {
         $exchangeSpecificTifParam = $this->safe_string_2($params, 'force', 'timeInForce');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
-        $defaultTimeInForce = $this->safe_string_upper($this->options, 'defaultTimeInForce');
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = null;
+        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+        if ($timeInForce !== null) {
+            $timeInForce = strtoupper($timeInForce);
+        }
         if ($postOnly) {
             $request['force'] = 'post_only';
         } elseif ($timeInForce === 'GTC') {
@@ -5444,7 +5536,7 @@ class bitget extends Exchange {
             } elseif ($isStopLossOrTakeProfitTrigger) {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    if (is_array($request) && array_key_exists('price', $request)) {
+                    if (is_array($request) && array_key_exists('price' ?? '', $request)) {
                         unset($request['price']);
                     }
                 }
@@ -5463,11 +5555,27 @@ class bitget extends Exchange {
             } else {
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    if ($slTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $stopLoss parameter');
+                    }
                     $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                    $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                    if ($slLimitPrice !== null) {
+                        // without the execute $price the exchange fills the attached stop loss
+                        // at the $market $price, see https://github.com/ccxt/ccxt/issues/23459
+                        $request['presetStopLossExecutePrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                    }
                 }
                 if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    if ($tpTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $takeProfit parameter');
+                    }
                     $request['presetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                    if ($tpLimitPrice !== null) {
+                        $request['presetStopSurplusExecutePrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                    }
                 }
             }
             if (!$isStopLossOrTakeProfitTrigger) {
@@ -5509,7 +5617,7 @@ class bitget extends Exchange {
                     $quantity = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice in options["createOrder"] or $params to false and pass the $cost to spend in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -5848,7 +5956,11 @@ class bitget extends Exchange {
             $request['orderType'] = $type;
             if ($triggerPrice !== null) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                // $market plan orders carry no execute $price, follow up to
+                // https://github.com/ccxt/ccxt/issues/25427
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -6110,7 +6222,7 @@ class bitget extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_uta_orders($ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -6586,7 +6698,7 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+            $marketType = (is_array($market) && array_key_exists('type' ?? '', $market)) ? $market['type'] : $defaultType;
             $type = $this->safe_string($params, 'type', $marketType);
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -7103,7 +7215,7 @@ class bitget extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                 }
-                $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                $endTime = $this->safe_integer_2($params, 'endTime', 'until');
                 $params = $this->omit($params, array( 'until' ));
                 if ($since === null) {
                     $since = $now - 7776000000;
@@ -7630,7 +7742,7 @@ class bitget extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_type($type) {
+    public function parse_ledger_type(mixed $type) {
         $types = array(
             'trans_to_cross' => 'transfer',
             'trans_from_cross' => 'transfer',
@@ -8728,7 +8840,7 @@ class bitget extends Exchange {
         return $this->fetch_funding_rates($symbols, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fetchFundingRate => publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
@@ -8927,7 +9039,7 @@ class bitget extends Exchange {
         return $this->parse_funding_histories($bills, $market, $since, $limit);
     }
 
-    public function parse_funding_history($contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "billId" => "1111499428100472833",
@@ -8966,7 +9078,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -8985,7 +9097,7 @@ class bitget extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -9183,7 +9295,7 @@ class bitget extends Exchange {
         if ($uta) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTrades', $params);
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
                 if ($marginMode !== null) {
                     $productType = 'MARGIN';
                 }
@@ -9281,7 +9393,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by bitget setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] required if not $uta and $symbol is null => 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
@@ -9400,7 +9512,7 @@ class bitget extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // default
         //
@@ -9507,12 +9619,14 @@ class bitget extends Exchange {
          * transfer $currency internally between wallets on the same account
          *
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+         * @see https://www.bitget.com/api-doc/uta/account/transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true to transfer via the unified trading account v3 endpoint
          * @param {string} [$params->symbol] unified CCXT $market $symbol, required when transferring to or from an account type that is a leveraged position-by-position account
          * @param {string} [$params->clientOid] custom id
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
@@ -9520,6 +9634,8 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $uta = null;
+        list($uta, $params) = $this->handle_uta_and_params($params, 'transfer', false);
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromType = $this->safe_string($accountsByType, $fromAccount);
@@ -9537,7 +9653,12 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateSpotPostV2SpotWalletTransfer($this->extend($request, $params));
+        $response = null;
+        if ($uta) {
+            $response = $this->privateUtaPostV3AccountTransfer($this->extend($request, $params));
+        } else {
+            $response = $this->privateSpotPostV2SpotWalletTransfer($this->extend($request, $params));
+        }
         //
         //     {
         //         "code" => "00000",
@@ -9607,7 +9728,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //     {
         //         "chains" => array(
@@ -9649,10 +9770,12 @@ class bitget extends Exchange {
             $networkId = $this->safe_string($chain, 'chain');
             $currencyCode = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-            $result['networks'][$networkCode] = array(
-                'deposit' => array( 'fee' => null, 'percentage' => null ),
-                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
-            );
+            if ($networkCode !== null) {
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+                );
+            }
             if ($chainsLength === 1) {
                 $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
                 $result['withdraw']['percentage'] = false;
@@ -9661,7 +9784,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -9708,7 +9831,7 @@ class bitget extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9744,7 +9867,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -9784,7 +9907,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency, $market);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9825,7 +9948,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency, $market);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -9862,7 +9985,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function parse_margin_loan($info, ?array $currency = null, ?array $market = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null, ?array $market = null): array {
         //
         // isolated => borrowMargin
         //
@@ -10029,7 +10152,7 @@ class bitget extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // isolated
         //
@@ -10271,7 +10394,7 @@ class bitget extends Exchange {
         return $this->parse_borrow_rate($result, $currency);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         // default
         //
@@ -10682,7 +10805,7 @@ class bitget extends Exchange {
          * @param {string[]} [$symbols] unified contract $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
          * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
          * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
@@ -11035,34 +11158,36 @@ class bitget extends Exchange {
             $entry = $data[$i];
             $id = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($id);
-            $result[$code] = array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => null,
-                'type' => null,
-                'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => $this->safe_number($entry, 'available'),
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($entry, 'minAmount'),
-                        'max' => $this->safe_number($entry, 'maxAmount'),
+            if ($code !== null) {
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => $this->safe_number($entry, 'available'),
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'minAmount'),
+                            'max' => $this->safe_number($entry, 'maxAmount'),
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => null,
-            );
+                    'created' => null,
+                );
+            }
         }
         return $result;
     }
@@ -11208,7 +11333,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -11260,7 +11385,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

@@ -1,0 +1,210 @@
+---
+title: "Backtest before you bet: pull years of free candles from any exchange"
+description: Every exchange gives away its price history through the same CCXT call. How to download years of OHLCV data properly — and the backtesting traps that make losing strategies look like winners.
+author: CCXT Team
+date: 2026-07-08T13:00:00Z
+tags: [tutorials, backtesting]
+---
+
+Every strategy idea feels brilliant at 2 a.m. The cheapest way to find out whether it
+actually is: run it against history before you run it against your savings. Exchanges give
+away that history for free — candles (OHLCV: open, high, low, close, volume) over public
+endpoints, no API key required — and CCXT exposes all of them through one call:
+`fetchOHLCV`.
+
+The catch, as covered in
+[mistake #5](/blog/seven-mistakes-crypto-exchange-api-developers-make): one call returns
+**one page**, capped per exchange (commonly 500–1000 candles). Downloading years of data
+means looping. Here's the loop done right.
+
+## Downloading full history
+
+Request from a start time, advance `since` past the last candle received, stop when a page
+comes back short:
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance();
+const symbol = 'BTC/USDT';
+const timeframe = '1d';
+let since = exchange.parse8601('2020-01-01T00:00:00Z');
+const all = [];
+
+while (true) {
+    const candles = await exchange.fetchOHLCV(symbol, timeframe, since, 1000);
+    if (candles.length === 0) {
+        break;
+    }
+    all.push(...candles);
+    since = candles[candles.length - 1][0] + 1;   // 1 ms past the last candle
+    if (candles.length < 1000) {
+        break;                                     // short page = caught up
+    }
+}
+console.log(`fetched ${all.length} candles`);
+await exchange.close();
+```
+
+```python tab="Python"
+import ccxt
+
+exchange = ccxt.binance()
+symbol = 'BTC/USDT'
+timeframe = '1d'
+since = exchange.parse8601('2020-01-01T00:00:00Z')
+all_candles = []
+
+while True:
+    candles = exchange.fetch_ohlcv(symbol, timeframe, since, 1000)
+    if not candles:
+        break
+    all_candles += candles
+    since = candles[-1][0] + 1        # 1 ms past the last candle
+    if len(candles) < 1000:
+        break                          # short page = caught up
+
+print(f'fetched {len(all_candles)} candles')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance();
+$symbol = 'BTC/USDT';
+$timeframe = '1d';
+$since = $exchange->parse8601('2020-01-01T00:00:00Z');
+$all = [];
+
+while (true) {
+    $candles = $exchange->fetch_ohlcv($symbol, $timeframe, $since, 1000);
+    if (count($candles) === 0) {
+        break;
+    }
+    $all = array_merge($all, $candles);
+    $since = $candles[count($candles) - 1][0] + 1;   // 1 ms past the last candle
+    if (count($candles) < 1000) {
+        break;                                        // short page = caught up
+    }
+}
+echo 'fetched ', count($all), " candles\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = Convert.ToInt64(exchange.parse8601("2020-01-01T00:00:00Z"));
+var all = new List<OHLCV>();
+
+while (true)
+{
+    var candles = await exchange.FetchOHLCV(symbol, "1d", since, 1000);
+    if (candles.Count == 0) break;
+    all.AddRange(candles);
+    since = (long)candles[^1].timestamp + 1;   // 1 ms past the last candle
+    if (candles.Count < 1000) break;           // short page = caught up
+}
+Console.WriteLine($"fetched {all.Count} candles");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    symbol := "BTC/USDT"
+    since := int64(1577836800000) // 2020-01-01T00:00:00Z in ms
+    var all []ccxt.OHLCV
+
+    for {
+        candles, err := exchange.FetchOHLCV(symbol,
+            ccxt.WithFetchOHLCVTimeframe("1d"),
+            ccxt.WithFetchOHLCVSince(since),
+            ccxt.WithFetchOHLCVLimit(1000))
+        if err != nil {
+            panic(err)
+        }
+        if len(candles) == 0 {
+            break
+        }
+        all = append(all, candles...)
+        since = candles[len(candles)-1].Timestamp + 1 // 1 ms past the last candle
+        if len(candles) < 1000 {
+            break // short page = caught up
+        }
+    }
+    fmt.Println("fetched", len(all), "candles")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.OHLCV;
+
+import java.util.ArrayList;
+
+var exchange = new Binance();
+var symbol = "BTC/USDT";
+var since = 1577836800000L; // 2020-01-01T00:00:00Z in ms
+var all = new ArrayList<OHLCV>();
+
+while (true) {
+    var candles = exchange.fetchOHLCV(symbol, "1d", since, 1000L, null);
+    if (candles.isEmpty()) break;
+    all.addAll(candles);
+    since = candles.get(candles.size() - 1).timestamp + 1;   // 1 ms past the last candle
+    if (candles.size() < 1000) break;                        // short page = caught up
+}
+System.out.println("fetched " + all.size() + " candles");
+```
+
+The built-in rate limiter paces the loop for you. Daily candles since 2020 arrive in a few
+pages; minute candles for the same period are ~3 million rows — still perfectly doable, just
+let it run and write to disk as you go instead of holding everything in memory. Save to
+CSV/Parquet once and iterate on your strategy offline; re-downloading history on every run
+is how people get rate-limit bans while "just backtesting."
+
+## The four traps that make bad strategies look good
+
+Downloading candles is the easy half. Most homegrown backtests are broken in one of four
+ways — always in the flattering direction:
+
+**1. Lookahead bias.** Your signal uses information that wasn't available at trade time —
+the classic version is acting on a candle's close *during* that candle, or computing an
+indicator over a window that includes the current bar. Rule: signals computed on candle N
+execute at the **open of candle N+1**, at best.
+
+**2. No fees, no slippage.** Add taker fees (`market['taker']`, commonly ~0.1%) on every
+fill, and a slippage haircut on top. High-frequency strategies that look great at zero cost
+usually die at 2×fees. If your edge per trade is smaller than round-trip costs, you don't
+have an edge — you have a fee-generation machine.
+
+**3. Unrealistic fills.** A backtest that fills limit orders whenever price *touches* your
+level is lying to you — in reality you're at the back of the queue, and the fills you *do*
+get skew toward the times the market blows through your price (adverse selection, the same
+enemy from the [market-making post](/blog/market-making-with-ccxt)).
+
+**4. Survivorship and overfitting.** Testing only on BTC/ETH — coins you already know
+survived — inflates results; so does tuning parameters until history looks perfect. Hold out
+a time period you never touch until the end, and treat a strategy that only works with
+`rsi_period = 13` (but not 12 or 14) as noise, not signal.
+
+## From candles to a verdict
+
+Keep the pipeline honest and boring: download once with the loop above → store to disk →
+compute signals bar-by-bar as if live → next-bar execution with fees and slippage → compare
+against buy-and-hold, because a bot that underperforms doing nothing is expensive
+entertainment. If it survives all that *and* an out-of-sample period, promote it to the
+testnet with `setSandboxMode(true)` — paper trading against live prices is the final exam
+that history can't grade.
+
+From there, the [first-bot tutorial](/blog/build-your-first-crypto-trading-bot) covers the
+execution side, and [WebSockets](/blog/realtime-market-data-with-websockets) the live data
+feed.

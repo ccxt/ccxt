@@ -6,7 +6,9 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict } from './base/types.js';
+
+;
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, CurrencyInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +17,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class bitstamp extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
@@ -47,6 +49,7 @@ export default class bitstamp extends Exchange {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -66,8 +69,8 @@ export default class bitstamp extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
@@ -158,276 +161,276 @@ export default class bitstamp extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'ohlc/{pair}/': 1,
-                        'order_book/{pair}/': 1,
-                        'ticker/': 1,
-                        'ticker_hour/{pair}/': 1,
-                        'ticker/{pair}/': 1,
-                        'transactions/{pair}/': 1,
-                        'trading-pairs-info/': 1,
-                        'markets/': 1,
-                        'currencies/': 1,
-                        'eur_usd/': 1,
-                        'travel_rule/vasps/': 1,
-                        'funding_rate/{market_symbol}/': 1,
-                        'funding_rate_history/{pair}/': 1,
+                        'ohlc/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_book/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/': { 'cost': 1 } as Endpoint<List>,
+                        'ticker_hour/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactions/{pair}/': { 'cost': 1 } as Endpoint<List>,
+                        'trading-pairs-info/': { 'cost': 1 } as Endpoint<List>,
+                        'markets/': { 'cost': 1 } as Endpoint<List>,
+                        'currencies/': { 'cost': 1 } as Endpoint<List>,
+                        'eur_usd/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/vasps/': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_rate/{market_symbol}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding_rate_history/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'travel_rule/contacts/': 1,
-                        'contacts/{contact_uuid}/': 1,
-                        'earn/subscriptions/': 1,
-                        'earn/transactions/': 1,
-                        'trade_history/': 1,
-                        'trade_history/{pair}': 1,
+                        'travel_rule/contacts/': { 'cost': 1 } as Endpoint<List>,
+                        'contacts/{contact_uuid}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'earn/subscriptions/': { 'cost': 1 } as Endpoint<List>,
+                        'earn/transactions/': { 'cost': 1 } as Endpoint<List>,
+                        'trade_history/': { 'cost': 1 } as Endpoint<List>,
+                        'trade_history/{pair}': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'account_balances/': 1,
-                        'account_balances/{currency}/': 1,
-                        'balance/': 1,
-                        'balance/{pair}/': 1,
-                        'bch_withdrawal/': 1,
-                        'bch_address/': 1,
-                        'user_transactions/': 1,
-                        'user_transactions/{pair}/': 1,
-                        'crypto-transactions/': 1,
-                        'open_order': 1,
-                        'open_orders/all/': 1,
-                        'open_orders/{pair}/': 1,
-                        'replace_order/': 1,
-                        'order_status/': 1,
-                        'cancel_order/': 1,
-                        'cancel_all_orders/': 1,
-                        'cancel_all_orders/{pair}/': 1,
-                        'buy/{pair}/': 1,
-                        'buy/market/{pair}/': 1,
-                        'buy/instant/{pair}/': 1,
-                        'sell/{pair}/': 1,
-                        'sell/market/{pair}/': 1,
-                        'sell/instant/{pair}/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'my_trading_pairs/': 1,
-                        'fees/trading/': 1,
-                        'fees/trading/{market_symbol}': 1,
-                        'fees/withdrawal/': 1,
-                        'fees/withdrawal/{currency}/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
-                        'revoke_all_api_keys/': 1,
-                        'get_max_order_amount/': 1,
+                        'account_balances/': { 'cost': 1 } as Endpoint<Dict>,
+                        'account_balances/{currency}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance/': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'bch_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'bch_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'user_transactions/': { 'cost': 1 } as Endpoint<List>,
+                        'user_transactions/{pair}/': { 'cost': 1 } as Endpoint<List>,
+                        'crypto-transactions/': { 'cost': 1 } as Endpoint<Dict>,
+                        'open_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'open_orders/all/': { 'cost': 1 } as Endpoint<List>,
+                        'open_orders/{pair}/': { 'cost': 1 } as Endpoint<List>,
+                        'replace_order/': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_status/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_order/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_orders/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_orders/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'buy/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'buy/market/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'buy/instant/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sell/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sell/market/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sell/instant/{pair}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer-to-main/': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer-from-main/': { 'cost': 1 } as Endpoint<Dict>,
+                        'my_trading_pairs/': { 'cost': 1 } as Endpoint<List>,
+                        'fees/trading/': { 'cost': 1 } as Endpoint<List>,
+                        'fees/trading/{market_symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees/withdrawal/': { 'cost': 1 } as Endpoint<List>,
+                        'fees/withdrawal/{currency}/': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawal-requests/': { 'cost': 1 } as Endpoint<List>,
+                        'withdrawal/open/': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawal/status/': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawal/cancel/': { 'cost': 1 } as Endpoint<Dict>,
+                        'liquidation_address/new/': { 'cost': 1 } as Endpoint<Dict>,
+                        'liquidation_address/info/': { 'cost': 1 } as Endpoint<Dict>,
+                        'btc_unconfirmed/': { 'cost': 1 } as Endpoint<Dict>,
+                        'websockets_token/': { 'cost': 1 } as Endpoint<Dict>,
+                        'revoke_all_api_keys/': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_max_order_amount/': { 'cost': 1 } as Endpoint<Dict>,
                         // individual coins
-                        'btc_withdrawal/': 1,
-                        'btc_address/': 1,
-                        'ripple_withdrawal/': 1,
-                        'ripple_address/': 1,
-                        'ltc_withdrawal/': 1,
-                        'ltc_address/': 1,
-                        'eth_withdrawal/': 1,
-                        'eth_address/': 1,
-                        'xrp_withdrawal/': 1,
-                        'xrp_address/': 1,
-                        'xlm_withdrawal/': 1,
-                        'xlm_address/': 1,
-                        'pax_withdrawal/': 1,
-                        'pax_address/': 1,
-                        'link_withdrawal/': 1,
-                        'link_address/': 1,
-                        'usdc_withdrawal/': 1,
-                        'usdc_address/': 1,
-                        'omg_withdrawal/': 1,
-                        'omg_address/': 1,
-                        'dai_withdrawal/': 1,
-                        'dai_address/': 1,
-                        'knc_withdrawal/': 1,
-                        'knc_address/': 1,
-                        'mkr_withdrawal/': 1,
-                        'mkr_address/': 1,
-                        'zrx_withdrawal/': 1,
-                        'zrx_address/': 1,
-                        'gusd_withdrawal/': 1,
-                        'gusd_address/': 1,
-                        'aave_withdrawal/': 1,
-                        'aave_address/': 1,
-                        'bat_withdrawal/': 1,
-                        'bat_address/': 1,
-                        'uma_withdrawal/': 1,
-                        'uma_address/': 1,
-                        'snx_withdrawal/': 1,
-                        'snx_address/': 1,
-                        'uni_withdrawal/': 1,
-                        'uni_address/': 1,
-                        'yfi_withdrawal/': 1,
-                        'yfi_address/': 1,
-                        'audio_withdrawal/': 1,
-                        'audio_address/': 1,
-                        'crv_withdrawal/': 1,
-                        'crv_address/': 1,
-                        'algo_withdrawal/': 1,
-                        'algo_address/': 1,
-                        'comp_withdrawal/': 1,
-                        'comp_address/': 1,
-                        'grt_withdrawal/': 1,
-                        'grt_address/': 1,
-                        'usdt_withdrawal/': 1,
-                        'usdt_address/': 1,
-                        'eurt_withdrawal/': 1,
-                        'eurt_address/': 1,
-                        'matic_withdrawal/': 1,
-                        'matic_address/': 1,
-                        'sushi_withdrawal/': 1,
-                        'sushi_address/': 1,
-                        'chz_withdrawal/': 1,
-                        'chz_address/': 1,
-                        'enj_withdrawal/': 1,
-                        'enj_address/': 1,
-                        'alpha_withdrawal/': 1,
-                        'alpha_address/': 1,
-                        'ftt_withdrawal/': 1,
-                        'ftt_address/': 1,
-                        'storj_withdrawal/': 1,
-                        'storj_address/': 1,
-                        'axs_withdrawal/': 1,
-                        'axs_address/': 1,
-                        'sand_withdrawal/': 1,
-                        'sand_address/': 1,
-                        'hbar_withdrawal/': 1,
-                        'hbar_address/': 1,
-                        'rgt_withdrawal/': 1,
-                        'rgt_address/': 1,
-                        'fet_withdrawal/': 1,
-                        'fet_address/': 1,
-                        'skl_withdrawal/': 1,
-                        'skl_address/': 1,
-                        'cel_withdrawal/': 1,
-                        'cel_address/': 1,
-                        'sxp_withdrawal/': 1,
-                        'sxp_address/': 1,
-                        'ada_withdrawal/': 1,
-                        'ada_address/': 1,
-                        'slp_withdrawal/': 1,
-                        'slp_address/': 1,
-                        'ftm_withdrawal/': 1,
-                        'ftm_address/': 1,
-                        'perp_withdrawal/': 1,
-                        'perp_address/': 1,
-                        'dydx_withdrawal/': 1,
-                        'dydx_address/': 1,
-                        'gala_withdrawal/': 1,
-                        'gala_address/': 1,
-                        'shib_withdrawal/': 1,
-                        'shib_address/': 1,
-                        'amp_withdrawal/': 1,
-                        'amp_address/': 1,
-                        'sgb_withdrawal/': 1,
-                        'sgb_address/': 1,
-                        'avax_withdrawal/': 1,
-                        'avax_address/': 1,
-                        'wbtc_withdrawal/': 1,
-                        'wbtc_address/': 1,
-                        'ctsi_withdrawal/': 1,
-                        'ctsi_address/': 1,
-                        'cvx_withdrawal/': 1,
-                        'cvx_address/': 1,
-                        'imx_withdrawal/': 1,
-                        'imx_address/': 1,
-                        'nexo_withdrawal/': 1,
-                        'nexo_address/': 1,
-                        'ust_withdrawal/': 1,
-                        'ust_address/': 1,
-                        'ant_withdrawal/': 1,
-                        'ant_address/': 1,
-                        'gods_withdrawal/': 1,
-                        'gods_address/': 1,
-                        'rad_withdrawal/': 1,
-                        'rad_address/': 1,
-                        'band_withdrawal/': 1,
-                        'band_address/': 1,
-                        'inj_withdrawal/': 1,
-                        'inj_address/': 1,
-                        'rly_withdrawal/': 1,
-                        'rly_address/': 1,
-                        'rndr_withdrawal/': 1,
-                        'rndr_address/': 1,
-                        'vega_withdrawal/': 1,
-                        'vega_address/': 1,
-                        '1inch_withdrawal/': 1,
-                        '1inch_address/': 1,
-                        'ens_withdrawal/': 1,
-                        'ens_address/': 1,
-                        'mana_withdrawal/': 1,
-                        'mana_address/': 1,
-                        'lrc_withdrawal/': 1,
-                        'lrc_address/': 1,
-                        'ape_withdrawal/': 1,
-                        'ape_address/': 1,
-                        'mpl_withdrawal/': 1,
-                        'mpl_address/': 1,
-                        'euroc_withdrawal/': 1,
-                        'euroc_address/': 1,
-                        'sol_withdrawal/': 1,
-                        'sol_address/': 1,
-                        'dot_withdrawal/': 1,
-                        'dot_address/': 1,
-                        'near_withdrawal/': 1,
-                        'near_address/': 1,
-                        'doge_withdrawal/': 1,
-                        'doge_address/': 1,
-                        'flr_withdrawal/': 1,
-                        'flr_address/': 1,
-                        'dgld_withdrawal/': 1,
-                        'dgld_address/': 1,
-                        'ldo_withdrawal/': 1,
-                        'ldo_address/': 1,
-                        'travel_rule/contacts/': 1,
-                        'earn/subscribe/': 1,
-                        'earn/subscriptions/setting/': 1,
-                        'earn/unsubscribe': 1,
-                        'wecan_withdrawal/': 1,
-                        'wecan_address/': 1,
-                        'trac_withdrawal/': 1,
-                        'trac_address/': 1,
-                        'eurcv_withdrawal/': 1,
-                        'eurcv_address/': 1,
-                        'pyusd_withdrawal/': 1,
-                        'pyusd_address/': 1,
-                        'lmwr_withdrawal/': 1,
-                        'lmwr_address/': 1,
-                        'pepe_withdrawal/': 1,
-                        'pepe_address/': 1,
-                        'blur_withdrawal/': 1,
-                        'blur_address/': 1,
-                        'vext_withdrawal/': 1,
-                        'vext_address/': 1,
-                        'cspr_withdrawal/': 1,
-                        'cspr_address/': 1,
-                        'vchf_withdrawal/': 1,
-                        'vchf_address/': 1,
-                        'veur_withdrawal/': 1,
-                        'veur_address/': 1,
-                        'truf_withdrawal/': 1,
-                        'truf_address/': 1,
-                        'wif_withdrawal/': 1,
-                        'wif_address/': 1,
-                        'smt_withdrawal/': 1,
-                        'smt_address/': 1,
-                        'sui_withdrawal/': 1,
-                        'sui_address/': 1,
-                        'jup_withdrawal/': 1,
-                        'jup_address/': 1,
-                        'ondo_withdrawal/': 1,
-                        'ondo_address/': 1,
-                        'boba_withdrawal/': 1,
-                        'boba_address/': 1,
-                        'pyth_withdrawal/': 1,
-                        'pyth_address/': 1,
+                        'btc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'btc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ripple_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ripple_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ltc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ltc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eth_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eth_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'xrp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'xrp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'xlm_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'xlm_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pax_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pax_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'link_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'link_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'usdc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'usdc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'omg_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'omg_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dai_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dai_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'knc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'knc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mkr_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mkr_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'zrx_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'zrx_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gusd_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gusd_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'aave_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'aave_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'bat_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'bat_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'uma_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'uma_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'snx_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'snx_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'uni_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'uni_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'yfi_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'yfi_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'audio_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'audio_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'crv_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'crv_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'comp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'comp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'grt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'grt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'usdt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'usdt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eurt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eurt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'matic_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'matic_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sushi_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sushi_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'chz_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'chz_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'enj_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'enj_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'alpha_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'alpha_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ftt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ftt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'storj_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'storj_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'axs_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'axs_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sand_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sand_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'hbar_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'hbar_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rgt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rgt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'fet_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'fet_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'skl_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'skl_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cel_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cel_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sxp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sxp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ada_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ada_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'slp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'slp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ftm_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ftm_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'perp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'perp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dydx_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dydx_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gala_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gala_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'shib_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'shib_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'amp_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'amp_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sgb_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sgb_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'avax_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'avax_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'wbtc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'wbtc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ctsi_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ctsi_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cvx_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cvx_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'imx_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'imx_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'nexo_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'nexo_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ust_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ust_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ant_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ant_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gods_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'gods_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rad_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rad_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'band_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'band_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'inj_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'inj_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rly_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rly_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rndr_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'rndr_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vega_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vega_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        '1inch_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        '1inch_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ens_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ens_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mana_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mana_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'lrc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'lrc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ape_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ape_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mpl_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'mpl_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'euroc_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'euroc_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sol_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sol_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dot_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dot_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'near_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'near_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'doge_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'doge_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'flr_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'flr_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dgld_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'dgld_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ldo_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ldo_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'travel_rule/contacts/': { 'cost': 1 } as Endpoint<Dict>,
+                        'earn/subscribe/': { 'cost': 1 } as Endpoint<Dict>,
+                        'earn/subscriptions/setting/': { 'cost': 1 } as Endpoint<Dict>,
+                        'earn/unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'wecan_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'wecan_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'trac_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'trac_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eurcv_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'eurcv_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pyusd_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pyusd_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'lmwr_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'lmwr_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pepe_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pepe_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'blur_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'blur_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vext_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vext_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cspr_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'cspr_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vchf_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'vchf_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'veur_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'veur_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'truf_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'truf_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'wif_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'wif_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'smt_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'smt_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sui_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'sui_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'jup_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'jup_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ondo_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'ondo_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'boba_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'boba_address/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pyth_withdrawal/': { 'cost': 1 } as Endpoint<Dict>,
+                        'pyth_address/': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -610,7 +613,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.fetchMarketsFromCache (params);
         //
         //    [
@@ -657,7 +660,7 @@ export default class bitstamp extends Exchange {
         //             "isin": "EZHKD4DNKHY3"
         //         }
         //
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
@@ -737,7 +740,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    constructCurrencyObject (id, code, name, precision, minCost, originalPayload) {
+    constructCurrencyObject (id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any) {
         let currencyType = 'crypto';
         const description = this.describe ();
         if (this.isFiat (code)) {
@@ -819,7 +822,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.fetchMarketsFromCache (params);
         //
         //     [
@@ -842,26 +845,36 @@ export default class bitstamp extends Exchange {
         return finalResult;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const market = rawCurrency;
         const existing = this.safeDict (this.options, '_temp_currencies_result', {});
         const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const description = this.safeString (market, 'description');
+        if (description === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing description');
+        }
         const [ baseDescription, quoteDescription ] = description.split (' / ');
         const minimumOrder = this.safeString (market, 'minimum_order_value');
+        if (minimumOrder === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing minimumOrder');
+        }
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
-        if (!(base in existing)) {
+        if ((base === undefined) || !(base in existing)) {
             const baseDecimals = this.safeInteger (market, 'base_decimals');
-            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            if (base !== undefined) {
+                this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            }
         }
-        if (!(quote in existing)) {
+        if ((quote === undefined) || !(quote in existing)) {
             const counterDecimals = this.safeInteger (market, 'counter_decimals');
-            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            if (quote !== undefined) {
+                this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            }
         }
-        return this.options['_temp_currencies_result'][quote];
+        return this.safeValue (this.options['_temp_currencies_result'], quote);
     }
 
     /**
@@ -872,9 +885,9 @@ export default class bitstamp extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -900,13 +913,16 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        if (microtimestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrderBook() missing microtimestamp');
+        }
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // {
         //     "timestamp": "1686068944",
@@ -963,7 +979,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -999,7 +1015,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1023,7 +1039,7 @@ export default class bitstamp extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    getCurrencyIdFromTransaction (transaction) {
+    getCurrencyIdFromTransaction (transaction: any) {
         //
         //     {
         //         "fee": "0.00000000",
@@ -1062,7 +1078,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    getMarketFromTrade (trade) {
+    getMarketFromTrade (trade: any) {
         trade = this.omit (trade, [
             'fee',
             'price',
@@ -1079,18 +1095,18 @@ export default class bitstamp extends Exchange {
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
         }
         return undefined;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1210,7 +1226,7 @@ export default class bitstamp extends Exchange {
         if (costString !== undefined) {
             costString = Precise.stringAbs (costString);
         }
-        let fee: Dict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -1245,7 +1261,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1276,7 +1292,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "high": "9064.77",
@@ -1309,7 +1325,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1355,7 +1371,7 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const finalResponse = response; // java req
         const result: Dict = {
             'info': finalResponse,
@@ -1373,7 +1389,9 @@ export default class bitstamp extends Exchange {
             account['free'] = this.safeString (currencyBalance, 'available');
             account['used'] = this.safeString (currencyBalance, 'reserved');
             account['total'] = this.safeString (currencyBalance, 'total');
-            result[currencyCode] = account;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1386,7 +1404,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1414,7 +1432,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1438,7 +1456,10 @@ export default class bitstamp extends Exchange {
         //     ]
         //
         const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
-        const tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
+        let tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
+        if (tradingFee === undefined) {
+            tradingFee = {};
+        }
         return this.parseTradingFee (tradingFee, market);
     }
 
@@ -1455,12 +1476,14 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTradingFees (fees) {
+    parseTradingFees (fees: any) {
         const result: Dict = { 'info': fees };
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1473,7 +1496,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1505,7 +1528,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
+    override async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1523,7 +1546,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseTransactionFees (response: any, codes: Strings = undefined) {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
@@ -1534,11 +1557,13 @@ export default class bitstamp extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'withdraw_fee': this.safeNumber (fees, 'fee'),
-                'deposit': {},
-                'info': this.safeDict (currencies, id),
-            };
+            if (code !== undefined) {
+                result[code] = {
+                    'withdraw_fee': this.safeNumber (fees, 'fee'),
+                    'deposit': {},
+                    'info': this.safeDict (currencies, id),
+                };
+            }
         }
         return result;
     }
@@ -1552,7 +1577,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1571,7 +1596,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
@@ -1583,16 +1608,18 @@ export default class bitstamp extends Exchange {
                 'fee': withdrawFee,
                 'percentage': undefined,
             };
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': withdrawFee,
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1615,7 +1642,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1629,7 +1656,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId' ]);
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
@@ -1651,7 +1678,8 @@ export default class bitstamp extends Exchange {
                 response = await this.privatePostSellPair (this.extend (request, params));
             }
         }
-        const order = this.parseOrder (response, market);
+        const orderResponse = (response === undefined) ? {} : response;
+        const order = this.parseOrder (orderResponse, market);
         order['type'] = type;
         return order;
     }
@@ -1673,7 +1701,7 @@ export default class bitstamp extends Exchange {
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1705,7 +1733,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1731,17 +1759,17 @@ export default class bitstamp extends Exchange {
      * @description cancel all open orders
      * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
      * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1779,7 +1807,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1805,7 +1833,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1855,7 +1883,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1889,7 +1917,7 @@ export default class bitstamp extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1927,7 +1955,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -1955,7 +1983,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2009,7 +2037,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2047,7 +2075,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -2106,7 +2134,7 @@ export default class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Precise.stringAbs (amount);
         }
-        let status = 'ok';
+        let status: Str = 'ok';
         if ('status' in transaction) {
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         }
@@ -2134,7 +2162,7 @@ export default class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        let fee = {
+        let fee: FeeStringInterface = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2185,7 +2213,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //   from fetch order:
         //     { status: "Finished",
@@ -2274,17 +2302,17 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             '0': 'transaction',
             '1': 'transaction',
             '2': 'trade',
             '14': 'transfer',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     [
         //         {
@@ -2388,7 +2416,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2413,7 +2441,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2433,7 +2461,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -2479,7 +2507,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let market: Market = undefined;
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2507,7 +2535,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    getCurrencyName (code) {
+    getCurrencyName (code: any) {
         /**
          * @ignore
          * @method
@@ -2517,7 +2545,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2530,7 +2558,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
@@ -2562,7 +2590,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -2611,7 +2639,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2620,7 +2648,7 @@ export default class bitstamp extends Exchange {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (fromAccount === 'main') {
             request['subAccount'] = toAccount;
             response = await this.privatePostTransferFromMain (this.extend (request, params));
@@ -2640,12 +2668,15 @@ export default class bitstamp extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         //
         //    { status: 'ok' }
         //
         const status = this.safeString (transfer, 'status');
-        return {
+        if (currency === undefined) {
+            throw new ExchangeError (this.id + ' parseTransfer() could not resolve currency');
+        }
+        const result: Dict = {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
@@ -2656,6 +2687,7 @@ export default class bitstamp extends Exchange {
             'toAccount': undefined,
             'status': this.parseTransferStatus (status),
         };
+        return result;
     }
 
     parseTransferStatus (status: Str): Str {
@@ -2666,11 +2698,11 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);
@@ -2715,7 +2747,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -2727,7 +2759,7 @@ export default class bitstamp extends Exchange {
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if ((status === 'error') || (error !== undefined)) {
-            let errors = [];
+            let errors: string[] = [];
             if (typeof error === 'string') {
                 errors.push (error);
             } else if (error !== undefined) {

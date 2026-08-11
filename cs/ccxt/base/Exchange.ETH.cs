@@ -13,7 +13,7 @@ using Nethereum.Util;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Cryptography.ECDSA;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // ethAbiEncode(types, args) {
