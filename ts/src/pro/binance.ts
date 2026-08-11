@@ -326,6 +326,16 @@ export default class binance extends binanceRest {
         return stockSymbol + '/' + safeQuote;
     }
 
+    /**
+     * @method
+     * @name binance#watchStockMarketStream
+     * @ignore
+     * @description subscribe to the tokenized stock market data stream
+     * @param {string[]} streams stream names to subscribe to
+     * @param {string[]} messageHashes message hashes to listen to
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw stream subscription response
+     */
     async watchStockMarketStream (streams: string[], messageHashes: string[], params: Dict = {}) {
         const url = this.getStockWsUrl ('market');
         const requestId = this.requestId (url);

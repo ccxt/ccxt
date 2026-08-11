@@ -1189,6 +1189,7 @@ class NewTranspiler {
             'watchPublic',
             'watchPublicMultiple',
             'watchSpotPrivate',
+            'watchStockMarketStream',
             'watchSwapPrivate',
             'watchSpotPublic',
             'watchSwapPublic',
