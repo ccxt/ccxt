@@ -139,7 +139,10 @@ const unfinishedMethods = (output) => {
     }
     bump (/\[INFO\] TESTING(?!\s+(?:DONE|FAILED)\b)\s+(\S+)\s+([A-Za-z]\w*)/g, 1)
     bump (/\[INFO\] TESTING (?:DONE|FAILED)\s+(\S+)\s+([A-Za-z]\w*)/g, -1)
-    return Object.keys (counts).filter (key => counts[key] > 0)
+    // a key containing '{' is a session-header artifact, never a real
+    // exchange.method pair — the java header used to leak through as
+    // ".java{symbol=null,.method", see the dump join fix in BaseTest.java
+    return Object.keys (counts).filter (key => counts[key] > 0 && !key.includes ('{'))
 }
 
 //  --------------------------------------------------------------------------- //
