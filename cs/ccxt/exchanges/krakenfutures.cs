@@ -71,6 +71,8 @@ public partial class krakenfutures : Exchange
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
+                { "fetchTradingFee", "emulated" },
+                { "fetchTradingFees", true },
                 { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
@@ -784,6 +786,120 @@ public partial class krakenfutures : Exchange
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         });
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.publicGetFeeschedules(parameters);
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2026-08-11T13:08:44Z",
+        //        "feeSchedules": [
+        //            {
+        //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name": "MTF Linear Rebate Fees",
+        //                "tiers": [
+        //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        object volumes = new Dictionary<string, object>() {};
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            object volumesResponse = await this.privateGetFeeschedulesVolumes();
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule": {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            //        }
+            //    }
+            //
+            volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new Dictionary<string, object>() {});
+        }
+        object feeSchedules = this.safeList(response, "feeSchedules", new List<object>() {});
+        object schedulesByUid = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(feeSchedules)); postFixIncrement(ref i))
+        {
+            object schedule = getValue(feeSchedules, i);
+            object uid = this.safeString(schedule, "uid");
+            if (isTrue(!isEqual(uid, null)))
+            {
+                ((IDictionary<string,object>)schedulesByUid)[(string)uid] = schedule;
+            }
+        }
+        object result = new Dictionary<string, object>() {};
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object uid = this.safeString(getValue(market, "info"), "feeScheduleUid");
+            object schedule = this.safeDict(schedulesByUid, uid);
+            if (isTrue(isEqual(schedule, null)))
+            {
+                continue;
+            }
+            object volume = this.safeString(volumes, uid, "0");
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(schedule, market, volume);
+        }
+        return result;
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null, object volume = null)
+    {
+        //
+        //    {
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
+        //    }
+        //
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
+        object tiers = this.safeList(fee, "tiers", new List<object>() {});
+        object makerFee = null;
+        object takerFee = null;
+        for (object i = 0; isLessThan(i, getArrayLength(tiers)); postFixIncrement(ref i))
+        {
+            object tier = getValue(tiers, i);
+            object tierVolume = this.safeString(tier, "usdVolume");
+            if (isTrue(isTrue((isEqual(volume, null))) || isTrue(Precise.stringGe(volume, tierVolume))))
+            {
+                makerFee = this.safeString(tier, "makerFee");
+                takerFee = this.safeString(tier, "takerFee");
+                if (isTrue(isEqual(volume, null)))
+                {
+                    break;
+                }
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", this.safeSymbol(null, market) },
+            { "maker", this.parseNumber(Precise.stringDiv(makerFee, "100")) },
+            { "taker", this.parseNumber(Precise.stringDiv(takerFee, "100")) },
+            { "percentage", true },
+            { "tierBased", true },
+        };
     }
 
     /**

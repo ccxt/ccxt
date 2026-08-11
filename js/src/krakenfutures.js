@@ -81,6 +81,8 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': true,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -715,6 +717,107 @@ export default class krakenfutures extends Exchange {
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         });
+    }
+    /**
+     * @method
+     * @name krakenfutures#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets();
+        const response = await this.publicGetFeeschedules(params);
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2026-08-11T13:08:44Z",
+        //        "feeSchedules": [
+        //            {
+        //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name": "MTF Linear Rebate Fees",
+        //                "tiers": [
+        //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        let volumes = {};
+        if (this.checkRequiredCredentials(false)) {
+            const volumesResponse = await this.privateGetFeeschedulesVolumes();
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule": {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            //        }
+            //    }
+            //
+            volumes = this.safeDict(volumesResponse, 'volumesByFeeSchedule', {});
+        }
+        const feeSchedules = this.safeList(response, 'feeSchedules', []);
+        const schedulesByUid = {};
+        for (let i = 0; i < feeSchedules.length; i++) {
+            const schedule = feeSchedules[i];
+            const uid = this.safeString(schedule, 'uid');
+            if (uid !== undefined) {
+                schedulesByUid[uid] = schedule;
+            }
+        }
+        const result = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const uid = this.safeString(market['info'], 'feeScheduleUid');
+            const schedule = this.safeDict(schedulesByUid, uid);
+            if (schedule === undefined) {
+                continue;
+            }
+            const volume = this.safeString(volumes, uid, '0');
+            result[symbol] = this.parseTradingFee(schedule, market, volume);
+        }
+        return result;
+    }
+    parseTradingFee(fee, market = undefined, volume = undefined) {
+        //
+        //    {
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
+        //    }
+        //
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
+        const tiers = this.safeList(fee, 'tiers', []);
+        let makerFee = undefined;
+        let takerFee = undefined;
+        for (let i = 0; i < tiers.length; i++) {
+            const tier = tiers[i];
+            const tierVolume = this.safeString(tier, 'usdVolume');
+            if ((volume === undefined) || Precise.stringGe(volume, tierVolume)) {
+                makerFee = this.safeString(tier, 'makerFee');
+                takerFee = this.safeString(tier, 'takerFee');
+                if (volume === undefined) {
+                    break;
+                }
+            }
+        }
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol(undefined, market),
+            'maker': this.parseNumber(Precise.stringDiv(makerFee, '100')),
+            'taker': this.parseNumber(Precise.stringDiv(takerFee, '100')),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
     /**
      * @method

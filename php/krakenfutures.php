@@ -74,6 +74,8 @@ class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => 'emulated',
+                'fetchTradingFees' => true,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -709,6 +711,109 @@ class krakenfutures extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ));
+    }
+
+    public function fetch_trading_fees($params = array()): array {
+        /**
+         * fetch the trading fees for multiple markets, resolving the account's 30-day usd $volume tier when API credentials are set
+         *
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-$volumes
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market $symbols
+         */
+        $this->load_markets();
+        $response = $this->publicGetFeeschedules($params);
+        //
+        //    {
+        //        "result" => "success",
+        //        "serverTime" => "2026-08-11T13:08:44Z",
+        //        "feeSchedules" => array(
+        //            {
+        //                "uid" => "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name" => "MTF Linear Rebate Fees",
+        //                "tiers" => array(
+        //                    array( "makerFee" => 0.02, "takerFee" => 0.05, "usdVolume" => 0.0 ),
+        //                    array( "makerFee" => 0.0175, "takerFee" => 0.045, "usdVolume" => 5000000.0 )
+        //                )
+        //            }
+        //        )
+        //    }
+        //
+        $volumes = array();
+        if ($this->check_required_credentials(false)) {
+            $volumesResponse = $this->privateGetFeeschedulesVolumes();
+            //
+            //    {
+            //        "result" => "success",
+            //        "serverTime" => "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule" => {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3" => 217587.88
+            //        }
+            //    }
+            //
+            $volumes = $this->safe_dict($volumesResponse, 'volumesByFeeSchedule', array());
+        }
+        $feeSchedules = $this->safe_list($response, 'feeSchedules', array());
+        $schedulesByUid = array();
+        for ($i = 0; $i < count($feeSchedules); $i++) {
+            $schedule = $feeSchedules[$i];
+            $uid = $this->safe_string($schedule, 'uid');
+            if ($uid !== null) {
+                $schedulesByUid[$uid] = $schedule;
+            }
+        }
+        $result = array();
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $uid = $this->safe_string($market['info'], 'feeScheduleUid');
+            $schedule = $this->safe_dict($schedulesByUid, $uid);
+            if ($schedule === null) {
+                continue;
+            }
+            $volume = $this->safe_string($volumes, $uid, '0');
+            $result[$symbol] = $this->parse_trading_fee($schedule, $market, $volume);
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null, ?string $volume = null): array {
+        //
+        //    {
+        //        "uid" => "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name" => "MTF Linear Rebate Fees",
+        //        "tiers" => array(
+        //            array( "makerFee" => 0.02, "takerFee" => 0.05, "usdVolume" => 0.0 ),
+        //            array( "makerFee" => 0.0175, "takerFee" => 0.045, "usdVolume" => 5000000.0 )
+        //        )
+        //    }
+        //
+        // fees are expressed in percent, $tiers are sorted by ascending usdVolume
+        $tiers = $this->safe_list($fee, 'tiers', array());
+        $makerFee = null;
+        $takerFee = null;
+        for ($i = 0; $i < count($tiers); $i++) {
+            $tier = $tiers[$i];
+            $tierVolume = $this->safe_string($tier, 'usdVolume');
+            if (($volume === null) || Precise::string_ge($volume, $tierVolume)) {
+                $makerFee = $this->safe_string($tier, 'makerFee');
+                $takerFee = $this->safe_string($tier, 'takerFee');
+                if ($volume === null) {
+                    break;
+                }
+            }
+        }
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol(null, $market),
+            'maker' => $this->parse_number(Precise::string_div($makerFee, '100')),
+            'taker' => $this->parse_number(Precise::string_div($takerFee, '100')),
+            'percentage' => true,
+            'tierBased' => true,
+        );
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {

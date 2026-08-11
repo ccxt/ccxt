@@ -8,6 +8,7 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTickers](#fetchtickers)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
 * [createOrder](#createorder)
@@ -94,6 +95,30 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 ```javascript
 krakenfutures.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**
+
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchTradingFees (params?)
 ```
 
 

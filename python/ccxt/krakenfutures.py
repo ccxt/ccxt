@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -94,6 +94,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': True,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -715,6 +717,99 @@ class krakenfutures(Exchange, ImplicitAPI):
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         })
+
+    def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+
+        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+        https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
+        """
+        self.load_markets()
+        response = self.publicGetFeeschedules(params)
+        #
+        #    {
+        #        "result": "success",
+        #        "serverTime": "2026-08-11T13:08:44Z",
+        #        "feeSchedules": [
+        #            {
+        #                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        #                "name": "MTF Linear Rebate Fees",
+        #                "tiers": [
+        #                    {"makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0},
+        #                    {"makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0}
+        #                ]
+        #            }
+        #        ]
+        #    }
+        #
+        volumes = {}
+        if self.check_required_credentials(False):
+            volumesResponse = self.privateGetFeeschedulesVolumes()
+            #
+            #    {
+            #        "result": "success",
+            #        "serverTime": "2026-08-11T13:08:44Z",
+            #        "volumesByFeeSchedule": {
+            #            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            #        }
+            #    }
+            #
+            volumes = self.safe_dict(volumesResponse, 'volumesByFeeSchedule', {})
+        feeSchedules = self.safe_list(response, 'feeSchedules', [])
+        schedulesByUid = {}
+        for i in range(0, len(feeSchedules)):
+            schedule = feeSchedules[i]
+            uid = self.safe_string(schedule, 'uid')
+            if uid is not None:
+                schedulesByUid[uid] = schedule
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            uid = self.safe_string(market['info'], 'feeScheduleUid')
+            schedule = self.safe_dict(schedulesByUid, uid)
+            if schedule is None:
+                continue
+            volume = self.safe_string(volumes, uid, '0')
+            result[symbol] = self.parse_trading_fee(schedule, market, volume)
+        return result
+
+    def parse_trading_fee(self, fee: dict, market: Market = None, volume: Str = None) -> TradingFeeInterface:
+        #
+        #    {
+        #        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        #        "name": "MTF Linear Rebate Fees",
+        #        "tiers": [
+        #            {"makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0},
+        #            {"makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0}
+        #        ]
+        #    }
+        #
+        # fees are expressed in percent, tiers are sorted by ascending usdVolume
+        tiers = self.safe_list(fee, 'tiers', [])
+        makerFee = None
+        takerFee = None
+        for i in range(0, len(tiers)):
+            tier = tiers[i]
+            tierVolume = self.safe_string(tier, 'usdVolume')
+            if (volume is None) or Precise.string_ge(volume, tierVolume):
+                makerFee = self.safe_string(tier, 'makerFee')
+                takerFee = self.safe_string(tier, 'takerFee')
+                if volume is None:
+                    break
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(None, market),
+            'maker': self.parse_number(Precise.string_div(makerFee, '100')),
+            'taker': self.parse_number(Precise.string_div(takerFee, '100')),
+            'percentage': True,
+            'tierBased': True,
+        }
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """

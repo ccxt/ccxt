@@ -6358,6 +6358,7 @@ fetch the trading fees for multiple markets
 * [hitbtc](/exchanges/hitbtc.md#fetchtradingfees)
 * [hollaex](/exchanges/hollaex.md#fetchtradingfees)
 * [independentreserve](/exchanges/independentreserve.md#fetchtradingfees)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchtradingfees)
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)

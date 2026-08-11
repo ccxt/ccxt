@@ -2607,7 +2607,7 @@ func (this *BinanceCore) FapiPublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTicker24hr", args...)
 }
 
-// FapiPublicGetTickerPrice returns a channel that yields a JSON object.
+// FapiPublicGetTickerPrice returns a channel that yields a JSON object or a JSON array.
 func (this *BinanceCore) FapiPublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
 }
@@ -3037,7 +3037,7 @@ func (this *BinanceCore) FapiPrivateDeleteAlgoOpenOrders(args ...any) <-chan any
 	return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
 }
 
-// FapiPublicV2GetTickerPrice returns a channel that yields a JSON array.
+// FapiPublicV2GetTickerPrice returns a channel that yields a JSON object or a JSON array.
 func (this *BinanceCore) FapiPublicV2GetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicV2GetTickerPrice", args...)
 }
@@ -3362,7 +3362,7 @@ func (this *BinanceCore) PublicGetTickerTradingDay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerTradingDay", args...)
 }
 
-// PublicGetTickerPrice returns a channel that yields a JSON array.
+// PublicGetTickerPrice returns a channel that yields a JSON object or a JSON array.
 func (this *BinanceCore) PublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
