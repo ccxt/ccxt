@@ -445,15 +445,15 @@ function testWsOrderBook () {
     // cleanly and a delete of a trimmed id must be a no op
 
     const trimIndexedInput = {
-        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ], [ 14.0, 1, 'd' ], [ 15.0, 1, 'e' ] ],
         'bids': [ [ 10.0, 1, 'x' ], [ 9.0, 1, 'y' ], [ 8.0, 1, 'z' ], [ 7.0, 1, 'w' ] ],
+        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ], [ 14.0, 1, 'd' ], [ 15.0, 1, 'e' ] ],
         'timestamp': 1574827239000,
         'nonce': 70,
         'symbol': undefined,
     };
     const trimIndexedTarget = {
-        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ] ],
         'bids': [ [ 10.0, 1, 'x' ], [ 9.0, 1, 'y' ], [ 8.0, 1, 'z' ] ],
+        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ] ],
         'timestamp': 1574827239000,
         'datetime': '2019-11-27T04:00:39.000Z',
         'nonce': 70,
