@@ -90,6 +90,13 @@ jobs:
         run: npm run transpile-prediction-go
       - name: Build
         run: go build -C go ./v4
+      - name: Run Go Unit Tests
+        # native *_test.go coverage for go-only behaviors (e.g. the indexed
+        # orderbook regression battery from
+        # https://github.com/ccxt/ccxt/pull/29750); go build skips test files,
+        # so without this step hand-written go/v4 tests never execute in CI
+        if: env.important_modified == 'true'
+        run: go test -C go -count=1 ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
       - name: Build prediction
