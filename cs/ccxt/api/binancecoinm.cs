@@ -1838,69 +1838,6 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductSumHolding",parameters);
     }
 
-    /// <summary>Calls the sapiGetEquityMarketExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityMarketExchangeInfo (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketExchangeInfo",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityMarketTokenizedAssets endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityMarketTokenizedAssets (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketTokenizedAssets",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityMarketQuote endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityMarketQuote (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketQuote",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityOrderOpenOrders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityOrderOpenOrders (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderOpenOrders",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityOrderHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityOrderHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderHistory",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityOrderDetail endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityOrderDetail (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderDetail",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityTradeHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityTradeHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTradeHistory",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityTokenizedConvertStatus endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedConvertStatus (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedConvertStatus",parameters);
-    }
-
-    /// <summary>Calls the sapiGetEquityTokenizedHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedHistory",parameters);
-    }
-
     /// <summary>Calls the sapiPostAssetDust endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiPostAssetDust (object parameters = null)
@@ -2767,55 +2704,6 @@ public partial class binancecoinm : binance
     public async Task<Dictionary<string, object>> sapiPostAccumulatorProductSubscribe (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("sapiPostAccumulatorProductSubscribe",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityOrderPlace endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityOrderPlace (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderPlace",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityOrderCancel endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancel (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancel",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityOrderCancelAll endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancelAll (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancelAll",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityTokenizedMint endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedMint (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedMint",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityTokenizedRedeem endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedRedeem (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedRedeem",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityAccountDisclaimer endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityAccountDisclaimer (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityAccountDisclaimer",parameters);
-    }
-
-    /// <summary>Calls the sapiPostEquityListenKey endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> sapiPostEquityListenKey (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityListenKey",parameters);
     }
 
     /// <summary>Calls the sapiPutUserDataStream endpoint.</summary>
