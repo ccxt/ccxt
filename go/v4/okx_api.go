@@ -737,6 +737,51 @@ func (this *OkxCore) PrivateGetAssetConvertHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
 }
 
+// PrivateGetFiatDepositPaymentMethods returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatDepositPaymentMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDepositPaymentMethods", args...)
+}
+
+// PrivateGetFiatWithdrawalPaymentMethods returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatWithdrawalPaymentMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawalPaymentMethods", args...)
+}
+
+// PrivateGetFiatDepositOrderHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatDepositOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDepositOrderHistory", args...)
+}
+
+// PrivateGetFiatDeposit returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatDeposit", args...)
+}
+
+// PrivateGetFiatWithdrawalOrderHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatWithdrawalOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawalOrderHistory", args...)
+}
+
+// PrivateGetFiatWithdrawal returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatWithdrawal", args...)
+}
+
+// PrivateGetFiatBuySellCurrencies returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatBuySellCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellCurrencies", args...)
+}
+
+// PrivateGetFiatBuySellCurrencyPair returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatBuySellCurrencyPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellCurrencyPair", args...)
+}
+
+// PrivateGetFiatBuySellHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFiatBuySellHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFiatBuySellHistory", args...)
+}
+
 // PrivateGetAccountInstruments returns a channel that yields a JSON object.
 func (this *OkxCore) PrivateGetAccountInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountInstruments", args...)
@@ -1570,6 +1615,26 @@ func (this *OkxCore) PrivatePostAssetConvertEstimateQuote(args ...any) <-chan an
 // PrivatePostAssetConvertTrade returns a channel that yields a JSON object.
 func (this *OkxCore) PrivatePostAssetConvertTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
+}
+
+// PrivatePostFiatCreateWithdrawal returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFiatCreateWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatCreateWithdrawal", args...)
+}
+
+// PrivatePostFiatCancelWithdrawal returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFiatCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatCancelWithdrawal", args...)
+}
+
+// PrivatePostFiatBuySellQuote returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFiatBuySellQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatBuySellQuote", args...)
+}
+
+// PrivatePostFiatBuySellTrade returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFiatBuySellTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFiatBuySellTrade", args...)
 }
 
 // PrivatePostAccountBillsHistoryArchive returns a channel that yields a JSON object.
