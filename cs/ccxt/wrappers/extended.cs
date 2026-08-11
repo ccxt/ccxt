@@ -1160,10 +1160,10 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the api result.</returns>
-    public async Task<string> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((string)res);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches information on an order made by the user
