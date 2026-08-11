@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
+import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, NullableDict } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -42,6 +42,7 @@ export default class lighter extends lighterRest {
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
                 'unWatchOrders': true,
+                'createOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -1148,6 +1149,90 @@ export default class lighter extends lighterRest {
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
         return await this.unsubscribe (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrderWs
+     * @description create a trade order
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const url = this.urls['api']['ws'];
+        const messageHash = 'createOrderWs';
+        let accountIndex: Int = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, 'createOrderWs', 'accountIndex', 'account_index');
+        params['accountIndex'] = accountIndex;
+        const market = this.market (symbol);
+        let groupingType: Int = undefined;
+        [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
+        // for php
+        const totalOrderRequests = orderRequests.length;
+        let apiKeyIndex: Int = undefined;
+        let order: NullableDict = undefined;
+        if (totalOrderRequests > 0) {
+            order = orderRequests[0];
+            apiKeyIndex = (order as Dict)['api_key_index'];
+        }
+        const strAccountIndex = this.numberToString (accountIndex) as string;
+        const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
+        const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        // the nonce could be updated
+        if (this.safeInteger (order, 'nonce') === undefined) {
+            (order as Dict)['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+        }
+        let txType: Str = undefined;
+        let txInfo: Dict;
+        if (totalOrderRequests < 2) {
+            [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
+        } else {
+            const signingPayload: Dict = {
+                'grouping_type': groupingType,
+                'orders': orderRequests,
+                'nonce': (order as Dict)['nonce'],
+                'api_key_index': apiKeyIndex,
+                'account_index': accountIndex,
+            };
+            if (this.safeBool (this.options, 'builderFee', true)) {
+                signingPayload['integrator_account_index'] = (order as Dict)['integrator_account_index'];
+                signingPayload['integrator_taker_fee'] = (order as Dict)['integrator_taker_fee'];
+                signingPayload['integrator_maker_fee'] = (order as Dict)['integrator_maker_fee'];
+            }
+            [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
+        }
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': this.safeInteger (parsedTx, 'Nonce'),
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': this.safeInteger (parsedTx, 'Nonce'),
+            'messageHash': messageHash,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     handleOrders (client: Client, message: any) {
