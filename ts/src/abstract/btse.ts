@@ -56,13 +56,13 @@ interface Exchange {
     privateGetSpotApiV32SubaccountWalletHistory (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33Order (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33OrderPeg (params?: {}): Promise<Dict | List>;
-    privatePostSpotApiV33OrderCancelAllAfter (params?: {}): Promise<Dict | List>;
+    privatePostSpotApiV33OrderCancelAllAfter (params?: {}): Promise<Dict>;
     privatePostSpotApiV33InvestDeposit (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33InvestRenew (params?: {}): Promise<Dict | List>;
     privatePostSpotApiV33InvestRedeem (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23Order (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23OrderPeg (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23OrderCancelAllAfter (params?: {}): Promise<Dict | List>;
+    privatePostFuturesApiV23OrderCancelAllAfter (params?: {}): Promise<Dict>;
     privatePostFuturesApiV23OrderClosePosition (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23RiskLimit (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23Leverage (params?: {}): Promise<Dict | List>;

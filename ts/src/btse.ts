@@ -5,7 +5,7 @@ import Exchange from './abstract/btse.js';
 import { ArgumentsRequired, BadRequest, InvalidOrder } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
+import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -257,13 +257,13 @@ export default class btse extends Exchange {
                     'post': {
                         'spot/api/v3.3/order': 1, // done
                         'spot/api/v3.3/order/peg': 1, // same as above
-                        'spot/api/v3.3/order/cancelAllAfter': 1, // done
+                        'spot/api/v3.3/order/cancelAllAfter': { 'cost': 1 } as Endpoint<Dict>, // done
                         'spot/api/v3.3/invest/deposit': 5,
                         'spot/api/v3.3/invest/renew': 5,
                         'spot/api/v3.3/invest/redeem': 5,
                         'futures/api/v2.3/order': 1, // done
                         'futures/api/v2.3/order/peg': 1, // done
-                        'futures/api/v2.3/order/cancelAllAfter': 1, // done
+                        'futures/api/v2.3/order/cancelAllAfter': { 'cost': 1 } as Endpoint<Dict>, // done
                         'futures/api/v2.3/order/close_position': 1, // done
                         'futures/api/v2.3/risk_limit': 5, // not used
                         'futures/api/v2.3/leverage': 5, // done
@@ -2745,7 +2745,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositionMode() requires a symbol argument');
         }
@@ -2768,7 +2768,6 @@ export default class btse extends Exchange {
         const hedged = (positionMode === 'HEDGE') || (positionMode === 'ISOLATED');
         return {
             'info': data,
-            'symbol': symbol,
             'hedged': hedged,
         };
     }

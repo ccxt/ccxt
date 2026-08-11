@@ -80,20 +80,11 @@
                 "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ISOLATED\"}"
             }
         ],
-        "fetchMarginModes": [
-            {
-                "description": "fetch margin modes",
-                "method": "fetchMarginModes",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
-                "input": [],
-                "output": null
-            }
-        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
                 "method": "fetchMarginMode",
-                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP",
+                "url": "https://api.btse.com/futures/api/v2.3/leverage?symbol=ETH-PERP",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
