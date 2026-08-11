@@ -18,17 +18,23 @@
 //
 // Live network is required (it connects to the real exchanges).
 //
-// STATUS: the WS runtime is live end-to-end. bybit streams a fully-resolved
-// order book with live-updating deltas, and okx resolves its full 400-level
-// snapshot — both work because order-book sides are shared-mutable (the delta
-// handlers mutate a shared backing store, so `handle_deltas(side.clone(), …)`
-// reflects into the cached book). okx then rejects on `InvalidNonce` after the
-// first snapshot: its per-message sequence check reads the book's `nonce`
-// scalar field, which is still COW-cloned (only the side entries are shared),
-// so the seqId written inside `handle_order_book_message` doesn't persist.
-// binance additionally needs a REST depth snapshot fetched via `spawn`
-// (currently a no-op — the transpiler lowers the coroutine's JS function arg to
-// null), so its book doesn't complete yet and that row stays on "waiting".
+// STATUS: the WS runtime is live end-to-end. bybit and okx both stream fully-
+// resolved, live-updating order books: order-book sides are shared-mutable (the
+// delta handlers mutate a shared backing store, so `handle_deltas(side.clone(),
+// …)` reflects into the cached book) and the book's scalar meta (nonce/…) is
+// shared too, so okx's per-message seqId check passes across updates.
+//
+// binance now fetches its REST depth snapshot (via `spawn`, executed inline on
+// the drive loop) and resolves an initial book, but then holds on that first
+// snapshot for BTC/USDT:USDT specifically. Its diff-stream messages carry the
+// market id "BTCUSDT", which collides between the spot market (BTC/USDT) and the
+// USDT-margined perpetual (BTC/USDT:USDT). handleOrderBook resolves that id via
+// markets_by_id[0], which is the spot market (ccxt sorts spot markets first),
+// so the deltas are keyed to "BTC/USDT" while the book is stored under
+// "BTC/USDT:USDT" and get dropped by the `symbol in this.orderbooks` guard.
+// This id-collision behaviour is identical in the TS source (a pre-existing
+// upstream quirk, not a porting gap) — binance's own perpetual books are
+// normally driven via options.defaultType rather than the ":USDT" suffix.
 
 use std::collections::BTreeMap;
 use std::panic::AssertUnwindSafe;
