@@ -1,10 +1,6 @@
 {
     "exchange": "binance",
-    "skipKeys": [
-        "fee",
-        "fees",
-        "trades"
-    ],
+    "skipKeys": [],
     "options": {},
     "methods": {
         "watchOrderBook": [
