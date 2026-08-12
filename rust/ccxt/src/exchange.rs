@@ -44,6 +44,16 @@ static HTTP_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64:
 static JSON_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 static HTTP_CALLS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
+tokio::task_local! {
+    // URLs whose WS drive loop is active on the current task's call stack. A
+    // spawned coroutine that does a nested `self.watch(sameUrl)` (bitvavo's
+    // getBook, htx's snapshot req) must NOT start a second drive loop — that
+    // would block the outer loop on a hash the outer loop is responsible for
+    // resolving. Instead it just sends its subscribe frame and returns; the
+    // outer loop processes the reply. Task-local so it survives task migration.
+    static WS_DRIVEN_URLS: std::sync::Mutex<std::collections::HashSet<String>>;
+}
+
 /// Snapshot + reset the global HTTP/JSON timings. Returns
 /// `(http_nanos, json_nanos, http_calls)` and zeroes them.
 pub fn take_http_timings() -> (u64, u64, u64) {
@@ -1086,6 +1096,43 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             };
             client.send_text(payload);
         }
+        // If an ancestor ws_run on this task is already driving `url`, don't
+        // start a nested loop — the subscribe frame was sent above; report the
+        // current settled state and let the outer loop resolve `hashes`.
+        let nested_same = WS_DRIVEN_URLS
+            .try_with(|s| s.lock().unwrap().contains(&url))
+            .unwrap_or(false);
+        if nested_same {
+            return match client.take_settled(&hashes) {
+                Some(Ok(v)) => v,
+                _ => Value::Null,
+            };
+        }
+        // Drive the loop, marking `url` for the duration so a nested watch on
+        // the same url takes the branch above. Establish the task-local set on
+        // the first (top-level) drive; nested-different-url calls extend it.
+        if WS_DRIVEN_URLS.try_with(|_| ()).is_ok() {
+            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().insert(url.clone()); });
+            let r = self.ws_drive_loop(client, hashes, url.clone()).await;
+            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().remove(&url); });
+            r
+        } else {
+            let mut set = std::collections::HashSet::new();
+            set.insert(url.clone());
+            WS_DRIVEN_URLS
+                .scope(std::sync::Mutex::new(set), self.ws_drive_loop(client, hashes, url.clone()))
+                .await
+        }
+    } }
+
+    /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
+    /// `WS_DRIVEN_URLS` task-local scope.
+    fn ws_drive_loop(
+        &mut self,
+        client: std::sync::Arc<crate::pro::ws_client::ClientState>,
+        hashes: Vec<String>,
+        url: String,
+    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
         loop {
             if let Some(settled) = client.take_settled(&hashes) {
                 match settled {
@@ -1113,11 +1160,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             let _ = self
                 .dispatch_to_derived("handle_message", vec![client_value, msg])
                 .await;
-            // Run any coroutines the handler scheduled via `spawn` (e.g.
-            // binance's REST order-book snapshot fetch). We can't truly
-            // background them (they need `&mut self`), so run them inline here.
-            // Drain repeatedly: a spawned coroutine may itself schedule another
-            // (e.g. handle_order_book → delay(watch_order_book_snapshot)).
+            // Run coroutines the handler scheduled via spawn/delay, inline (they
+            // need &mut self). Drain repeatedly: a coroutine may schedule another
+            // (handle_order_book → delay(watch_order_book_snapshot)).
             loop {
                 let batch = crate::exchange_stubs::drain_spawn_queue();
                 if batch.is_empty() { break; }
