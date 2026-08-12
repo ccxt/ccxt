@@ -1,0 +1,489 @@
+{
+    "exchange": "deribit",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "inverse swap ticker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1786563120531596",
+                        "usOut": "1786563120531808",
+                        "usDiff": 212,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1786563120494,
+                                "state": "open",
+                                "stats": {
+                                    "high": 64422,
+                                    "low": 63261,
+                                    "price_change": -0.0095,
+                                    "volume": 2778.68467406,
+                                    "volume_usd": 177187410,
+                                    "volume_notional": 177187410
+                                },
+                                "index_price": 63329.18,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "last_price": 63344,
+                                "settlement_price": 63799.96,
+                                "min_price": 62396,
+                                "max_price": 64297,
+                                "open_interest": 716004750,
+                                "mark_price": 63346.33,
+                                "interest_value": 0.05636261630352104,
+                                "current_funding": 2.081e-05,
+                                "estimated_delivery_price": 63329.18,
+                                "funding_8h": 0.00010036,
+                                "best_ask_price": 63344.5,
+                                "best_bid_price": 63344,
+                                "best_ask_amount": 9980,
+                                "best_bid_amount": 58060
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "ticker.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1786563120630,
+                                "state": "open",
+                                "stats": {
+                                    "high": 64422,
+                                    "low": 63261,
+                                    "price_change": -0.0095,
+                                    "volume": 2778.68467406,
+                                    "volume_usd": 177187410,
+                                    "volume_notional": 177187410
+                                },
+                                "index_price": 63329.18,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "last_price": 63344,
+                                "settlement_price": 63799.96,
+                                "min_price": 62396,
+                                "max_price": 64297,
+                                "open_interest": 716004750,
+                                "mark_price": 63346.33,
+                                "interest_value": 0.05636261630352104,
+                                "current_funding": 2.081e-05,
+                                "estimated_delivery_price": 63329.18,
+                                "funding_8h": 0.00010036,
+                                "best_ask_price": 63344.5,
+                                "best_bid_price": 63344,
+                                "best_ask_amount": 20680,
+                                "best_bid_amount": 48570
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1786563120494,
+                        "datetime": "2026-08-12T19:32:00.494Z",
+                        "high": 64422,
+                        "low": 63261,
+                        "bid": 63344,
+                        "bidVolume": 58060,
+                        "ask": 63344.5,
+                        "askVolume": 9980,
+                        "vwap": null,
+                        "open": null,
+                        "close": 63344,
+                        "last": 63344,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": 2778.68467406,
+                        "markPrice": 63346.33,
+                        "indexPrice": 63329.18,
+                        "info": {
+                            "timestamp": 1786563120494,
+                            "state": "open",
+                            "stats": {
+                                "high": 64422,
+                                "low": 63261,
+                                "price_change": -0.0095,
+                                "volume": 2778.68467406,
+                                "volume_usd": 177187410,
+                                "volume_notional": 177187410
+                            },
+                            "index_price": 63329.18,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "last_price": 63344,
+                            "settlement_price": 63799.96,
+                            "min_price": 62396,
+                            "max_price": 64297,
+                            "open_interest": 716004750,
+                            "mark_price": 63346.33,
+                            "interest_value": 0.05636261630352104,
+                            "current_funding": 2.081e-05,
+                            "estimated_delivery_price": 63329.18,
+                            "funding_8h": 0.00010036,
+                            "best_ask_price": 63344.5,
+                            "best_bid_price": 63344,
+                            "best_ask_amount": 9980,
+                            "best_bid_amount": 58060
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "inverse swap trades",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "trades.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1786563102527368",
+                        "usOut": "1786563102527581",
+                        "usDiff": 213,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "trades.BTC-PERPETUAL.100ms",
+                            "data": [
+                                {
+                                    "timestamp": 1786563104514,
+                                    "price": 63344.5,
+                                    "direction": "buy",
+                                    "index_price": 63325.19,
+                                    "trade_id": "440192723",
+                                    "instrument_name": "BTC-PERPETUAL",
+                                    "trade_seq": 296152987,
+                                    "amount": 20,
+                                    "mark_price": 63341.87,
+                                    "tick_direction": 1,
+                                    "starbase_match_id": "213378943477100544",
+                                    "contracts": 2,
+                                    "starbase_timestamp": 1786563104514208300
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "trades.BTC-PERPETUAL.100ms",
+                            "data": [
+                                {
+                                    "timestamp": 1786563105791,
+                                    "price": 63344,
+                                    "direction": "sell",
+                                    "index_price": 63325.2,
+                                    "trade_id": "440192724",
+                                    "instrument_name": "BTC-PERPETUAL",
+                                    "trade_seq": 296152988,
+                                    "amount": 40,
+                                    "mark_price": 63341.97,
+                                    "tick_direction": 2,
+                                    "starbase_match_id": "213378948833226752",
+                                    "contracts": 4,
+                                    "starbase_timestamp": 1786563105791729000
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "440192723",
+                            "info": {
+                                "timestamp": 1786563104514,
+                                "price": 63344.5,
+                                "direction": "buy",
+                                "index_price": 63325.19,
+                                "trade_id": "440192723",
+                                "instrument_name": "BTC-PERPETUAL",
+                                "trade_seq": 296152987,
+                                "amount": 20,
+                                "mark_price": 63341.87,
+                                "tick_direction": 1,
+                                "starbase_match_id": "213378943477100544",
+                                "contracts": 2,
+                                "starbase_timestamp": 1786563104514208300
+                            },
+                            "timestamp": 1786563104514,
+                            "datetime": "2026-08-12T19:31:44.514Z",
+                            "symbol": "BTC/USD:BTC",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63344.5,
+                            "amount": 20,
+                            "cost": 0.000315733804829148,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "inverse swap orderbook",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "book.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1786563085259177",
+                        "usOut": "1786563085259323",
+                        "usDiff": 146,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "book.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1786563084954,
+                                "type": "snapshot",
+                                "change_id": 169600103289,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "bids": [
+                                    [
+                                        "new",
+                                        63324.5,
+                                        372280
+                                    ],
+                                    [
+                                        "new",
+                                        63324,
+                                        1360
+                                    ],
+                                    [
+                                        "new",
+                                        63323.5,
+                                        17750
+                                    ],
+                                    [
+                                        "new",
+                                        63323,
+                                        60380
+                                    ],
+                                    [
+                                        "new",
+                                        63322.5,
+                                        13000
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "new",
+                                        63325,
+                                        7730
+                                    ],
+                                    [
+                                        "new",
+                                        63330,
+                                        220
+                                    ],
+                                    [
+                                        "new",
+                                        63331,
+                                        7240
+                                    ],
+                                    [
+                                        "new",
+                                        63332,
+                                        10000
+                                    ],
+                                    [
+                                        "new",
+                                        63333,
+                                        1340
+                                    ]
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "book.BTC-PERPETUAL.100ms",
+                            "data": {
+                                "timestamp": 1786563085228,
+                                "type": "change",
+                                "change_id": 169600103676,
+                                "instrument_name": "BTC-PERPETUAL",
+                                "bids": [
+                                    [
+                                        "delete",
+                                        62533,
+                                        0
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "change",
+                                        63350.5,
+                                        8250
+                                    ],
+                                    [
+                                        "change",
+                                        63353,
+                                        10
+                                    ],
+                                    [
+                                        "delete",
+                                        64116.5,
+                                        0
+                                    ],
+                                    [
+                                        "change",
+                                        94987.5,
+                                        20
+                                    ]
+                                ],
+                                "prev_change_id": 169600103289
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/subscribe",
+                        "params": {
+                            "channels": [
+                                "book.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63324.5,
+                                372280,
+                                1
+                            ],
+                            [
+                                63324,
+                                1360,
+                                1
+                            ],
+                            [
+                                63323.5,
+                                17750,
+                                1
+                            ],
+                            [
+                                63323,
+                                60380,
+                                1
+                            ],
+                            [
+                                63322.5,
+                                13000,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63325,
+                                7730,
+                                1
+                            ],
+                            [
+                                63330,
+                                220,
+                                1
+                            ],
+                            [
+                                63331,
+                                7240,
+                                1
+                            ],
+                            [
+                                63332,
+                                10000,
+                                1
+                            ],
+                            [
+                                63333,
+                                1340,
+                                1
+                            ]
+                        ],
+                        "timestamp": 1786563084954,
+                        "datetime": "2026-08-12T19:31:24.954Z",
+                        "nonce": 1786563084954,
+                        "symbol": "BTC/USD:BTC"
+                    }
+                ]
+            }
+        ]
+    }
+}
