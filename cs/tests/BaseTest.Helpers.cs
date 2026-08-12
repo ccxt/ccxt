@@ -369,6 +369,15 @@ public partial class testMainClass : BaseTest
         return client.mockSentMessages;
     }
 
+    public bool wsClientHasPendingFutures(object exchange2, object url)
+    {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.futures.Count > 0;
+    }
+
     public void rejectPendingWsFutures(object exchange2, object url)
     {
         // reject any futures the injected frames did not resolve, so a broken

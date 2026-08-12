@@ -235,6 +235,14 @@ function injectWsMessage (exchange: any, url: string, message: any) {
     exchange.handleMessage (client, message);
 }
 
+function wsClientHasPendingFutures (exchange: any, url: string) {
+    // whether the watch flow is currently awaiting a message — the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    return messageHashes.length > 0;
+}
+
 function rejectPendingWsFutures (exchange: any, url: string) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; settled js promises
@@ -323,6 +331,7 @@ export {
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
+    wsClientHasPendingFutures,
     getWsSentMessages,
     isNullValue,
     close,

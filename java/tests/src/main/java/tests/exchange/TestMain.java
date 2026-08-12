@@ -2022,13 +2022,19 @@ public class TestMain extends BaseTest
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            // wait for the watch method to register its subscription future
-            // before replaying the frames, then yield between frames so the
-            // handlers run in arrival order in every runtime
-            (exchange.sleep(50)).join();
+            // before every frame, wait until the watch flow is actually awaiting
+            // something — a fixed head-start sleep is not enough on slow ci
+            // runners and the frame's resolution would be dropped
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
             {
+                Object waited = 0;
+                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && Helpers.isTrue((Helpers.isLessThan(waited, 5000))))
+                {
+                    (exchange.sleep(50)).join();
+                    waited = Helpers.add(waited, 50);
+                }
                 injectWsMessage(exchange, url, Helpers.GetValue(messages, i));
+                // yield between frames so the handlers run in arrival order
                 (exchange.sleep(20)).join();
             }
             (exchange.sleep(50)).join();

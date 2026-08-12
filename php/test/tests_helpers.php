@@ -448,6 +448,13 @@ function get_ws_sent_messages($exchange, $url) {
     return $client->connection->sent_messages;
 }
 
+function ws_client_has_pending_futures($exchange, $url) {
+    // whether the watch flow is currently awaiting a message - the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    $client = $exchange->client($url);
+    return count($client->futures) > 0;
+}
+
 function reject_pending_ws_futures($exchange, $url) {
     // reject any futures the injected frames did not resolve, so a broken
     // fixture fails the test instead of hanging it; resolved futures are
