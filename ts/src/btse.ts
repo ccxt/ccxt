@@ -2493,9 +2493,12 @@ export default class btse extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'timestamp');
-        const rawStatus = this.safeString (order, 'status');
+        // open_orders rows carry no numeric status - the state lives in
+        // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
+        // is spelled timeInForce there (observed live), so both fall back
+        const rawStatus = this.safeString2 (order, 'status', 'orderState');
         const rawType = this.safeString (order, 'orderType');
-        const rawTimeInForce = this.safeString (order, 'time_in_force');
+        const rawTimeInForce = this.safeString2 (order, 'time_in_force', 'timeInForce');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderID'),
@@ -2509,7 +2512,7 @@ export default class btse extends Exchange {
             'type': this.parseOrderType (rawType),
             'timeInForce': this.parseTimeInForce (rawTimeInForce),
             'postOnly': this.safeBool (order, 'postOnly'),
-            'reduceOnly': undefined, // todo check
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': this.omitZero (this.safeString2 (order, 'triggerOriginalPrice', 'triggerPrice')),
@@ -2540,6 +2543,8 @@ export default class btse extends Exchange {
             '16': 'rejected', // Order Not Found
             '17': 'rejected', // Request Failed
             '123': 'open', // AMEND_ORDER = Order amended
+            'STATUS_ACTIVE': 'open', // open_orders orderState, observed live
+            'STATUS_INACTIVE': 'canceled', // open_orders orderState
         };
         return this.safeString (statuses, status, status);
     }
