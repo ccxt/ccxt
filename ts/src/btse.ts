@@ -3368,6 +3368,14 @@ export default class btse extends Exchange {
             'symbol': market['id'],
             'leverage': leverage, // a value of 0 requests the maximum cross leverage per the documentation
         };
+        // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
+        // verified live - a bare call on a cross account silently changes the
+        // isolated leverage only, so the unified marginMode param is translated here
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode !== undefined) {
+            request['marginMode'] = marginMode.toUpperCase ();
+        }
         const response = await this.privatePostFuturesApiV23Leverage (this.extend (request, params));
         return response;
     }
