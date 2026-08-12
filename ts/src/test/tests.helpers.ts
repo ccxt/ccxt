@@ -197,6 +197,55 @@ function setFetchResponse (exchange: Exchange, mockResponse: any) {
     return exchange;
 }
 
+function setupWsMockTransport (exchange: any, url: string) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket;
+    // everything above the socket (subscriptions, futures, caches, message
+    // routing) runs unmodified
+    const client = exchange.client (url);
+    client.startedConnecting = true;
+    client.isConnected = true;
+    client.connectionEstablished = exchange.milliseconds ();
+    client.mockSentMessages = [];
+    client.connection = {
+        'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
+        'send': (message: any, options: any = undefined, callback: any = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push (JSON.parse (message));
+            if (callback !== undefined) {
+                callback ();
+            }
+        },
+        'close': () => {},
+    };
+    client.connected.resolve (url);
+    return exchange;
+}
+
+function getWsSentMessages (exchange: any, url: string) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client (url);
+    return client.mockSentMessages;
+}
+
+function injectWsMessage (exchange: any, url: string, message: any) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler — the same entry point the real transport invokes
+    const client = exchange.client (url);
+    exchange.handleMessage (client, message);
+}
+
+function rejectPendingWsFutures (exchange: any, url: string) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; settled js promises
+    // ignore late rejections, so this is a no-op for the happy path
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    for (let i = 0; i < messageHashes.length; i++) {
+        client.reject (new ExchangeError ('static ws test: the injected messages did not resolve the watch future'), messageHashes[i]);
+    }
+}
+
 function isNullValue (value: any) {
     return value === null;
 }
@@ -271,6 +320,10 @@ export {
     getTestFiles,
     getTestFilesSync,
     setFetchResponse,
+    setupWsMockTransport,
+    injectWsMessage,
+    rejectPendingWsFutures,
+    getWsSentMessages,
     isNullValue,
     close,
     getRootDir,

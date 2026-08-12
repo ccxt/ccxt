@@ -1,0 +1,2497 @@
+{
+    "exchange": "bybit",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "linear swap ticker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "topic": "tickers.BTCUSDT",
+                        "type": "snapshot",
+                        "data": {
+                            "symbol": "BTCUSDT",
+                            "tickDirection": "ZeroMinusTick",
+                            "price24hPcnt": "-0.00506",
+                            "lastPrice": "63958.60",
+                            "prevPrice24h": "64283.90",
+                            "highPrice24h": "64477.00",
+                            "lowPrice24h": "63183.10",
+                            "prevPrice1h": "64246.90",
+                            "markPrice": "63958.60",
+                            "indexPrice": "63986.67",
+                            "openInterest": "57798.137",
+                            "openInterestValue": "3696687925.13",
+                            "turnover24h": "3947254153.7179",
+                            "volume24h": "61874.6390",
+                            "fundingIntervalHour": "8",
+                            "fundingCap": "0.005",
+                            "singleOpenInterest": "28899.069",
+                            "singleOpenInterestValue": "1848343994.54",
+                            "nextFundingTime": "1786550400000",
+                            "fundingRate": "0.0000544",
+                            "bid1Price": "63958.60",
+                            "bid1Size": "6.907",
+                            "ask1Price": "63958.70",
+                            "ask1Size": "2.750",
+                            "preOpenPrice": "",
+                            "preQty": "",
+                            "curPreListingPhase": ""
+                        },
+                        "cs": 760580211302,
+                        "ts": 1786540397684
+                    },
+                    {
+                        "topic": "tickers.BTCUSDT",
+                        "type": "delta",
+                        "data": {
+                            "symbol": "BTCUSDT",
+                            "indexPrice": "63986.66"
+                        },
+                        "cs": 760580218857,
+                        "ts": 1786540397983
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "tickers.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540397684,
+                        "datetime": "2026-08-12T13:13:17.684Z",
+                        "high": 64477,
+                        "low": 63183.1,
+                        "bid": 63958.6,
+                        "bidVolume": 6.907,
+                        "ask": 63958.7,
+                        "askVolume": 2.75,
+                        "vwap": 63794.37872304839,
+                        "open": 64283.9,
+                        "close": 63958.6,
+                        "last": 63958.6,
+                        "previousClose": null,
+                        "change": -325.3,
+                        "percentage": -0.506,
+                        "average": 64121.2,
+                        "baseVolume": 61874.639,
+                        "quoteVolume": 3947254153.7179,
+                        "markPrice": 63958.6,
+                        "indexPrice": 63986.67,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "tickDirection": "ZeroMinusTick",
+                            "price24hPcnt": "-0.00506",
+                            "lastPrice": "63958.60",
+                            "prevPrice24h": "64283.90",
+                            "highPrice24h": "64477.00",
+                            "lowPrice24h": "63183.10",
+                            "prevPrice1h": "64246.90",
+                            "markPrice": "63958.60",
+                            "indexPrice": "63986.67",
+                            "openInterest": "57798.137",
+                            "openInterestValue": "3696687925.13",
+                            "turnover24h": "3947254153.7179",
+                            "volume24h": "61874.6390",
+                            "fundingIntervalHour": "8",
+                            "fundingCap": "0.005",
+                            "singleOpenInterest": "28899.069",
+                            "singleOpenInterestValue": "1848343994.54",
+                            "nextFundingTime": "1786550400000",
+                            "fundingRate": "0.0000544",
+                            "bid1Price": "63958.60",
+                            "bid1Size": "6.907",
+                            "ask1Price": "63958.70",
+                            "ask1Size": "2.750",
+                            "preOpenPrice": "",
+                            "preQty": "",
+                            "curPreListingPhase": ""
+                        }
+                    },
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540397983,
+                        "datetime": "2026-08-12T13:13:17.983Z",
+                        "high": 64477,
+                        "low": 63183.1,
+                        "bid": 63958.6,
+                        "bidVolume": 6.907,
+                        "ask": 63958.7,
+                        "askVolume": 2.75,
+                        "vwap": 63794.37872304839,
+                        "open": 64283.9,
+                        "close": 63958.6,
+                        "last": 63958.6,
+                        "previousClose": null,
+                        "change": -325.3,
+                        "percentage": -0.506,
+                        "average": 64121.2,
+                        "baseVolume": 61874.639,
+                        "quoteVolume": 3947254153.7179,
+                        "markPrice": 63958.6,
+                        "indexPrice": 63986.66,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "tickDirection": "ZeroMinusTick",
+                            "price24hPcnt": "-0.00506",
+                            "lastPrice": "63958.60",
+                            "prevPrice24h": "64283.90",
+                            "highPrice24h": "64477.00",
+                            "lowPrice24h": "63183.10",
+                            "prevPrice1h": "64246.90",
+                            "markPrice": "63958.60",
+                            "indexPrice": "63986.66",
+                            "openInterest": "57798.137",
+                            "openInterestValue": "3696687925.13",
+                            "turnover24h": "3947254153.7179",
+                            "volume24h": "61874.6390",
+                            "fundingIntervalHour": "8",
+                            "fundingCap": "0.005",
+                            "singleOpenInterest": "28899.069",
+                            "singleOpenInterestValue": "1848343994.54",
+                            "nextFundingTime": "1786550400000",
+                            "fundingRate": "0.0000544",
+                            "bid1Price": "63958.60",
+                            "bid1Size": "6.907",
+                            "ask1Price": "63958.70",
+                            "ask1Size": "2.750",
+                            "preOpenPrice": "",
+                            "preQty": "",
+                            "curPreListingPhase": ""
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "subscribe",
+                        "conn_id": "d9avtmrvu99oj2ihe620-5ftv7",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "tickers.BTCUSDT",
+                        "ts": 1786538729776,
+                        "type": "snapshot",
+                        "cs": 112571857121,
+                        "data": {
+                            "symbol": "BTCUSDT",
+                            "lastPrice": "64057.7",
+                            "highPrice24h": "64500",
+                            "lowPrice24h": "63232.1",
+                            "prevPrice24h": "64326.9",
+                            "volume24h": "7217.990977",
+                            "turnover24h": "460629823.77866687",
+                            "price24hPcnt": "-0.0042",
+                            "usdIndexPrice": "63989.741059"
+                        }
+                    },
+                    {
+                        "topic": "tickers.BTCUSDT",
+                        "ts": 1786538730026,
+                        "type": "snapshot",
+                        "cs": 112571857482,
+                        "data": {
+                            "symbol": "BTCUSDT",
+                            "lastPrice": "64057.7",
+                            "highPrice24h": "64500",
+                            "lowPrice24h": "63232.1",
+                            "prevPrice24h": "64326.9",
+                            "volume24h": "7218.04828",
+                            "turnover24h": "460633494.47704997",
+                            "price24hPcnt": "-0.0042",
+                            "usdIndexPrice": "63989.741059"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "tickers.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786538729776,
+                        "datetime": "2026-08-12T12:45:29.776Z",
+                        "high": 64500,
+                        "low": 63232.1,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63816.90213335755,
+                        "open": 64326.9,
+                        "close": 64057.7,
+                        "last": 64057.7,
+                        "previousClose": null,
+                        "change": -269.2,
+                        "percentage": -0.42,
+                        "average": 64192.3,
+                        "baseVolume": 7217.990977,
+                        "quoteVolume": 460629823.77866685,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "lastPrice": "64057.7",
+                            "highPrice24h": "64500",
+                            "lowPrice24h": "63232.1",
+                            "prevPrice24h": "64326.9",
+                            "volume24h": "7217.990977",
+                            "turnover24h": "460629823.77866687",
+                            "price24hPcnt": "-0.0042",
+                            "usdIndexPrice": "63989.741059"
+                        }
+                    },
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786538730026,
+                        "datetime": "2026-08-12T12:45:30.026Z",
+                        "high": 64500,
+                        "low": 63232.1,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 63816.90404501561,
+                        "open": 64326.9,
+                        "close": 64057.7,
+                        "last": 64057.7,
+                        "previousClose": null,
+                        "change": -269.2,
+                        "percentage": -0.42,
+                        "average": 64192.3,
+                        "baseVolume": 7218.04828,
+                        "quoteVolume": 460633494.47704995,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "lastPrice": "64057.7",
+                            "highPrice24h": "64500",
+                            "lowPrice24h": "63232.1",
+                            "prevPrice24h": "64326.9",
+                            "volume24h": "7218.04828",
+                            "turnover24h": "460633494.47704997",
+                            "price24hPcnt": "-0.0042",
+                            "usdIndexPrice": "63989.741059"
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "linear swap ohlcv 1m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "topic": "kline.1.BTCUSDT",
+                        "data": [
+                            {
+                                "start": 1786540380000,
+                                "end": 1786540439999,
+                                "interval": "1",
+                                "open": "63975",
+                                "close": "63971.2",
+                                "high": "63975",
+                                "low": "63971.2",
+                                "volume": "0.329",
+                                "turnover": "21047.0079",
+                                "confirm": false,
+                                "timestamp": 1786540381441
+                            }
+                        ],
+                        "ts": 1786540381441,
+                        "type": "snapshot"
+                    },
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "d9tc9msptl6qssdmv0gg-cwel",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "kline.1.BTCUSDT",
+                        "data": [
+                            {
+                                "start": 1786540380000,
+                                "end": 1786540439999,
+                                "interval": "1",
+                                "open": "63975",
+                                "close": "63971.3",
+                                "high": "63975",
+                                "low": "63971.2",
+                                "volume": "0.891",
+                                "turnover": "56998.8785",
+                                "confirm": false,
+                                "timestamp": 1786540382441
+                            }
+                        ],
+                        "ts": 1786540382441,
+                        "type": "snapshot"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "kline.1.BTCUSDT"
+                        ],
+                        "callerMethodName": "watchOHLCV"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786540380000,
+                            63975,
+                            63975,
+                            63971.2,
+                            63971.2,
+                            0.329
+                        ]
+                    ],
+                    [
+                        [
+                            1786540380000,
+                            63975,
+                            63975,
+                            63971.2,
+                            63971.3,
+                            0.891
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "spot ohlcv 1m",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "subscribe",
+                        "conn_id": "d9avsooae41ai44n43eg-5elsb",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "type": "snapshot",
+                        "topic": "kline.1.BTCUSDT",
+                        "data": [
+                            {
+                                "start": 1786538700000,
+                                "end": 1786538759999,
+                                "interval": "1",
+                                "open": "64104.5",
+                                "close": "64096.4",
+                                "high": "64104.5",
+                                "low": "64096.4",
+                                "volume": "1.01673",
+                                "turnover": "65173.1079222",
+                                "confirm": false,
+                                "timestamp": 1786538714563
+                            }
+                        ],
+                        "ts": 1786538714563
+                    },
+                    {
+                        "type": "snapshot",
+                        "topic": "kline.1.BTCUSDT",
+                        "data": [
+                            {
+                                "start": 1786538700000,
+                                "end": 1786538759999,
+                                "interval": "1",
+                                "open": "64104.5",
+                                "close": "64096.4",
+                                "high": "64104.5",
+                                "low": "64096.4",
+                                "volume": "1.017302",
+                                "turnover": "65209.7710708",
+                                "confirm": false,
+                                "timestamp": 1786538715562
+                            }
+                        ],
+                        "ts": 1786538715562
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "kline.1.BTCUSDT"
+                        ],
+                        "callerMethodName": "watchOHLCV"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786538700000,
+                            64104.5,
+                            64104.5,
+                            64096.4,
+                            64096.4,
+                            1.01673
+                        ]
+                    ],
+                    [
+                        [
+                            1786538700000,
+                            64104.5,
+                            64104.5,
+                            64096.4,
+                            64096.4,
+                            1.017302
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "linear swap trades",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "d9tc9d83r8h4ejgu2cu0-ctw7",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "publicTrade.BTCUSDT",
+                        "type": "snapshot",
+                        "ts": 1786540363844,
+                        "data": [
+                            {
+                                "T": 1786540363843,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.015",
+                                "p": "63976.10",
+                                "L": "ZeroPlusTick",
+                                "i": "e799c7b7-1ccc-53d9-b84a-fb7a460397bc",
+                                "BT": false,
+                                "RPI": false,
+                                "seq": 760579112851
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "publicTrade.BTCUSDT",
+                        "type": "snapshot",
+                        "ts": 1786540364137,
+                        "data": [
+                            {
+                                "T": 1786540364137,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.002",
+                                "p": "63976.10",
+                                "L": "ZeroPlusTick",
+                                "i": "716fc3a6-75f3-55a0-987d-97d2b9e66a8b",
+                                "BT": false,
+                                "RPI": false,
+                                "seq": 760579121790
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "publicTrade.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "e799c7b7-1ccc-53d9-b84a-fb7a460397bc",
+                            "info": {
+                                "T": 1786540363843,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.015",
+                                "p": "63976.10",
+                                "L": "ZeroPlusTick",
+                                "i": "e799c7b7-1ccc-53d9-b84a-fb7a460397bc",
+                                "BT": false,
+                                "RPI": false,
+                                "seq": 760579112851
+                            },
+                            "timestamp": 1786540363843,
+                            "datetime": "2026-08-12T13:12:43.843Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63976.1,
+                            "amount": 0.015,
+                            "cost": 959.6415,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "716fc3a6-75f3-55a0-987d-97d2b9e66a8b",
+                            "info": {
+                                "T": 1786540364137,
+                                "s": "BTCUSDT",
+                                "S": "Buy",
+                                "v": "0.002",
+                                "p": "63976.10",
+                                "L": "ZeroPlusTick",
+                                "i": "716fc3a6-75f3-55a0-987d-97d2b9e66a8b",
+                                "BT": false,
+                                "RPI": false,
+                                "seq": 760579121790
+                            },
+                            "timestamp": 1786540364137,
+                            "datetime": "2026-08-12T13:12:44.137Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63976.1,
+                            "amount": 0.002,
+                            "cost": 127.9522,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "subscribe",
+                        "conn_id": "d97jqsmfroiqmeginmkg-6fe4j",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "publicTrade.BTCUSDT",
+                        "ts": 1786538700834,
+                        "type": "snapshot",
+                        "data": [
+                            {
+                                "i": "2290000001190010739",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010740",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010741",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.007799",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010742",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.007799",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010743",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.001",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010744",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010745",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.0016",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010746",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010747",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00225",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            {
+                                "i": "2290000001190010748",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.020613",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "publicTrade.BTCUSDT",
+                        "ts": 1786538700968,
+                        "type": "snapshot",
+                        "data": [
+                            {
+                                "i": "2290000001190010749",
+                                "T": 1786538700967,
+                                "p": "64103.9",
+                                "v": "0.001683",
+                                "S": "Sell",
+                                "seq": 112571834997,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "publicTrade.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "2290000001190010739",
+                            "info": {
+                                "i": "2290000001190010739",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.00325,
+                            "cost": 208.339625,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010740",
+                            "info": {
+                                "i": "2290000001190010740",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.00325,
+                            "cost": 208.339625,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010741",
+                            "info": {
+                                "i": "2290000001190010741",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.007799",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.007799,
+                            "cost": 499.9509955,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010742",
+                            "info": {
+                                "i": "2290000001190010742",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.007799",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.007799,
+                            "cost": 499.9509955,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010743",
+                            "info": {
+                                "i": "2290000001190010743",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.001",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.001,
+                            "cost": 64.1045,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010744",
+                            "info": {
+                                "i": "2290000001190010744",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.00325,
+                            "cost": 208.339625,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010745",
+                            "info": {
+                                "i": "2290000001190010745",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.0016",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.0016,
+                            "cost": 102.5672,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010746",
+                            "info": {
+                                "i": "2290000001190010746",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00325",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.00325,
+                            "cost": 208.339625,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010747",
+                            "info": {
+                                "i": "2290000001190010747",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.00225",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.00225,
+                            "cost": 144.235125,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "2290000001190010748",
+                            "info": {
+                                "i": "2290000001190010748",
+                                "T": 1786538700833,
+                                "p": "64104.5",
+                                "v": "0.020613",
+                                "S": "Sell",
+                                "seq": 112571834644,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700833,
+                            "datetime": "2026-08-12T12:45:00.833Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64104.5,
+                            "amount": 0.020613,
+                            "cost": 1321.3860585,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "2290000001190010749",
+                            "info": {
+                                "i": "2290000001190010749",
+                                "T": 1786538700967,
+                                "p": "64103.9",
+                                "v": "0.001683",
+                                "S": "Sell",
+                                "seq": 112571834997,
+                                "s": "BTCUSDT",
+                                "BT": false,
+                                "RPI": false
+                            },
+                            "timestamp": 1786538700967,
+                            "datetime": "2026-08-12T12:45:00.967Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64103.9,
+                            "amount": 0.001683,
+                            "cost": 107.8868637,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "linear swap orderbook",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "topic": "orderbook.50.BTCUSDT",
+                        "type": "snapshot",
+                        "ts": 1786540345129,
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "63982.70",
+                                    "6.408"
+                                ],
+                                [
+                                    "63982.60",
+                                    "0.001"
+                                ],
+                                [
+                                    "63982.50",
+                                    "0.005"
+                                ],
+                                [
+                                    "63982.30",
+                                    "0.001"
+                                ],
+                                [
+                                    "63981.90",
+                                    "0.002"
+                                ],
+                                [
+                                    "63981.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63981.20",
+                                    "0.024"
+                                ],
+                                [
+                                    "63981.00",
+                                    "0.047"
+                                ],
+                                [
+                                    "63980.90",
+                                    "2.345"
+                                ],
+                                [
+                                    "63980.80",
+                                    "0.525"
+                                ],
+                                [
+                                    "63980.60",
+                                    "0.005"
+                                ],
+                                [
+                                    "63980.20",
+                                    "0.002"
+                                ],
+                                [
+                                    "63980.10",
+                                    "0.002"
+                                ],
+                                [
+                                    "63979.90",
+                                    "0.003"
+                                ],
+                                [
+                                    "63979.80",
+                                    "0.100"
+                                ],
+                                [
+                                    "63979.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63979.60",
+                                    "0.002"
+                                ],
+                                [
+                                    "63979.50",
+                                    "0.024"
+                                ],
+                                [
+                                    "63979.30",
+                                    "0.038"
+                                ],
+                                [
+                                    "63979.20",
+                                    "0.007"
+                                ],
+                                [
+                                    "63979.10",
+                                    "0.861"
+                                ],
+                                [
+                                    "63979.00",
+                                    "0.522"
+                                ],
+                                [
+                                    "63978.90",
+                                    "2.343"
+                                ],
+                                [
+                                    "63978.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63978.30",
+                                    "0.002"
+                                ],
+                                [
+                                    "63978.00",
+                                    "0.003"
+                                ],
+                                [
+                                    "63977.90",
+                                    "0.002"
+                                ],
+                                [
+                                    "63977.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63977.60",
+                                    "0.001"
+                                ],
+                                [
+                                    "63977.50",
+                                    "0.014"
+                                ],
+                                [
+                                    "63977.40",
+                                    "0.045"
+                                ],
+                                [
+                                    "63977.30",
+                                    "0.017"
+                                ],
+                                [
+                                    "63977.20",
+                                    "0.937"
+                                ],
+                                [
+                                    "63977.10",
+                                    "1.235"
+                                ],
+                                [
+                                    "63977.00",
+                                    "0.624"
+                                ],
+                                [
+                                    "63976.90",
+                                    "0.003"
+                                ],
+                                [
+                                    "63976.80",
+                                    "0.001"
+                                ],
+                                [
+                                    "63976.70",
+                                    "3.296"
+                                ],
+                                [
+                                    "63976.60",
+                                    "2.359"
+                                ],
+                                [
+                                    "63976.40",
+                                    "1.684"
+                                ],
+                                [
+                                    "63976.30",
+                                    "0.236"
+                                ],
+                                [
+                                    "63976.20",
+                                    "3.995"
+                                ],
+                                [
+                                    "63976.00",
+                                    "1.885"
+                                ],
+                                [
+                                    "63975.90",
+                                    "0.006"
+                                ],
+                                [
+                                    "63975.80",
+                                    "2.558"
+                                ],
+                                [
+                                    "63975.60",
+                                    "0.002"
+                                ],
+                                [
+                                    "63975.30",
+                                    "0.023"
+                                ],
+                                [
+                                    "63975.10",
+                                    "0.760"
+                                ],
+                                [
+                                    "63975.00",
+                                    "1.005"
+                                ],
+                                [
+                                    "63974.90",
+                                    "0.002"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "63982.80",
+                                    "5.015"
+                                ],
+                                [
+                                    "63982.90",
+                                    "0.001"
+                                ],
+                                [
+                                    "63983.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63983.80",
+                                    "0.168"
+                                ],
+                                [
+                                    "63983.90",
+                                    "1.501"
+                                ],
+                                [
+                                    "63984.00",
+                                    "0.001"
+                                ],
+                                [
+                                    "63984.30",
+                                    "0.002"
+                                ],
+                                [
+                                    "63984.40",
+                                    "0.609"
+                                ],
+                                [
+                                    "63985.20",
+                                    "0.509"
+                                ],
+                                [
+                                    "63985.40",
+                                    "0.506"
+                                ],
+                                [
+                                    "63985.50",
+                                    "0.182"
+                                ],
+                                [
+                                    "63985.70",
+                                    "0.019"
+                                ],
+                                [
+                                    "63985.90",
+                                    "0.001"
+                                ],
+                                [
+                                    "63986.00",
+                                    "0.056"
+                                ],
+                                [
+                                    "63986.10",
+                                    "0.001"
+                                ],
+                                [
+                                    "63986.20",
+                                    "0.001"
+                                ],
+                                [
+                                    "63986.40",
+                                    "0.021"
+                                ],
+                                [
+                                    "63986.50",
+                                    "0.046"
+                                ],
+                                [
+                                    "63986.60",
+                                    "0.522"
+                                ],
+                                [
+                                    "63986.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63986.90",
+                                    "0.589"
+                                ],
+                                [
+                                    "63987.10",
+                                    "0.501"
+                                ],
+                                [
+                                    "63987.20",
+                                    "2.771"
+                                ],
+                                [
+                                    "63987.30",
+                                    "0.573"
+                                ],
+                                [
+                                    "63987.40",
+                                    "0.035"
+                                ],
+                                [
+                                    "63987.60",
+                                    "0.197"
+                                ],
+                                [
+                                    "63987.70",
+                                    "0.001"
+                                ],
+                                [
+                                    "63988.00",
+                                    "0.002"
+                                ],
+                                [
+                                    "63988.30",
+                                    "0.015"
+                                ],
+                                [
+                                    "63988.40",
+                                    "0.002"
+                                ],
+                                [
+                                    "63988.50",
+                                    "0.522"
+                                ],
+                                [
+                                    "63988.60",
+                                    "1.348"
+                                ],
+                                [
+                                    "63988.70",
+                                    "0.002"
+                                ],
+                                [
+                                    "63988.80",
+                                    "0.001"
+                                ],
+                                [
+                                    "63989.20",
+                                    "0.598"
+                                ],
+                                [
+                                    "63989.40",
+                                    "0.371"
+                                ],
+                                [
+                                    "63989.50",
+                                    "0.150"
+                                ],
+                                [
+                                    "63989.60",
+                                    "0.813"
+                                ],
+                                [
+                                    "63989.70",
+                                    "0.844"
+                                ],
+                                [
+                                    "63989.80",
+                                    "0.573"
+                                ],
+                                [
+                                    "63990.00",
+                                    "0.560"
+                                ],
+                                [
+                                    "63990.30",
+                                    "0.117"
+                                ],
+                                [
+                                    "63990.40",
+                                    "1.133"
+                                ],
+                                [
+                                    "63990.50",
+                                    "0.001"
+                                ],
+                                [
+                                    "63990.60",
+                                    "0.827"
+                                ],
+                                [
+                                    "63990.80",
+                                    "0.003"
+                                ],
+                                [
+                                    "63990.90",
+                                    "0.006"
+                                ],
+                                [
+                                    "63991.10",
+                                    "0.002"
+                                ],
+                                [
+                                    "63991.20",
+                                    "3.110"
+                                ],
+                                [
+                                    "63991.30",
+                                    "2.343"
+                                ]
+                            ],
+                            "u": 53935309,
+                            "seq": 760578520138
+                        },
+                        "cts": 1786540345127
+                    },
+                    {
+                        "topic": "orderbook.50.BTCUSDT",
+                        "type": "delta",
+                        "ts": 1786540345149,
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "63982.50",
+                                    "0.003"
+                                ],
+                                [
+                                    "63980.60",
+                                    "0.004"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "63990.50",
+                                    "0.008"
+                                ]
+                            ],
+                            "u": 53935310,
+                            "seq": 760578520655
+                        },
+                        "cts": 1786540345147
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "orderbook.50.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63982.7,
+                                6.408
+                            ],
+                            [
+                                63982.6,
+                                0.001
+                            ],
+                            [
+                                63982.5,
+                                0.005
+                            ],
+                            [
+                                63982.3,
+                                0.001
+                            ],
+                            [
+                                63981.9,
+                                0.002
+                            ],
+                            [
+                                63981.7,
+                                0.002
+                            ],
+                            [
+                                63981.2,
+                                0.024
+                            ],
+                            [
+                                63981,
+                                0.047
+                            ],
+                            [
+                                63980.9,
+                                2.345
+                            ],
+                            [
+                                63980.8,
+                                0.525
+                            ],
+                            [
+                                63980.6,
+                                0.005
+                            ],
+                            [
+                                63980.2,
+                                0.002
+                            ],
+                            [
+                                63980.1,
+                                0.002
+                            ],
+                            [
+                                63979.9,
+                                0.003
+                            ],
+                            [
+                                63979.8,
+                                0.1
+                            ],
+                            [
+                                63979.7,
+                                0.002
+                            ],
+                            [
+                                63979.6,
+                                0.002
+                            ],
+                            [
+                                63979.5,
+                                0.024
+                            ],
+                            [
+                                63979.3,
+                                0.038
+                            ],
+                            [
+                                63979.2,
+                                0.007
+                            ],
+                            [
+                                63979.1,
+                                0.861
+                            ],
+                            [
+                                63979,
+                                0.522
+                            ],
+                            [
+                                63978.9,
+                                2.343
+                            ],
+                            [
+                                63978.7,
+                                0.002
+                            ],
+                            [
+                                63978.3,
+                                0.002
+                            ],
+                            [
+                                63978,
+                                0.003
+                            ],
+                            [
+                                63977.9,
+                                0.002
+                            ],
+                            [
+                                63977.7,
+                                0.002
+                            ],
+                            [
+                                63977.6,
+                                0.001
+                            ],
+                            [
+                                63977.5,
+                                0.014
+                            ],
+                            [
+                                63977.4,
+                                0.045
+                            ],
+                            [
+                                63977.3,
+                                0.017
+                            ],
+                            [
+                                63977.2,
+                                0.937
+                            ],
+                            [
+                                63977.1,
+                                1.235
+                            ],
+                            [
+                                63977,
+                                0.624
+                            ],
+                            [
+                                63976.9,
+                                0.003
+                            ],
+                            [
+                                63976.8,
+                                0.001
+                            ],
+                            [
+                                63976.7,
+                                3.296
+                            ],
+                            [
+                                63976.6,
+                                2.359
+                            ],
+                            [
+                                63976.4,
+                                1.684
+                            ],
+                            [
+                                63976.3,
+                                0.236
+                            ],
+                            [
+                                63976.2,
+                                3.995
+                            ],
+                            [
+                                63976,
+                                1.885
+                            ],
+                            [
+                                63975.9,
+                                0.006
+                            ],
+                            [
+                                63975.8,
+                                2.558
+                            ],
+                            [
+                                63975.6,
+                                0.002
+                            ],
+                            [
+                                63975.3,
+                                0.023
+                            ],
+                            [
+                                63975.1,
+                                0.76
+                            ],
+                            [
+                                63975,
+                                1.005
+                            ],
+                            [
+                                63974.9,
+                                0.002
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63982.8,
+                                5.015
+                            ],
+                            [
+                                63982.9,
+                                0.001
+                            ],
+                            [
+                                63983.7,
+                                0.002
+                            ],
+                            [
+                                63983.8,
+                                0.168
+                            ],
+                            [
+                                63983.9,
+                                1.501
+                            ],
+                            [
+                                63984,
+                                0.001
+                            ],
+                            [
+                                63984.3,
+                                0.002
+                            ],
+                            [
+                                63984.4,
+                                0.609
+                            ],
+                            [
+                                63985.2,
+                                0.509
+                            ],
+                            [
+                                63985.4,
+                                0.506
+                            ],
+                            [
+                                63985.5,
+                                0.182
+                            ],
+                            [
+                                63985.7,
+                                0.019
+                            ],
+                            [
+                                63985.9,
+                                0.001
+                            ],
+                            [
+                                63986,
+                                0.056
+                            ],
+                            [
+                                63986.1,
+                                0.001
+                            ],
+                            [
+                                63986.2,
+                                0.001
+                            ],
+                            [
+                                63986.4,
+                                0.021
+                            ],
+                            [
+                                63986.5,
+                                0.046
+                            ],
+                            [
+                                63986.6,
+                                0.522
+                            ],
+                            [
+                                63986.7,
+                                0.002
+                            ],
+                            [
+                                63986.9,
+                                0.589
+                            ],
+                            [
+                                63987.1,
+                                0.501
+                            ],
+                            [
+                                63987.2,
+                                2.771
+                            ],
+                            [
+                                63987.3,
+                                0.573
+                            ],
+                            [
+                                63987.4,
+                                0.035
+                            ],
+                            [
+                                63987.6,
+                                0.197
+                            ],
+                            [
+                                63987.7,
+                                0.001
+                            ],
+                            [
+                                63988,
+                                0.002
+                            ],
+                            [
+                                63988.3,
+                                0.015
+                            ],
+                            [
+                                63988.4,
+                                0.002
+                            ],
+                            [
+                                63988.5,
+                                0.522
+                            ],
+                            [
+                                63988.6,
+                                1.348
+                            ],
+                            [
+                                63988.7,
+                                0.002
+                            ],
+                            [
+                                63988.8,
+                                0.001
+                            ],
+                            [
+                                63989.2,
+                                0.598
+                            ],
+                            [
+                                63989.4,
+                                0.371
+                            ],
+                            [
+                                63989.5,
+                                0.15
+                            ],
+                            [
+                                63989.6,
+                                0.813
+                            ],
+                            [
+                                63989.7,
+                                0.844
+                            ],
+                            [
+                                63989.8,
+                                0.573
+                            ],
+                            [
+                                63990,
+                                0.56
+                            ],
+                            [
+                                63990.3,
+                                0.117
+                            ],
+                            [
+                                63990.4,
+                                1.133
+                            ],
+                            [
+                                63990.5,
+                                0.001
+                            ],
+                            [
+                                63990.6,
+                                0.827
+                            ],
+                            [
+                                63990.8,
+                                0.003
+                            ],
+                            [
+                                63990.9,
+                                0.006
+                            ],
+                            [
+                                63991.1,
+                                0.002
+                            ],
+                            [
+                                63991.2,
+                                3.11
+                            ],
+                            [
+                                63991.3,
+                                2.343
+                            ]
+                        ],
+                        "timestamp": 1786540345129,
+                        "datetime": "2026-08-12T13:12:25.129Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT:USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                63982.7,
+                                6.408
+                            ],
+                            [
+                                63982.6,
+                                0.001
+                            ],
+                            [
+                                63982.5,
+                                0.003
+                            ],
+                            [
+                                63982.3,
+                                0.001
+                            ],
+                            [
+                                63981.9,
+                                0.002
+                            ],
+                            [
+                                63981.7,
+                                0.002
+                            ],
+                            [
+                                63981.2,
+                                0.024
+                            ],
+                            [
+                                63981,
+                                0.047
+                            ],
+                            [
+                                63980.9,
+                                2.345
+                            ],
+                            [
+                                63980.8,
+                                0.525
+                            ],
+                            [
+                                63980.6,
+                                0.004
+                            ],
+                            [
+                                63980.2,
+                                0.002
+                            ],
+                            [
+                                63980.1,
+                                0.002
+                            ],
+                            [
+                                63979.9,
+                                0.003
+                            ],
+                            [
+                                63979.8,
+                                0.1
+                            ],
+                            [
+                                63979.7,
+                                0.002
+                            ],
+                            [
+                                63979.6,
+                                0.002
+                            ],
+                            [
+                                63979.5,
+                                0.024
+                            ],
+                            [
+                                63979.3,
+                                0.038
+                            ],
+                            [
+                                63979.2,
+                                0.007
+                            ],
+                            [
+                                63979.1,
+                                0.861
+                            ],
+                            [
+                                63979,
+                                0.522
+                            ],
+                            [
+                                63978.9,
+                                2.343
+                            ],
+                            [
+                                63978.7,
+                                0.002
+                            ],
+                            [
+                                63978.3,
+                                0.002
+                            ],
+                            [
+                                63978,
+                                0.003
+                            ],
+                            [
+                                63977.9,
+                                0.002
+                            ],
+                            [
+                                63977.7,
+                                0.002
+                            ],
+                            [
+                                63977.6,
+                                0.001
+                            ],
+                            [
+                                63977.5,
+                                0.014
+                            ],
+                            [
+                                63977.4,
+                                0.045
+                            ],
+                            [
+                                63977.3,
+                                0.017
+                            ],
+                            [
+                                63977.2,
+                                0.937
+                            ],
+                            [
+                                63977.1,
+                                1.235
+                            ],
+                            [
+                                63977,
+                                0.624
+                            ],
+                            [
+                                63976.9,
+                                0.003
+                            ],
+                            [
+                                63976.8,
+                                0.001
+                            ],
+                            [
+                                63976.7,
+                                3.296
+                            ],
+                            [
+                                63976.6,
+                                2.359
+                            ],
+                            [
+                                63976.4,
+                                1.684
+                            ],
+                            [
+                                63976.3,
+                                0.236
+                            ],
+                            [
+                                63976.2,
+                                3.995
+                            ],
+                            [
+                                63976,
+                                1.885
+                            ],
+                            [
+                                63975.9,
+                                0.006
+                            ],
+                            [
+                                63975.8,
+                                2.558
+                            ],
+                            [
+                                63975.6,
+                                0.002
+                            ],
+                            [
+                                63975.3,
+                                0.023
+                            ],
+                            [
+                                63975.1,
+                                0.76
+                            ],
+                            [
+                                63975,
+                                1.005
+                            ],
+                            [
+                                63974.9,
+                                0.002
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63982.8,
+                                5.015
+                            ],
+                            [
+                                63982.9,
+                                0.001
+                            ],
+                            [
+                                63983.7,
+                                0.002
+                            ],
+                            [
+                                63983.8,
+                                0.168
+                            ],
+                            [
+                                63983.9,
+                                1.501
+                            ],
+                            [
+                                63984,
+                                0.001
+                            ],
+                            [
+                                63984.3,
+                                0.002
+                            ],
+                            [
+                                63984.4,
+                                0.609
+                            ],
+                            [
+                                63985.2,
+                                0.509
+                            ],
+                            [
+                                63985.4,
+                                0.506
+                            ],
+                            [
+                                63985.5,
+                                0.182
+                            ],
+                            [
+                                63985.7,
+                                0.019
+                            ],
+                            [
+                                63985.9,
+                                0.001
+                            ],
+                            [
+                                63986,
+                                0.056
+                            ],
+                            [
+                                63986.1,
+                                0.001
+                            ],
+                            [
+                                63986.2,
+                                0.001
+                            ],
+                            [
+                                63986.4,
+                                0.021
+                            ],
+                            [
+                                63986.5,
+                                0.046
+                            ],
+                            [
+                                63986.6,
+                                0.522
+                            ],
+                            [
+                                63986.7,
+                                0.002
+                            ],
+                            [
+                                63986.9,
+                                0.589
+                            ],
+                            [
+                                63987.1,
+                                0.501
+                            ],
+                            [
+                                63987.2,
+                                2.771
+                            ],
+                            [
+                                63987.3,
+                                0.573
+                            ],
+                            [
+                                63987.4,
+                                0.035
+                            ],
+                            [
+                                63987.6,
+                                0.197
+                            ],
+                            [
+                                63987.7,
+                                0.001
+                            ],
+                            [
+                                63988,
+                                0.002
+                            ],
+                            [
+                                63988.3,
+                                0.015
+                            ],
+                            [
+                                63988.4,
+                                0.002
+                            ],
+                            [
+                                63988.5,
+                                0.522
+                            ],
+                            [
+                                63988.6,
+                                1.348
+                            ],
+                            [
+                                63988.7,
+                                0.002
+                            ],
+                            [
+                                63988.8,
+                                0.001
+                            ],
+                            [
+                                63989.2,
+                                0.598
+                            ],
+                            [
+                                63989.4,
+                                0.371
+                            ],
+                            [
+                                63989.5,
+                                0.15
+                            ],
+                            [
+                                63989.6,
+                                0.813
+                            ],
+                            [
+                                63989.7,
+                                0.844
+                            ],
+                            [
+                                63989.8,
+                                0.573
+                            ],
+                            [
+                                63990,
+                                0.56
+                            ],
+                            [
+                                63990.3,
+                                0.117
+                            ],
+                            [
+                                63990.4,
+                                1.133
+                            ],
+                            [
+                                63990.5,
+                                0.008
+                            ],
+                            [
+                                63990.6,
+                                0.827
+                            ],
+                            [
+                                63990.8,
+                                0.003
+                            ],
+                            [
+                                63990.9,
+                                0.006
+                            ],
+                            [
+                                63991.1,
+                                0.002
+                            ],
+                            [
+                                63991.2,
+                                3.11
+                            ],
+                            [
+                                63991.3,
+                                2.343
+                            ]
+                        ],
+                        "timestamp": 1786540345149,
+                        "datetime": "2026-08-12T13:12:25.149Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ]
+            },
+            {
+                "description": "spot orderbook depth 1",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "subscribe",
+                        "conn_id": "d9avtftc9enb83116hvg-5i8rn",
+                        "req_id": "1",
+                        "op": "subscribe"
+                    },
+                    {
+                        "topic": "orderbook.1.BTCUSDT",
+                        "ts": 1786538684939,
+                        "type": "snapshot",
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "64097.1",
+                                    "0.463717"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "64097.2",
+                                    "1.299102"
+                                ]
+                            ],
+                            "u": 70913931,
+                            "seq": 112571825987
+                        },
+                        "cts": 1786538684930
+                    },
+                    {
+                        "topic": "orderbook.1.BTCUSDT",
+                        "ts": 1786538685039,
+                        "type": "snapshot",
+                        "data": {
+                            "s": "BTCUSDT",
+                            "b": [
+                                [
+                                    "64097.1",
+                                    "0.493717"
+                                ]
+                            ],
+                            "a": [
+                                [
+                                    "64097.2",
+                                    "1.299102"
+                                ]
+                            ],
+                            "u": 70913932,
+                            "seq": 112571826019
+                        },
+                        "cts": 1786538685036
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "req_id": 1,
+                        "args": [
+                            "orderbook.1.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64097.1,
+                                0.463717
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64097.2,
+                                1.299102
+                            ]
+                        ],
+                        "timestamp": 1786538684939,
+                        "datetime": "2026-08-12T12:44:44.939Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64097.1,
+                                0.493717
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64097.2,
+                                1.299102
+                            ]
+                        ],
+                        "timestamp": 1786538685039,
+                        "datetime": "2026-08-12T12:44:45.039Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDT"
+                    }
+                ]
+            }
+        ]
+  }
+}

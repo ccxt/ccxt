@@ -439,6 +439,44 @@ public class BaseTest {
         return exchange;
     }
 
+    public static Object setupWsMockTransport(Object exchange2, Object url) {
+        // put the ws client for the given url into an "already connected" state
+        // with a transport stub, so watch* methods never open a real socket;
+        // everything above the socket (subscriptions, futures, caches, message
+        // routing) runs unmodified
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.startedConnecting.set(true);
+        client.isMock = true;
+        client.isConnected = true;
+        client.connected.complete(true);
+        return exchange;
+    }
+
+    public static void injectWsMessage(Object exchange2, Object url, Object message) {
+        // feed one already-json-parsed frame into the exchange's ws message
+        // handler - the same entry point the real transport invokes
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.handleMessageCallback.accept(client, message);
+    }
+
+    public static Object getWsSentMessages(Object exchange2, Object url) {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        return client.mockSentMessages;
+    }
+
+    public static void rejectPendingWsFutures(Object exchange2, Object url) {
+        // reject any futures the injected frames did not resolve, so a broken
+        // fixture fails the test instead of hanging it; resolved futures are
+        // already removed from the futures map, so only pending ones remain
+        var exchange = (BaseExchange) exchange2;
+        var client = exchange.client(url);
+        client.reject(new io.github.ccxt.errors.ExchangeError("static ws test: the injected messages did not resolve the watch future"));
+    }
+
     @SuppressWarnings("unchecked")
     public static CompletableFuture<Object> callExchangeMethodDynamicallySync(
         Object exchange,
@@ -669,6 +707,12 @@ public class BaseTest {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, Object isWs2) {
+        // the transpiled tests pass the isWs flag as an Object
+        var isWs = (isWs2 == null) ? false : (boolean) isWs2;
+        return initExchange(exchangeId, exchangeArgs, isWs);
     }
 
     public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {

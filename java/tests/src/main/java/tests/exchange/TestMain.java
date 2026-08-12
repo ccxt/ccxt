@@ -13,8 +13,10 @@ public class TestMain extends BaseTest
     public boolean idTests = false;
     public boolean requestTestsFailed = false;
     public boolean responseTestsFailed = false;
+    public boolean staticWsTestsFailed = false;
     public boolean requestTests = false;
     public boolean wsTests = false;
+    public boolean staticWsTests = false;
     public boolean responseTests = false;
     public boolean predictionTests = false;
     public boolean info = false;
@@ -47,6 +49,7 @@ public class TestMain extends BaseTest
         this.sandbox = getCliArgValue("--sandbox");
         this.loadKeys = getCliArgValue("--loadKeys");
         this.wsTests = getCliArgValue("--ws");
+        this.staticWsTests = getCliArgValue("--wsTests");
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         this.predictionTests = getCliArgValue("--prediction");
         this.lang = getLang();
@@ -64,7 +67,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
-                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                throw new RuntimeException(e);
             }
             return true;
         });
@@ -86,6 +89,11 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(this.responseTests))
             {
                 (this.runStaticResponseTests(exchangeId, symbolArgv)).join();
+                return true;
+            }
+            if (Helpers.isTrue(this.staticWsTests))
+            {
+                (this.runStaticWsTests(exchangeId, symbolArgv)).join();
                 return true;
             }
             if (Helpers.isTrue(this.requestTests))
@@ -1502,7 +1510,7 @@ public class TestMain extends BaseTest
                 {
                     (close(exchange)).join();
                 }
-                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                throw new RuntimeException(e);
             }
             return true;  // required in c#
         });
@@ -1821,7 +1829,7 @@ public class TestMain extends BaseTest
                 Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
                 dump(Helpers.add("[TEST_FAILURE_DETAIL]", errorMessage));
             }
-            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+            throw new RuntimeException(e);
         }
         return res;
     }
@@ -1955,7 +1963,7 @@ public class TestMain extends BaseTest
             {
                 if (!Helpers.isTrue((Helpers.isInstance(e, InvalidProxySettings.class))))
                 {
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    throw new RuntimeException(e);
                 }
                 output = exchange.last_request_body;
                 requestUrl = exchange.last_request_url;
@@ -2009,7 +2017,201 @@ public class TestMain extends BaseTest
 
     }
 
-    public BaseExchange initOfflineExchange(Object exchangeName)
+    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // wait for the watch method to register its subscription future
+            // before replaying the frames, then yield between frames so the
+            // handlers run in arrival order in every runtime
+            (exchange.sleep(50)).join();
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+            {
+                injectWsMessage(exchange, url, Helpers.GetValue(messages, i));
+                (exchange.sleep(20)).join();
+            }
+            (exchange.sleep(50)).join();
+            // reject anything still pending so a wrong fixture fails fast
+            // instead of hanging the test run forever
+            rejectPendingWsFutures(exchange, url);
+            return true;  // c# methods used with promiseAll need to return something
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object method, Object input, Object skipKeys, Object expectedResults)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            try
+            {
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(expectedResults)); i++)
+                {
+                    Object result = (callExchangeMethodDynamically(exchange, method, input)).join();
+                    // ws structures can be live typed objects (e.g. orderbooks) in some
+                    // runtimes — roundtrip through json so the deep-compare sees plain
+                    // dicts in every language
+                    Object unifiedResult = jsonParse(jsonStringify(result));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(expectedResults, i));
+                }
+            } catch(Exception e)
+            {
+                throw new RuntimeException(e);
+            }
+            return true;  // c# methods used with promiseAll need to return something
+        });
+
+    }
+
+    public void AssertWsSentMessages(BaseExchange exchange, Object url, Object data)
+    {
+        // the ws analog of the static request tests: Assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        Object expectedSent = exchange.safeList(data, "sentMessages");
+        if (Helpers.isTrue(Helpers.isEqual(expectedSent, null)))
+        {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        Object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object sentMessages = getWsSentMessages(exchange, url);
+        Object sentLength = Helpers.getArrayLength(sentMessages);
+        Object expectedLength = Helpers.getArrayLength(expectedSent);
+        Assert(Helpers.isEqual(sentLength, expectedLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("sent ws messages count mismatch: sent ", String.valueOf(sentLength)), ", expected "), String.valueOf(expectedLength)), " "), jsonStringify(sentMessages)));
+        for (var i = 0; Helpers.isLessThan(i, expectedLength); i++)
+        {
+            Object unifiedSent = jsonParse(jsonStringify(Helpers.GetValue(sentMessages, i)));
+            this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, Helpers.GetValue(expectedSent, i));
+        }
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object url = exchange.safeString(data, "url");
+            setupWsMockTransport(exchange, url);
+            Object httpResponse = exchange.safeValue(data, "httpResponse");
+            if (Helpers.isTrue(!Helpers.isEqual(httpResponse, null)))
+            {
+                // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+                setFetchResponse(exchange, httpResponse);
+            }
+            if (Helpers.isTrue(this.info))
+            {
+                dump("[INFO] STATIC WS TEST:", method, ":", Helpers.GetValue(data, "description"));
+            }
+            try
+            {
+                Object messages = exchange.safeList(data, "messages", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object input = this.sanitizeDataInput(Helpers.GetValue(data, "input"));
+                Object expectedResults = exchange.safeList(data, "parsedResponses");
+                if (Helpers.isTrue(!Helpers.isEqual(expectedResults, null)))
+                {
+                    // 'parsedResponses' Asserts one result per successive watch
+                    // resolution (e.g. an order going from open to closed)
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.watchAndAssertSequence(exchange, method, input, skipKeys, expectedResults), this.injectWsMessages(exchange, url, messages)));
+                    (Helpers.promiseAll(promises)).join();
+                    this.AssertWsSentMessages(exchange, url, data);
+                } else
+                {
+                    // 'parsedResponse' Asserts the final state after every frame
+                    // was replayed — live structures like orderbooks keep updating
+                    // after the first resolution, so serialize only at the end
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)));
+                    Object results = (Helpers.promiseAll(promises)).join();
+                    Object unifiedResult = jsonParse(jsonStringify(Helpers.GetValue(results, 0)));
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(data, "parsedResponse"));
+                    this.AssertWsSentMessages(exchange, url, data);
+                }
+            } catch(Exception e)
+            {
+                this.staticWsTestsFailed = true;
+                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                dump(Helpers.add("[TEST_FAILURE]", errorMessage));
+            }
+            setFetchResponse(exchange, null); // reset state
+            return true;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object testName = Helpers.getArg(optionalArgs, 0, null);
+            Object globalOptions = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "options"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
+            Object methods = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "methods"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "methods");
+            Object methodsNames = Helpers.objectKeys(methods);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
+            {
+                Object method = Helpers.GetValue(methodsNames, i);
+                Object results = Helpers.GetValue(methods, method);
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(results)); j++)
+                {
+                    Object result = Helpers.GetValue(results, j);
+                    Object description = Helpers.GetValue(result, "description");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(testName, null))) && Helpers.isTrue((!Helpers.isEqual(testName, description)))))
+                    {
+                        continue;
+                    }
+                    // a fresh exchange per entry: ws caches (trades, orderbooks,
+                    // ohlcvs) and request-id counters survive between watch calls
+                    // and would leak state across entries otherwise
+                    BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                    Object isDisabled = exchange.safeBool(result, "disabled", false);
+                    if (Helpers.isTrue(isDisabled))
+                    {
+                        continue;
+                    }
+                    Object disabledString = exchange.safeString(result, "disabled", "");
+                    if (Helpers.isTrue(!Helpers.isEqual(disabledString, "")))
+                    {
+                        continue;
+                    }
+                    Object isDisabledCSharp = exchange.safeString(result, "disabledCS");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledCSharp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "C#")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledGo = exchange.safeString(result, "disabledGO");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledGo, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledJava = exchange.safeString(result, "disabledJava");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledJava, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
+                    {
+                        continue;
+                    }
+                    Object isDisabledPhp = exchange.safeString(result, "disabledPHP");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledPhp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "PHP")))))
+                    {
+                        continue;
+                    }
+                    exchange.extendExchangeOptions(globalOptions);
+                    Object testExchangeOptions = exchange.safeValue(result, "options", new java.util.HashMap<String, Object>() {{}});
+                    exchange.extendExchangeOptions(testExchangeOptions);
+                    Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    (this.testWsStatically(exchange, method, skipKeys, result)).join();
+                    if (!Helpers.isTrue(isSync()))
+                    {
+                        (close(exchange)).join();
+                    }
+                }
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        });
+
+    }
+
+    public BaseExchange initOfflineExchange(Object exchangeName, Object... optionalArgs)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2017,6 +2219,7 @@ public class TestMain extends BaseTest
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
+        Object isWs = Helpers.getArg(optionalArgs, 0, false);
         Object predictionEvents = null;
         if (Helpers.isTrue(this.predictionTests))
         {
@@ -2110,7 +2313,7 @@ public class TestMain extends BaseTest
             Helpers.addElementToObject(options, "apiKey", "");
             Helpers.addElementToObject(options, "secret", "");
         }
-        BaseExchange exchange = initExchange(exchangeName, options);
+        BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
         {
             exchange.currencies = currencies;
@@ -2460,6 +2663,9 @@ public class TestMain extends BaseTest
                 if (Helpers.isTrue(Helpers.isEqual(type, "request")))
                 {
                     ((java.util.List<Object>)promises).add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+                } else if (Helpers.isTrue(Helpers.isEqual(type, "ws")))
+                {
+                    ((java.util.List<Object>)promises).add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
                 } else
                 {
                     ((java.util.List<Object>)promises).add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
@@ -2473,6 +2679,9 @@ public class TestMain extends BaseTest
                 if (Helpers.isTrue(Helpers.isEqual(type, "request")))
                 {
                     this.requestTestsFailed = true;
+                } else if (Helpers.isTrue(Helpers.isEqual(type, "ws")))
+                {
+                    this.staticWsTestsFailed = true;
                 } else
                 {
                     this.responseTestsFailed = true;
@@ -2480,7 +2689,7 @@ public class TestMain extends BaseTest
                 Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
-            if (Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)) || Helpers.isTrue(this.staticWsTestsFailed)))
             {
                 exitScript(1);
             } else
@@ -2505,6 +2714,28 @@ public class TestMain extends BaseTest
             Object exchangeName = Helpers.getArg(optionalArgs, 0, null);
             Object test = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("response", exchangeName, test)).join();
+            return true;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> runStaticWsTests(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            //  -----------------------------------------------------------------------------
+            //  --- static ws tests: replay canned frames into the ws message handlers ------
+            //  -----------------------------------------------------------------------------
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            Object exchangeName = Helpers.getArg(optionalArgs, 0, null);
+            Object test = Helpers.getArg(optionalArgs, 1, null);
+            if (Helpers.isTrue(isSync()))
+            {
+                return true;
+            }
+            (this.runStaticTests("ws", exchangeName, test)).join();
             return true;
         });
 
